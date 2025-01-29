@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 
 interface Stat {
   label: string;
@@ -15,10 +15,25 @@ const stats: Stat[] = [
 
 export const StatsCounter = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [displayValues, setDisplayValues] = useState(stats.map(() => 0));
 
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+    if (isVisible) {
+      stats.forEach((stat, index) => {
+        const interval = setInterval(() => {
+          setDisplayValues(prev => {
+            const newValues = [...prev];
+            const increment = Math.ceil(stat.value / 50);
+            newValues[index] = Math.min(prev[index] + increment, stat.value);
+            return newValues;
+          });
+        }, 30);
+
+        setTimeout(() => clearInterval(interval), 2000);
+      });
+    }
+  }, [isVisible]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
@@ -30,15 +45,10 @@ export const StatsCounter = () => {
           transition={{ delay: index * 0.2 }}
           className="text-center"
         >
-          <motion.div
-            initial={{ number: 0 }}
-            animate={isVisible ? { number: stat.value } : {}}
-            transition={{ duration: 2, delay: index * 0.2 }}
-            className="text-4xl font-bold text-primary"
-          >
-            {Math.floor(stat.value)}
+          <div className="text-4xl font-bold text-primary">
+            {displayValues[index].toLocaleString()}
             {stat.suffix}
-          </motion.div>
+          </div>
           <div className="text-secondary mt-2">{stat.label}</div>
         </motion.div>
       ))}
