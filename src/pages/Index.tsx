@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Star, Users, Shield, Zap } from "lucide-react";
 import { RotatingHeadline } from "@/components/RotatingHeadline";
 import { StatsCounter } from "@/components/StatsCounter";
 import { CategoriesGrid } from "@/components/CategoriesGrid";
@@ -12,17 +12,58 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden px-6 lg:px-8 py-24 sm:py-32">
+      <section className="relative overflow-hidden px-6 lg:px-8 pt-32 pb-24 sm:pt-40 sm:pb-32">
+        {/* Background Elements */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-primary/5" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-accent/10 rounded-full blur-3xl opacity-20" />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-auto max-w-7xl text-center"
+          className="mx-auto max-w-7xl text-center relative"
         >
+          {/* Trust Badges */}
+          <div className="flex justify-center gap-4 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-2 text-sm text-secondary bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full"
+            >
+              <Shield className="w-4 h-4" /> Enterprise-grade security
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex items-center gap-2 text-sm text-secondary bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full"
+            >
+              <Users className="w-4 h-4" /> 10k+ active users
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex items-center gap-2 text-sm text-secondary bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full"
+            >
+              <Star className="w-4 h-4" /> 4.9/5 rating
+            </motion.div>
+          </div>
+
           <RotatingHeadline />
-          <p className="mx-auto max-w-2xl text-lg text-secondary mt-8 mb-12">
-            Experience the future of automation with our AI-powered agents. 
-            Build, deploy, and scale your solutions with ease.
-          </p>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mx-auto max-w-2xl text-lg text-secondary mt-8 mb-12"
+          >
+            Discover and deploy production-ready AI agents for your business.
+            Built by developers, trusted by enterprises.
+          </motion.p>
+
           <div className="flex justify-center gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -40,13 +81,14 @@ const Index = () => {
 
           <StatsCounter />
 
+          {/* Trusted By Section */}
           <div className="mt-16">
-            <h2 className="text-2xl font-semibold mb-4">Trusted By</h2>
-            <div className="flex justify-center gap-8 opacity-50">
-              {/* Add company logos here */}
-              <div className="h-8 w-32 bg-white/10 rounded"></div>
-              <div className="h-8 w-32 bg-white/10 rounded"></div>
-              <div className="h-8 w-32 bg-white/10 rounded"></div>
+            <h2 className="text-2xl font-semibold mb-8">Trusted By Industry Leaders</h2>
+            <div className="flex justify-center gap-12 grayscale opacity-50">
+              <div className="h-12 w-32 bg-white/10 rounded-lg backdrop-blur-sm" />
+              <div className="h-12 w-32 bg-white/10 rounded-lg backdrop-blur-sm" />
+              <div className="h-12 w-32 bg-white/10 rounded-lg backdrop-blur-sm" />
+              <div className="h-12 w-32 bg-white/10 rounded-lg backdrop-blur-sm" />
             </div>
           </div>
         </motion.div>
@@ -60,7 +102,11 @@ const Index = () => {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold mb-4">Explore Categories</h2>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Zap className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium text-accent">AI Agents by Category</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Explore Our Marketplace</h2>
             <p className="text-secondary max-w-2xl mx-auto">
               Discover AI agents tailored to your specific needs. From customer support 
               to data analysis, we've got you covered.
