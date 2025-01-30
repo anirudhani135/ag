@@ -53,10 +53,12 @@ export const HeroSection = () => {
         >
           <Card className="w-full h-[600px] bg-black/[0.96] relative overflow-hidden">
             <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" />
-            <SplineScene 
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="w-full h-full"
-            />
+            <div className="relative w-full h-full">
+              <SplineScene 
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
+            </div>
           </Card>
         </motion.div>
       </div>
