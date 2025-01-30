@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Brain, MessageSquare, BarChart, Users, ShoppingCart, Shield } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -93,7 +93,6 @@ const Index = () => {
             <Card className="w-full h-[600px] bg-black/[0.96] relative overflow-hidden">
               <Spotlight
                 className="-top-40 left-0 md:left-60 md:-top-20"
-                fill="white"
               />
               <SplineScene 
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
@@ -104,7 +103,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
       <section className="py-24 bg-surface px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
