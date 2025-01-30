@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, lazy, useState } from 'react'
+import React, { Component, Suspense, lazy, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 const Spline = lazy(() => import('@splinetool/react-spline'))
 
@@ -12,9 +12,9 @@ interface SplineSceneProps {
 export function SplineScene({ scene, className }: SplineSceneProps) {
   const [error, setError] = useState<Error | null>(null)
 
-  const handleError = (err: Error) => {
+  const handleError = (err: any) => {
     console.error('Spline scene error:', err)
-    setError(err)
+    setError(err instanceof Error ? err : new Error(String(err)))
   }
 
   if (error) {
@@ -45,7 +45,7 @@ export function SplineScene({ scene, className }: SplineSceneProps) {
   )
 }
 
-class ErrorBoundary extends React.Component<{
+class ErrorBoundary extends Component<{
   children: React.ReactNode
   onError: (error: Error) => void
 }> {
