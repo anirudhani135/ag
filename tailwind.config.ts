@@ -32,6 +32,11 @@ export default {
         "muted-foreground": "#A3A299",
         border: "#E6E4DD",
         input: "#F0EFEA",
+        foreground: "#141413",
+        "popover-foreground": "#141413",
+        "card-foreground": "#141413",
+        "accent-foreground": "#141413",
+        "destructive-foreground": "#FFFFFF",
       },
       backgroundImage: {
         'primary-gradient': 'linear-gradient(135deg, #C7FB76 0%, #34D399 100%)',
