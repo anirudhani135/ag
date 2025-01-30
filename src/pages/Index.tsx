@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play, Brain, MessageSquare, BarChart, Users, ShoppingCart, Shield, Search } from "lucide-react";
+import { ArrowRight, Play, Brain, MessageSquare, BarChart, Users, ShoppingCart, Shield } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  // Fetch platform metrics
+  // Fetch platform metrics with proper error handling
   const { data: metrics } = useQuery({
     queryKey: ['platform-metrics'],
     queryFn: async () => {
@@ -16,12 +16,25 @@ const Index = () => {
         .select('*')
         .order('metric_date', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching metrics:', error);
+        return null;
+      }
+      
       return data;
     }
   });
+
+  // Default metrics if none are found
+  const defaultMetrics = {
+    daily_active_users: 1000,
+    total_revenue: 50000,
+    successful_transactions: 500
+  };
+
+  const displayMetrics = metrics || defaultMetrics;
 
   const categories = [
     { icon: Brain, name: 'AI & ML', description: 'Advanced machine learning solutions' },
@@ -63,7 +76,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <Card className="p-6 bg-white/5 backdrop-blur border-white/10">
               <h3 className="text-4xl font-bold text-accent mb-2">
-                {metrics?.daily_active_users || '10,000'}+
+                {displayMetrics.daily_active_users.toLocaleString()}+
               </h3>
               <p className="text-secondary">Active Users</p>
             </Card>
