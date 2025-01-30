@@ -1,13 +1,17 @@
 import { Brain } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Logo = () => {
   return (
-    <div className="flex items-center gap-2">
-      <Brain className="w-8 h-8 text-accent animate-float" />
-      <span className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+    <motion.div 
+      whileHover={{ scale: 1.05 }}
+      className="flex items-center gap-2 cursor-pointer"
+    >
+      <Brain className="w-8 h-8 text-accent" />
+      <span className="text-2xl font-bold text-primary">
         AgentVerse
       </span>
-    </div>
+    </motion.div>
   );
 };
 

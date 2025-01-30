@@ -25,14 +25,18 @@ const testimonials = [
 
 export const TestimonialsSection = () => {
   return (
-    <section className="py-24 bg-primary text-white px-6">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-24 bg-primary relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-white/5" />
+      <div className="max-w-7xl mx-auto px-6 relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Trusted by Industry Leaders</h2>
+          <h2 className="text-4xl font-bold mb-4 text-white">
+            Trusted by Industry Leaders
+          </h2>
           <p className="text-white/80 max-w-2xl mx-auto">
             See what our customers have to say about their experience
           </p>
@@ -44,6 +48,7 @@ export const TestimonialsSection = () => {
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
               <Card className="p-6 bg-white/5 backdrop-blur border-white/10 hover:shadow-hover transition-all duration-300">
@@ -54,7 +59,7 @@ export const TestimonialsSection = () => {
                 </div>
                 <p className="mb-4 text-white/90">{testimonial.content}</p>
                 <div>
-                  <h4 className="font-semibold">{testimonial.name}</h4>
+                  <h4 className="font-semibold text-white">{testimonial.name}</h4>
                   <p className="text-white/60 text-sm">{testimonial.role}</p>
                 </div>
               </Card>
