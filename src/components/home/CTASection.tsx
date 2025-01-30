@@ -16,7 +16,10 @@ export const CTASection = () => {
           <p className="text-primary/80 max-w-2xl mx-auto mb-8 text-lg">
             Join thousands of businesses already using our AI agents to automate and scale their operations.
           </p>
-          <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
+          <Button 
+            size="lg" 
+            className="bg-primary text-white hover:bg-primary/90 hover:shadow-hover transition-all duration-300 hover:scale-105"
+          >
             Get Started <Rocket className="ml-2 w-4 h-4" />
           </Button>
         </motion.div>

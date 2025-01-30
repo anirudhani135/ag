@@ -26,13 +26,13 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h3 className="font-semibold mb-4">{section.title}</h3>
+              <h3 className="font-semibold mb-4 text-white">{section.title}</h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link}>
                     <Link
                       to={`/${link.toLowerCase()}`}
-                      className="text-white/70 hover:text-white transition-colors"
+                      className="text-white/70 hover:text-accent transition-colors"
                     >
                       {link}
                     </Link>
@@ -45,16 +45,16 @@ const Footer = () => {
         
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/70 text-sm">
-            © 2024 BankApp. All rights reserved.
+            © 2024 AgentVerse. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
-            <Link to="#" className="text-white/70 hover:text-white transition-colors">
+            <Link to="#" className="text-white/70 hover:text-accent transition-colors">
               Twitter
             </Link>
-            <Link to="#" className="text-white/70 hover:text-white transition-colors">
+            <Link to="#" className="text-white/70 hover:text-accent transition-colors">
               LinkedIn
             </Link>
-            <Link to="#" className="text-white/70 hover:text-white transition-colors">
+            <Link to="#" className="text-white/70 hover:text-accent transition-colors">
               GitHub
             </Link>
           </div>

@@ -46,10 +46,10 @@ export const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="p-6 bg-white/5 backdrop-blur border-white/10">
+              <Card className="p-6 bg-white/5 backdrop-blur border-white/10 hover:shadow-hover transition-all duration-300">
                 <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-accent fill-accent" />
+                    <Star key={i} className="w-5 h-5 text-warning fill-warning" />
                   ))}
                 </div>
                 <p className="mb-4 text-white/90">{testimonial.content}</p>
