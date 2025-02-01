@@ -101,7 +101,7 @@ export const Settings = () => {
         name: profile.name,
         company: profile.company,
         website: profile.website,
-        notification_settings: profile.notification_settings as Json
+        notification_settings: profile.notification_settings as unknown as Json
       };
       updateProfile.mutate(updateData);
     }
