@@ -15,7 +15,7 @@ interface UsageRecord {
   created_at: string;
 }
 
-export const UsageHistory = () => {
+const UsageHistory = () => {
   const { data: usageHistory, isLoading } = useQuery({
     queryKey: ['usage-history'],
     queryFn: async () => {
@@ -70,3 +70,5 @@ export const UsageHistory = () => {
     </DashboardLayout>
   );
 };
+
+export default UsageHistory;
