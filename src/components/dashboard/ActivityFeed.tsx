@@ -21,7 +21,14 @@ export const ActivityFeed = () => {
         .limit(10);
 
       if (error) throw error;
-      return data as ActivityItem[];
+      
+      // Map the database response to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        type: item.log_type || 'unknown',
+        message: item.message || '',
+        created_at: item.created_at || new Date().toISOString()
+      })) as ActivityItem[];
     },
   });
 
