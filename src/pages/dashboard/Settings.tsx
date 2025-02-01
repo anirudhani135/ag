@@ -29,7 +29,7 @@ interface ProfileUpdate {
   notification_settings?: Json;
 }
 
-export const Settings = () => {
+const Settings = () => {
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -216,3 +216,5 @@ export const Settings = () => {
     </DashboardLayout>
   );
 };
+
+export default Settings;

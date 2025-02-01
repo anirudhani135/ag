@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, CreditCard, Users, Star } from "lucide-react";
 
-export const DashboardOverview = () => {
+const DashboardOverview = () => {
   const stats = [
     {
       title: "Total Credits",
@@ -83,3 +83,5 @@ export const DashboardOverview = () => {
     </DashboardLayout>
   );
 };
+
+export default DashboardOverview;

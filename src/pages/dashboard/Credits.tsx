@@ -14,7 +14,7 @@ interface CreditTransaction {
   created_at: string;
 }
 
-export const Credits = () => {
+const Credits = () => {
   const { data: transactions, isLoading } = useQuery({
     queryKey: ['credit-transactions'],
     queryFn: async () => {
@@ -107,3 +107,5 @@ export const Credits = () => {
     </DashboardLayout>
   );
 };
+
+export default Credits;
