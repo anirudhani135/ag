@@ -8,15 +8,17 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { User, Settings as SettingsIcon, Bell } from 'lucide-react';
 
+interface NotificationSettings {
+  email_notifications: boolean;
+  push_notifications: boolean;
+}
+
 interface Profile {
   name: string;
   email: string;
   company: string | null;
   website: string | null;
-  notification_settings: {
-    email_notifications: boolean;
-    push_notifications: boolean;
-  } | null;
+  notification_settings: NotificationSettings | null;
 }
 
 export const Settings = () => {
@@ -36,8 +38,24 @@ export const Settings = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
-      return data;
+
+      // Transform the data to match our Profile interface
+      const transformedProfile: Profile = {
+        name: data.name || '',
+        email: data.email,
+        company: data.company,
+        website: data.website,
+        notification_settings: data.notification_settings ? {
+          email_notifications: data.notification_settings.email_notifications || false,
+          push_notifications: data.notification_settings.push_notifications || false
+        } : {
+          email_notifications: false,
+          push_notifications: false
+        }
+      };
+
+      setProfile(transformedProfile);
+      return transformedProfile;
     },
   });
 
