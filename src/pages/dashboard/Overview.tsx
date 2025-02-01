@@ -1,8 +1,25 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, CreditCard, Users, Star } from "lucide-react";
+import { Activity, CreditCard, Users, Star, Clock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardOverview = () => {
+  const { data: activityData, isLoading: isActivityLoading } = useQuery({
+    queryKey: ['recent-activity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('agent_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const stats = [
     {
       title: "Total Credits",
@@ -33,36 +50,54 @@ const DashboardOverview = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+          <p className="text-muted-foreground mt-2">
+            Welcome back! Here's what's happening with your agents.
+          </p>
+        </div>
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-success">{stat.change}</span> from last month
-                </p>
-              </CardContent>
-            </Card>
+            <StatsCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              description={`${stat.change} from last month`}
+            />
           ))}
         </div>
 
         {/* Activity Feed Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Placeholder for activity items */}
-              <p className="text-muted-foreground">No recent activity</p>
+              {isActivityLoading ? (
+                <p className="text-muted-foreground">Loading activity...</p>
+              ) : activityData?.length ? (
+                activityData.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <p className="font-medium">{activity.message}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(activity.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground">No recent activity</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -70,12 +105,14 @@ const DashboardOverview = () => {
         {/* Favorite Agents Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Favorite Agents</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5" />
+              Favorite Agents
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Placeholder for favorite agents */}
-              <p className="text-muted-foreground">No favorite agents yet</p>
+              <p className="text-muted-foreground">Your favorite agents will appear here</p>
             </div>
           </CardContent>
         </Card>
