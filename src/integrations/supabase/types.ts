@@ -382,6 +382,41 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -462,6 +497,7 @@ export type Database = {
           bio: string | null
           company: string | null
           created_at: string
+          credit_balance: number | null
           email: string
           id: string
           last_active: string | null
@@ -480,6 +516,7 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          credit_balance?: number | null
           email: string
           id: string
           last_active?: string | null
@@ -498,6 +535,7 @@ export type Database = {
           bio?: string | null
           company?: string | null
           created_at?: string
+          credit_balance?: number | null
           email?: string
           id?: string
           last_active?: string | null
