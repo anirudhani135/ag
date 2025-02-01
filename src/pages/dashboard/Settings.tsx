@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { User, Settings as SettingsIcon, Bell } from 'lucide-react';
+import type { Json } from '@/integrations/supabase/types';
 
 interface NotificationSettings {
   email_notifications: boolean;
@@ -19,6 +20,13 @@ interface Profile {
   company: string | null;
   website: string | null;
   notification_settings: NotificationSettings | null;
+}
+
+interface ProfileUpdate {
+  name?: string;
+  company?: string | null;
+  website?: string | null;
+  notification_settings?: Json;
 }
 
 export const Settings = () => {
@@ -46,8 +54,8 @@ export const Settings = () => {
         company: data.company,
         website: data.website,
         notification_settings: data.notification_settings ? {
-          email_notifications: data.notification_settings.email_notifications || false,
-          push_notifications: data.notification_settings.push_notifications || false
+          email_notifications: (data.notification_settings as any).email_notifications || false,
+          push_notifications: (data.notification_settings as any).push_notifications || false
         } : {
           email_notifications: false,
           push_notifications: false
@@ -60,7 +68,7 @@ export const Settings = () => {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updatedProfile: Partial<Profile>) => {
+    mutationFn: async (updatedProfile: ProfileUpdate) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
@@ -89,7 +97,13 @@ export const Settings = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (profile) {
-      updateProfile.mutate(profile);
+      const updateData: ProfileUpdate = {
+        name: profile.name,
+        company: profile.company,
+        website: profile.website,
+        notification_settings: profile.notification_settings as Json
+      };
+      updateProfile.mutate(updateData);
     }
   };
 
