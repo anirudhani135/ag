@@ -17,6 +17,13 @@ interface Deployment {
   metrics: DeploymentMetrics;
 }
 
+// Helper function to validate metrics shape
+const isValidMetrics = (metrics: any): metrics is DeploymentMetrics => {
+  return typeof metrics === 'object' && 
+         metrics !== null && 
+         typeof metrics.responseTime === 'number';
+};
+
 export const SystemHealth = () => {
   const { data: healthData } = useQuery({
     queryKey: ['developer', 'system-health'],
@@ -33,11 +40,14 @@ export const SystemHealth = () => {
         throw error;
       }
 
-      // Transform the data to ensure it matches our expected type
-      return (deployments as DeploymentRow[]).map(deployment => ({
-        health_status: deployment.health_status || 'unknown',
-        metrics: deployment.metrics as DeploymentMetrics
-      }));
+      // Transform and validate the data
+      return (deployments as DeploymentRow[]).map(deployment => {
+        const metrics = deployment.metrics;
+        return {
+          health_status: deployment.health_status || 'unknown',
+          metrics: isValidMetrics(metrics) ? metrics : { responseTime: 0 }
+        };
+      });
     }
   });
 
