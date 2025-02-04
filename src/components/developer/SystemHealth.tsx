@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Activity, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+interface DeploymentMetrics {
+  responseTime: number;
+  // Add other metric fields as needed
+}
+
+interface Deployment {
+  health_status: string;
+  metrics: DeploymentMetrics;
+}
+
 export const SystemHealth = () => {
   const { data: healthData } = useQuery({
     queryKey: ['developer', 'system-health'],
@@ -20,7 +30,7 @@ export const SystemHealth = () => {
         throw error;
       }
 
-      return deployments;
+      return deployments as Deployment[];
     }
   });
 
