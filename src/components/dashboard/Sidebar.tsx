@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
-  Home, 
   CreditCard, 
-  Settings, 
+  User,
   History,
-  ChevronLeft,
-  ChevronRight
+  Settings,
+  Star,
+  Activity
 } from "lucide-react";
 
 interface SidebarProps {
@@ -17,9 +17,10 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
   const location = useLocation();
   
   const menuItems = [
-    { icon: Home, label: "Overview", path: "/dashboard" },
+    { icon: Activity, label: "Overview", path: "/dashboard" },
     { icon: CreditCard, label: "Credits", path: "/dashboard/credits" },
-    { icon: History, label: "Usage History", path: "/dashboard/history" },
+    { icon: History, label: "Usage History", path: "/dashboard/usage" },
+    { icon: Star, label: "Saved Agents", path: "/dashboard/saved" },
     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
   ];
 
@@ -30,6 +31,15 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
       }`}
     >
       <nav className="h-full py-4">
+        <div className="px-4 pb-4 mb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">User Dashboard</p>
+              <p className="text-xs text-muted-foreground">Manage your account</p>
+            </div>
+          </div>
+        </div>
         <ul className="space-y-2">
           {menuItems.map((item) => (
             <li key={item.path}>
