@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Database } from "@/integrations/supabase/types";
+
+type DeploymentRow = Database['public']['Tables']['deployments']['Row'];
 
 interface DeploymentMetrics {
   responseTime: number;
@@ -30,7 +33,11 @@ export const SystemHealth = () => {
         throw error;
       }
 
-      return deployments as Deployment[];
+      // Transform the data to ensure it matches our expected type
+      return (deployments as DeploymentRow[]).map(deployment => ({
+        health_status: deployment.health_status || 'unknown',
+        metrics: deployment.metrics as DeploymentMetrics
+      }));
     }
   });
 
