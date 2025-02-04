@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  Activity, 
+  Code2, 
   CreditCard, 
   Users, 
   Star, 
@@ -14,8 +14,9 @@ import {
   Share2, 
   TrendingUp, 
   TrendingDown,
-  Clock,
-  Globe
+  GitBranch,
+  Box,
+  Activity
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,7 @@ import { useState } from "react";
 const DashboardOverview = () => {
   const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "custom">("week");
 
-  const { data: metricsData, isLoading: isMetricsLoading } = useQuery({
+  const { data: agentMetrics, isLoading: isMetricsLoading } = useQuery({
     queryKey: ['agent-metrics', dateRange],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,31 +42,31 @@ const DashboardOverview = () => {
 
   const stats = [
     {
-      title: "Total Revenue",
+      title: "Total Agent Revenue",
       value: "$12,345",
       icon: CreditCard,
       change: "+12%",
       trend: "up",
     },
     {
-      title: "Active Users",
-      value: "1,234",
-      icon: Users,
-      change: "+3%",
+      title: "Active Agents",
+      value: "8",
+      icon: Box,
+      change: "+2",
       trend: "up",
     },
     {
-      title: "Conversion Rate",
-      value: "2.4%",
-      icon: Activity,
-      change: "-0.5%",
-      trend: "down",
+      title: "Deployment Rate",
+      value: "94%",
+      icon: GitBranch,
+      change: "+5%",
+      trend: "up",
     },
     {
-      title: "Top Agents",
-      value: "6",
+      title: "Agent Rating",
+      value: "4.8",
       icon: Star,
-      change: "+2",
+      change: "+0.2",
       trend: "up",
     },
   ];
@@ -75,7 +76,7 @@ const DashboardOverview = () => {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+            <h1 className="text-3xl font-bold">Developer Dashboard</h1>
             <p className="text-muted-foreground mt-2">
               Last updated: {format(new Date(), "MMM d, yyyy HH:mm")}
             </p>
@@ -130,47 +131,31 @@ const DashboardOverview = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PerformanceChart
-            data={metricsData?.map(d => ({
+            data={agentMetrics?.map(d => ({
               date: format(new Date(d.date), "MMM d"),
               value: d.revenue || 0
             })) || []}
-            title="Revenue Over Time"
+            title="Agent Revenue Over Time"
           />
           
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Geographic Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                Geographic visualization coming soon
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5" />
-                Top Performing Agents
+                <Activity className="h-5 w-5" />
+                Agent Performance Metrics
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {isMetricsLoading ? (
-                  <p className="text-muted-foreground">Loading agents...</p>
+                  <p className="text-muted-foreground">Loading metrics...</p>
                 ) : (
                   <div className="space-y-4">
                     {[1,2,3,4,5].map((i) => (
                       <div key={i} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:border-accent transition-colors">
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
-                            <Star className="h-5 w-5 text-accent" />
+                            <Code2 className="h-5 w-5 text-accent" />
                           </div>
                           <div>
                             <p className="font-medium">Agent {i}</p>
@@ -185,28 +170,57 @@ const DashboardOverview = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GitBranch className="h-5 w-5" />
+                Recent Deployments
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1,2,3].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:border-accent transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
+                        <Box className="h-5 w-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Agent Deployment v1.{i}</p>
+                        <p className="text-sm text-muted-foreground">Deployed {i} day{i !== 1 ? 's' : ''} ago</p>
+                      </div>
+                    </div>
+                    <span className="px-2 py-1 text-xs rounded-full bg-success/10 text-success">Success</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                User Engagement
+                <Activity className="h-5 w-5" />
+                API Usage
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Average Session Duration</p>
-                    <p className="text-2xl font-bold">12m 30s</p>
+                    <p className="text-sm font-medium">Total API Calls</p>
+                    <p className="text-2xl font-bold">234,567</p>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-accent" />
+                    <Activity className="h-6 w-6 text-accent" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Peak Activity Hours</p>
+                  <p className="text-sm font-medium">API Usage by Hour</p>
                   <div className="h-24 flex items-end gap-1">
                     {Array.from({ length: 24 }).map((_, i) => (
                       <div
