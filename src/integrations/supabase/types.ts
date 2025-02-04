@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ab_tests: {
+        Row: {
+          agent_id: string | null
+          end_date: string | null
+          id: string
+          metrics: Json | null
+          name: string
+          start_date: string | null
+          status: string | null
+          variant_a: Json
+          variant_b: Json
+        }
+        Insert: {
+          agent_id?: string | null
+          end_date?: string | null
+          id?: string
+          metrics?: Json | null
+          name: string
+          start_date?: string | null
+          status?: string | null
+          variant_a: Json
+          variant_b: Json
+        }
+        Update: {
+          agent_id?: string | null
+          end_date?: string | null
+          id?: string
+          metrics?: Json | null
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          variant_a?: Json
+          variant_b?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_tests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_analytics: {
         Row: {
           agent_id: string | null
@@ -89,6 +133,9 @@ export type Database = {
       agent_metrics: {
         Row: {
           agent_id: string | null
+          avg_session_duration: unknown | null
+          bounce_rate: number | null
+          conversion_rate: number | null
           created_at: string | null
           date: string | null
           id: string
@@ -99,6 +146,9 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          avg_session_duration?: unknown | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
           created_at?: string | null
           date?: string | null
           id?: string
@@ -109,6 +159,9 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          avg_session_duration?: unknown | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
           created_at?: string | null
           date?: string | null
           id?: string
@@ -417,6 +470,54 @@ export type Database = {
           },
         ]
       }
+      deployments: {
+        Row: {
+          agent_id: string | null
+          deployed_at: string | null
+          health_status: string | null
+          id: string
+          logs: string[] | null
+          metrics: Json | null
+          status: string | null
+          version_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          deployed_at?: string | null
+          health_status?: string | null
+          id?: string
+          logs?: string[] | null
+          metrics?: Json | null
+          status?: string | null
+          version_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          deployed_at?: string | null
+          health_status?: string | null
+          id?: string
+          logs?: string[] | null
+          metrics?: Json | null
+          status?: string | null
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployments_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -696,6 +797,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "saved_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          added_at: string | null
+          id: string
+          permissions: Json | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

@@ -1,7 +1,8 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
-import { Card } from "@/components/ui/card";
+import { RevenueBreakdown } from "@/components/developer/RevenueBreakdown";
+import { SystemHealth } from "@/components/developer/SystemHealth";
+import { ActiveUserTrends } from "@/components/developer/ActiveUserTrends";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartBar, Users, DollarSign, Activity } from "lucide-react";
@@ -38,7 +39,6 @@ const DeveloperOverview = () => {
     }
   });
 
-  // Fetch active users
   const { data: activeUsers } = useQuery({
     queryKey: ['developer', 'activeUsers'],
     queryFn: async () => {
@@ -101,25 +101,21 @@ const DeveloperOverview = () => {
             description="Total number of agents"
           />
           <StatsCard
-            title="Success Rate"
+            title="System Health"
             value="98.5%"
             icon={Activity}
-            description="Average success rate"
+            description="Overall system health"
           />
         </div>
 
-        {/* Revenue Chart */}
-        <PerformanceChart
-          data={revenueData || []}
-          title="Revenue Over Time"
-          className="mt-6"
-        />
+        {/* Enhanced Analytics */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <RevenueBreakdown />
+          <ActiveUserTrends />
+        </div>
 
-        {/* Recent Activity */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-          <p className="text-muted-foreground">Activity feed coming soon...</p>
-        </Card>
+        {/* System Health */}
+        <SystemHealth />
       </div>
     </DashboardLayout>
   );
