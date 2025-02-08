@@ -539,6 +539,36 @@ export type Database = {
           },
         ]
       }
+      health_check_history: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          duration_ms: number | null
+          id: string
+          service_name: string
+          status: string
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          id?: string
+          service_name: string
+          status: string
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          id?: string
+          service_name?: string
+          status?: string
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
       health_incidents: {
         Row: {
           created_at: string | null
@@ -877,6 +907,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_performance_metrics: {
+        Row: {
+          alert_status: string | null
+          created_at: string | null
+          error_rate: number
+          id: string
+          resource_usage: Json | null
+          response_time: number
+          service_name: string
+          timestamp: string | null
+          uptime_percentage: number
+        }
+        Insert: {
+          alert_status?: string | null
+          created_at?: string | null
+          error_rate: number
+          id?: string
+          resource_usage?: Json | null
+          response_time: number
+          service_name: string
+          timestamp?: string | null
+          uptime_percentage: number
+        }
+        Update: {
+          alert_status?: string | null
+          created_at?: string | null
+          error_rate?: number
+          id?: string
+          resource_usage?: Json | null
+          response_time?: number
+          service_name?: string
+          timestamp?: string | null
+          uptime_percentage?: number
+        }
+        Relationships: []
       }
       team_members: {
         Row: {
