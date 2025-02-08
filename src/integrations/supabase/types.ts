@@ -973,10 +973,6 @@ export type Database = {
       }
     }
     Functions: {
-      refresh_revenue_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       update_daily_metrics: {
         Args: Record<PropertyKey, never>
         Returns: undefined
