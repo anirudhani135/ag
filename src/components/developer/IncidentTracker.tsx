@@ -4,15 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertOctagon, CheckCircle2, Clock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Database } from "@/integrations/supabase/types";
 
-interface Incident {
-  id: string;
-  incident_type: string;
-  severity: string;
-  description: string;
-  started_at: string;
-  resolved_at: string | null;
-}
+type Incident = Database['public']['Tables']['health_incidents']['Row'];
 
 const getSeverityColor = (severity: string) => {
   switch (severity.toLowerCase()) {

@@ -9,48 +9,30 @@ import { useEffect, useState } from "react";
 import { subscribeToHealthUpdates } from "@/lib/realtimeSubscriptions";
 import { Progress } from "@/components/ui/progress";
 
-type DeploymentRow = Database['public']['Tables']['deployments']['Row'];
+type SystemMetrics = Database['public']['Tables']['system_performance_metrics']['Row'];
 
-interface DeploymentMetrics {
-  responseTime: number;
-  errorRate: number;
-  uptimePercentage: number;
-  resourceUsage: {
-    cpu: number;
-    memory: number;
-  };
-}
-
-const isValidMetrics = (metrics: any): metrics is DeploymentMetrics => {
-  return typeof metrics === 'object' && 
-         metrics !== null && 
-         typeof metrics.responseTime === 'number' &&
-         typeof metrics.errorRate === 'number' &&
-         typeof metrics.uptimePercentage === 'number';
-};
-
-const getAlertVariant = (status: string): "default" | "destructive" => {
+const getAlertVariant = (status: string | null): "default" | "destructive" => {
   switch (status) {
     case 'critical':
       return 'destructive';
     case 'warning':
-      return 'destructive'; // Map warning to destructive since we only have these two options
+      return 'destructive';
     default:
       return 'default';
   }
 };
 
 export const SystemHealth = () => {
-  const [realtimeData, setRealtimeData] = useState<DeploymentRow[]>([]);
+  const [realtimeData, setRealtimeData] = useState<SystemMetrics[]>([]);
 
   const { data: healthData, isLoading } = useQuery({
     queryKey: ['developer', 'system-health'],
     queryFn: async () => {
       console.log('Fetching system health...');
-      const { data: deployments, error } = await supabase
-        .from('deployments')
-        .select('*, health_incidents(*)')
-        .order('last_health_check', { ascending: false })
+      const { data: metrics, error } = await supabase
+        .from('system_performance_metrics')
+        .select('*')
+        .order('timestamp', { ascending: false })
         .limit(5);
 
       if (error) {
@@ -58,7 +40,7 @@ export const SystemHealth = () => {
         throw error;
       }
 
-      return deployments as DeploymentRow[];
+      return metrics;
     }
   });
 
@@ -98,36 +80,36 @@ export const SystemHealth = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {displayData.map((deployment) => (
+          {displayData.map((metric) => (
             <Alert 
-              key={deployment.id} 
-              variant={getAlertVariant(deployment.alert_status || 'normal')}
+              key={metric.id} 
+              variant={getAlertVariant(metric.alert_status)}
             >
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="flex items-center gap-2">
-                Deployment Status
+                {metric.service_name}
                 <span className={`px-2 py-0.5 rounded-full text-xs ${
-                  deployment.health_status === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  metric.error_rate < 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
-                  {deployment.health_status}
+                  {metric.error_rate < 1 ? 'Healthy' : 'Issues Detected'}
                 </span>
               </AlertTitle>
               <AlertDescription>
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    <span>Response Time: {deployment.response_time}ms</span>
+                    <span>Response Time: {metric.response_time}ms</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Server className="h-4 w-4" />
-                    <span>Error Rate: {deployment.error_rate}%</span>
+                    <span>Error Rate: {metric.error_rate}%</span>
                   </div>
                   <div className="mt-2">
                     <div className="flex justify-between text-sm mb-1">
                       <span>Uptime</span>
-                      <span>{deployment.uptime_percentage}%</span>
+                      <span>{metric.uptime_percentage}%</span>
                     </div>
-                    <Progress value={deployment.uptime_percentage} />
+                    <Progress value={metric.uptime_percentage} />
                   </div>
                 </div>
               </AlertDescription>
