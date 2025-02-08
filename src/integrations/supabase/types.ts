@@ -387,6 +387,42 @@ export type Database = {
           },
         ]
       }
+      api_metrics: {
+        Row: {
+          endpoint: string
+          error_details: Json | null
+          id: string
+          ip_address: string | null
+          request_method: string
+          response_time: number
+          status_code: number
+          timestamp: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          endpoint: string
+          error_details?: Json | null
+          id?: string
+          ip_address?: string | null
+          request_method: string
+          response_time: number
+          status_code: number
+          timestamp?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          endpoint?: string
+          error_details?: Json | null
+          id?: string
+          ip_address?: string | null
+          request_method?: string
+          response_time?: number
+          status_code?: number
+          timestamp?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       auth_logs: {
         Row: {
           created_at: string | null
@@ -798,6 +834,42 @@ export type Database = {
           },
         ]
       }
+      revenue_details: {
+        Row: {
+          average_transaction_value: number | null
+          comparison_period_revenue: number | null
+          created_at: string | null
+          growth_rate: number | null
+          id: string
+          period_end: string
+          period_start: string
+          total_revenue: number
+          transaction_count: number
+        }
+        Insert: {
+          average_transaction_value?: number | null
+          comparison_period_revenue?: number | null
+          created_at?: string | null
+          growth_rate?: number | null
+          id?: string
+          period_end: string
+          period_start: string
+          total_revenue?: number
+          transaction_count?: number
+        }
+        Update: {
+          average_transaction_value?: number | null
+          comparison_period_revenue?: number | null
+          created_at?: string | null
+          growth_rate?: number | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          total_revenue?: number
+          transaction_count?: number
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           agent_id: string
@@ -912,10 +984,13 @@ export type Database = {
         Row: {
           alert_status: string | null
           created_at: string | null
+          custom_alert_thresholds: Json | null
           error_rate: number
+          historical_data: Json | null
           id: string
           resource_usage: Json | null
           response_time: number
+          service_category: string | null
           service_name: string
           timestamp: string | null
           uptime_percentage: number
@@ -923,10 +998,13 @@ export type Database = {
         Insert: {
           alert_status?: string | null
           created_at?: string | null
+          custom_alert_thresholds?: Json | null
           error_rate: number
+          historical_data?: Json | null
           id?: string
           resource_usage?: Json | null
           response_time: number
+          service_category?: string | null
           service_name: string
           timestamp?: string | null
           uptime_percentage: number
@@ -934,10 +1012,13 @@ export type Database = {
         Update: {
           alert_status?: string | null
           created_at?: string | null
+          custom_alert_thresholds?: Json | null
           error_rate?: number
+          historical_data?: Json | null
           id?: string
           resource_usage?: Json | null
           response_time?: number
+          service_category?: string | null
           service_name?: string
           timestamp?: string | null
           uptime_percentage?: number
@@ -1023,6 +1104,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_engagement_metrics: {
+        Row: {
+          conversion_points: Json | null
+          created_at: string | null
+          features_used: Json | null
+          id: string
+          pages_visited: Json | null
+          session_duration: number | null
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          conversion_points?: Json | null
+          created_at?: string | null
+          features_used?: Json | null
+          id?: string
+          pages_visited?: Json | null
+          session_duration?: number | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          conversion_points?: Json | null
+          created_at?: string | null
+          features_used?: Json | null
+          id?: string
+          pages_visited?: Json | null
+          session_duration?: number | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
