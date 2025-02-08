@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +33,7 @@ export const RevenueBreakdown = () => {
 
       return analyticsData.map(row => ({
         name: new Date(row.hour).toLocaleTimeString([], { hour: '2-digit' }),
-        revenue: parseFloat(row.total_revenue),
+        revenue: parseFloat(row.total_revenue.toString()),
         transactions: row.transaction_count
       }));
     }
@@ -42,7 +41,6 @@ export const RevenueBreakdown = () => {
 
   useEffect(() => {
     const channel = subscribeToRevenue((payload) => {
-      // Update real-time data when new metrics arrive
       if (payload.new && revenueData) {
         setRealtimeData([...revenueData]);
       }

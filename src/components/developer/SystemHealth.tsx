@@ -29,12 +29,12 @@ const isValidMetrics = (metrics: any): metrics is DeploymentMetrics => {
          typeof metrics.uptimePercentage === 'number';
 };
 
-const getAlertVariant = (status: string) => {
+const getAlertVariant = (status: string): "default" | "destructive" => {
   switch (status) {
     case 'critical':
       return 'destructive';
     case 'warning':
-      return 'warning';
+      return 'destructive'; // Map warning to destructive since we only have these two options
     default:
       return 'default';
   }
