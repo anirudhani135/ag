@@ -473,32 +473,53 @@ export type Database = {
       deployments: {
         Row: {
           agent_id: string | null
+          alert_status: string | null
           deployed_at: string | null
+          error_rate: number | null
           health_status: string | null
           id: string
+          incident_count: number | null
+          last_health_check: string | null
           logs: string[] | null
           metrics: Json | null
+          resource_usage: Json | null
+          response_time: number | null
           status: string | null
+          uptime_percentage: number | null
           version_id: string | null
         }
         Insert: {
           agent_id?: string | null
+          alert_status?: string | null
           deployed_at?: string | null
+          error_rate?: number | null
           health_status?: string | null
           id?: string
+          incident_count?: number | null
+          last_health_check?: string | null
           logs?: string[] | null
           metrics?: Json | null
+          resource_usage?: Json | null
+          response_time?: number | null
           status?: string | null
+          uptime_percentage?: number | null
           version_id?: string | null
         }
         Update: {
           agent_id?: string | null
+          alert_status?: string | null
           deployed_at?: string | null
+          error_rate?: number | null
           health_status?: string | null
           id?: string
+          incident_count?: number | null
+          last_health_check?: string | null
           logs?: string[] | null
           metrics?: Json | null
+          resource_usage?: Json | null
+          response_time?: number | null
           status?: string | null
+          uptime_percentage?: number | null
           version_id?: string | null
         }
         Relationships: [
@@ -514,6 +535,50 @@ export type Database = {
             columns: ["version_id"]
             isOneToOne: false
             referencedRelation: "agent_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_incidents: {
+        Row: {
+          created_at: string | null
+          deployment_id: string | null
+          description: string | null
+          id: string
+          incident_type: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          started_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deployment_id?: string | null
+          description?: string | null
+          id?: string
+          incident_type: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity: string
+          started_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deployment_id?: string | null
+          description?: string | null
+          id?: string
+          incident_type?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_incidents_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "deployments"
             referencedColumns: ["id"]
           },
         ]
@@ -561,32 +626,41 @@ export type Database = {
       }
       platform_metrics: {
         Row: {
+          average_session_duration: unknown | null
           avg_session_duration: number | null
           created_at: string | null
           daily_active_users: number | null
+          hourly_revenue: number[] | null
           id: string
           metric_date: string
           new_users: number | null
+          peak_concurrent_users: number | null
           successful_transactions: number | null
           total_revenue: number | null
         }
         Insert: {
+          average_session_duration?: unknown | null
           avg_session_duration?: number | null
           created_at?: string | null
           daily_active_users?: number | null
+          hourly_revenue?: number[] | null
           id?: string
           metric_date: string
           new_users?: number | null
+          peak_concurrent_users?: number | null
           successful_transactions?: number | null
           total_revenue?: number | null
         }
         Update: {
+          average_session_duration?: unknown | null
           avg_session_duration?: number | null
           created_at?: string | null
           daily_active_users?: number | null
+          hourly_revenue?: number[] | null
           id?: string
           metric_date?: string
           new_users?: number | null
+          peak_concurrent_users?: number | null
           successful_transactions?: number | null
           total_revenue?: number | null
         }
@@ -886,9 +960,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      revenue_analytics: {
+        Row: {
+          active_agents: number | null
+          average_transaction: number | null
+          hour: string | null
+          total_revenue: number | null
+          transaction_count: number | null
+          unique_buyers: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      refresh_revenue_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_daily_metrics: {
         Args: Record<PropertyKey, never>
         Returns: undefined
