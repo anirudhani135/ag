@@ -506,6 +506,78 @@ export type Database = {
           },
         ]
       }
+      deployment_environments: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      deployment_logs: {
+        Row: {
+          created_at: string | null
+          deployment_id: string | null
+          environment_id: string | null
+          id: string
+          logs: string | null
+          metadata: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          deployment_id?: string | null
+          environment_id?: string | null
+          id?: string
+          logs?: string | null
+          metadata?: Json | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          deployment_id?: string | null
+          environment_id?: string | null
+          id?: string
+          logs?: string | null
+          metadata?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployment_logs_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "deployments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployment_logs_environment_id_fkey"
+            columns: ["environment_id"]
+            isOneToOne: false
+            referencedRelation: "deployment_environments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployments: {
         Row: {
           agent_id: string | null
@@ -839,10 +911,13 @@ export type Database = {
           average_transaction_value: number | null
           comparison_period_revenue: number | null
           created_at: string | null
+          customer_retention_rate: number | null
           growth_rate: number | null
           id: string
+          mrr: number | null
           period_end: string
           period_start: string
+          revenue_by_category: Json | null
           total_revenue: number
           transaction_count: number
         }
@@ -850,10 +925,13 @@ export type Database = {
           average_transaction_value?: number | null
           comparison_period_revenue?: number | null
           created_at?: string | null
+          customer_retention_rate?: number | null
           growth_rate?: number | null
           id?: string
+          mrr?: number | null
           period_end: string
           period_start: string
+          revenue_by_category?: Json | null
           total_revenue?: number
           transaction_count?: number
         }
@@ -861,10 +939,13 @@ export type Database = {
           average_transaction_value?: number | null
           comparison_period_revenue?: number | null
           created_at?: string | null
+          customer_retention_rate?: number | null
           growth_rate?: number | null
           id?: string
+          mrr?: number | null
           period_end?: string
           period_start?: string
+          revenue_by_category?: Json | null
           total_revenue?: number
           transaction_count?: number
         }
@@ -976,6 +1057,80 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          plan_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
         ]
