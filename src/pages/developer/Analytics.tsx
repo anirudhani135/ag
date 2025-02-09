@@ -1,55 +1,43 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
+import { APIAnalyticsDashboard } from "@/components/developer/analytics/APIAnalyticsDashboard";
+import { UserEngagementMetrics } from "@/components/developer/analytics/UserEngagementMetrics";
+import { GeographicDistribution } from "@/components/developer/analytics/GeographicDistribution";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Analytics = () => {
-  // Fetch usage metrics
-  const { data: usageData } = useQuery({
-    queryKey: ['developer', 'usage'],
-    queryFn: async () => {
-      console.log('Fetching usage metrics...');
-      const { data, error } = await supabase
-        .from('agent_metrics')
-        .select('date, views, unique_views')
-        .order('date', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching usage metrics:', error);
-        throw error;
-      }
-
-      return data.map(item => ({
-        date: new Date(item.date).toLocaleDateString(),
-        value: item.views || 0
-      }));
-    }
-  });
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Analytics</h2>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+            <p className="text-muted-foreground">
+              Monitor your API performance and user engagement metrics
+            </p>
+          </div>
+        </div>
 
-        {/* Usage Chart */}
-        <PerformanceChart
-          data={usageData || []}
-          title="Daily Usage"
-          className="mt-6"
-        />
+        <Tabs defaultValue="api" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="api">API Analytics</TabsTrigger>
+            <TabsTrigger value="users">User Engagement</TabsTrigger>
+            <TabsTrigger value="geo">Geographic</TabsTrigger>
+          </TabsList>
 
-        {/* User Engagement */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">User Engagement</h3>
-          <p className="text-muted-foreground">Detailed metrics coming soon...</p>
-        </Card>
+          <TabsContent value="api" className="space-y-6">
+            <APIAnalyticsDashboard />
+          </TabsContent>
 
-        {/* Geographic Distribution */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Geographic Distribution</h3>
-          <p className="text-muted-foreground">Geographic data coming soon...</p>
-        </Card>
+          <TabsContent value="users" className="space-y-6">
+            <UserEngagementMetrics />
+          </TabsContent>
+
+          <TabsContent value="geo" className="space-y-6">
+            <GeographicDistribution />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
