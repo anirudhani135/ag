@@ -2,18 +2,23 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Search } from "lucide-react";
 import { format } from "date-fns";
+import { DataTable } from "@/components/shared/tables/DataTable";
+import type { ColumnDef } from "@tanstack/react-table";
+
+interface Transaction {
+  id: string;
+  created_at: string;
+  amount: number;
+  status: string;
+  payment_intent_id: string;
+  profiles: {
+    email: string;
+  } | null;
+}
 
 interface TransactionListProps {
   startDate: Date;
@@ -22,6 +27,42 @@ interface TransactionListProps {
 
 export const TransactionList = ({ startDate, endDate }: TransactionListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+
+  const columns: ColumnDef<Transaction>[] = [
+    {
+      accessorKey: "created_at",
+      header: "Date",
+      cell: ({ row }) => format(new Date(row.original.created_at), "MMM d, yyyy HH:mm"),
+    },
+    {
+      accessorKey: "profiles.email",
+      header: "User",
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => `$${row.original.amount.toLocaleString()}`,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          ${row.original.status === 'completed' ? 'bg-green-100 text-green-800' :
+          row.original.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+          'bg-red-100 text-red-800'}`}>
+          {row.original.status}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "payment_intent_id",
+      header: "Transaction ID",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">{row.original.payment_intent_id}</span>
+      ),
+    },
+  ];
 
   const { data: transactions, isLoading } = useQuery({
     queryKey: ['transactions', startDate, endDate, searchTerm],
@@ -89,55 +130,12 @@ export const TransactionList = ({ startDate, endDate }: TransactionListProps) =>
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Transaction ID</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Loading transactions...
-                </TableCell>
-              </TableRow>
-            ) : transactions?.length ? (
-              transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>
-                    {format(new Date(transaction.created_at), 'MMM d, yyyy HH:mm')}
-                  </TableCell>
-                  <TableCell>{transaction.profiles?.email}</TableCell>
-                  <TableCell>${transaction.amount.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'}`}>
-                      {transaction.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {transaction.payment_intent_id}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  No transactions found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={transactions || []}
+        isLoading={isLoading}
+        noResultsMessage="No transactions found for the selected date range."
+      />
     </div>
   );
 };
