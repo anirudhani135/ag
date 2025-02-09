@@ -1,7 +1,10 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { NotificationsCenter } from "@/components/dashboard/NotificationsCenter";
+import { CreditUsageChart } from "@/components/dashboard/CreditUsageChart";
+import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -98,6 +101,11 @@ const DashboardOverview = () => {
               className="hover:border-accent transition-colors"
             />
           ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CreditUsageChart />
+          <UserActivityFeed />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
