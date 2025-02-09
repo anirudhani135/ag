@@ -3,13 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { ReactElement } from "react";
 
 interface BaseChartProps {
   title?: string;
   subtitle?: string;
   isLoading?: boolean;
   className?: string;
-  children: React.ReactNode;
+  children: ReactElement;
   height?: number;
 }
 
