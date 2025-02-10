@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const DashboardOverview = lazy(() => import("./pages/dashboard/Overview"));
 const Credits = lazy(() => import("./pages/dashboard/Credits"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
@@ -35,6 +40,10 @@ const App = () => (
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/register" element={<Register />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/verify" element={<VerifyEmail />} />
             <Route path="/dashboard" element={<DashboardOverview />} />
             <Route path="/dashboard/credits" element={<Credits />} />
             <Route path="/dashboard/settings" element={<Settings />} />
