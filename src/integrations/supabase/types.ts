@@ -447,6 +447,48 @@ export type Database = {
         }
         Relationships: []
       }
+      case_studies: {
+        Row: {
+          challenge: string
+          company: string
+          created_at: string
+          featured_image_url: string | null
+          id: string
+          industry: string
+          is_featured: boolean | null
+          logo_url: string | null
+          results: Json
+          solution: string
+          title: string
+        }
+        Insert: {
+          challenge: string
+          company: string
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          industry: string
+          is_featured?: boolean | null
+          logo_url?: string | null
+          results: Json
+          solution: string
+          title: string
+        }
+        Update: {
+          challenge?: string
+          company?: string
+          created_at?: string
+          featured_image_url?: string | null
+          id?: string
+          industry?: string
+          is_featured?: boolean | null
+          logo_url?: string | null
+          results?: Json
+          solution?: string
+          title?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -1248,6 +1290,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      testimonials: {
+        Row: {
+          client_name: string
+          company: string
+          created_at: string
+          id: string
+          industry: string | null
+          is_featured: boolean | null
+          logo_url: string | null
+          metrics: Json | null
+          rating: number | null
+          role: string
+          testimonial: string
+          video_url: string | null
+        }
+        Insert: {
+          client_name: string
+          company: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          is_featured?: boolean | null
+          logo_url?: string | null
+          metrics?: Json | null
+          rating?: number | null
+          role: string
+          testimonial: string
+          video_url?: string | null
+        }
+        Update: {
+          client_name?: string
+          company?: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          is_featured?: boolean | null
+          logo_url?: string | null
+          metrics?: Json | null
+          rating?: number | null
+          role?: string
+          testimonial?: string
+          video_url?: string | null
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
