@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -30,12 +30,11 @@ const authSchema = z.object({
 
 interface AuthFormProps {
   type: "signin" | "signup";
-  onSubmit: (values: z.infer<typeof authSchema>) => Promise<void>;
 }
 
-const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
+const AuthForm = ({ type }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { signIn, signUp } = useAuth();
 
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
@@ -45,16 +44,16 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof authSchema>) => {
+  const onSubmit = async (values: z.infer<typeof authSchema>) => {
     try {
       setIsLoading(true);
-      await onSubmit(values);
+      if (type === "signin") {
+        await signIn(values.email, values.password);
+      } else {
+        await signUp(values.email, values.password);
+      }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-      });
+      // Error is handled in the auth context
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +61,7 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="email"

@@ -1,22 +1,9 @@
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AuthForm from "@/components/auth/AuthForm";
-import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
-  const navigate = useNavigate();
-
-  const handleRegister = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-    navigate("/auth/verify");
-  };
-
   return (
     <AuthLayout>
       <div className="text-center mb-8">
@@ -26,7 +13,7 @@ const Register = () => {
         </p>
       </div>
 
-      <AuthForm type="signup" onSubmit={handleRegister} />
+      <AuthForm type="signup" />
 
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">

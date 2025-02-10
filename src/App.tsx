@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/auth/Login"));
@@ -37,25 +39,73 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/register" element={<Register />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/auth/verify" element={<VerifyEmail />} />
-            <Route path="/dashboard" element={<DashboardOverview />} />
-            <Route path="/dashboard/credits" element={<Credits />} />
-            <Route path="/dashboard/settings" element={<Settings />} />
-            <Route path="/dashboard/usage" element={<UsageHistory />} />
-            <Route path="/dashboard/saved" element={<SavedAgents />} />
-            <Route path="/developer" element={<DeveloperOverview />} />
-            <Route path="/developer/agents" element={<AgentManagement />} />
-            <Route path="/developer/analytics" element={<Analytics />} />
-            <Route path="/developer/settings" element={<DeveloperSettings />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-          </Routes>
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify" element={<VerifyEmail />} />
+              
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardOverview />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/credits" element={
+                <ProtectedRoute>
+                  <Credits />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/usage" element={
+                <ProtectedRoute>
+                  <UsageHistory />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/saved" element={
+                <ProtectedRoute>
+                  <SavedAgents />
+                </ProtectedRoute>
+              } />
+              <Route path="/developer" element={
+                <ProtectedRoute>
+                  <DeveloperOverview />
+                </ProtectedRoute>
+              } />
+              <Route path="/developer/agents" element={
+                <ProtectedRoute>
+                  <AgentManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/developer/analytics" element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
+              <Route path="/developer/settings" element={
+                <ProtectedRoute>
+                  <DeveloperSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/marketplace" element={
+                <ProtectedRoute>
+                  <Marketplace />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
