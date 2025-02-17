@@ -1,29 +1,66 @@
+
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AgentStats } from "@/components/agent-management/AgentStats";
+import { AgentFilters } from "@/components/agent-management/AgentFilters";
+import { AgentGrid } from "@/components/agent-management/AgentGrid";
+import { toast } from "sonner";
 
 const AgentManagement = () => {
-  // Fetch agents
-  const { data: agents } = useQuery({
-    queryKey: ['developer', 'agents'],
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("created_at");
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+
+  // Fetch agents with search and sort
+  const { data: agents, isLoading } = useQuery({
+    queryKey: ['agents', search, sort],
     queryFn: async () => {
-      console.log('Fetching agents...');
-      const { data, error } = await supabase
+      let query = supabase
         .from('agents')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      if (search) {
+        query = query.ilike('title', `%${search}%`);
+      }
+
+      const { data, error } = await query.order(sort, { ascending: sort === 'title' });
       
       if (error) {
-        console.error('Error fetching agents:', error);
+        toast.error("Failed to fetch agents");
         throw error;
       }
       
       return data;
     }
   });
+
+  const handleEdit = (id: string) => {
+    // To be implemented
+    toast.info("Edit functionality coming soon");
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success("Agent deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete agent");
+    }
+  };
+
+  const handleViewMetrics = (id: string) => {
+    // To be implemented
+    toast.info("Metrics view coming soon");
+  };
 
   return (
     <DashboardLayout>
@@ -36,35 +73,23 @@ const AgentManagement = () => {
           </Button>
         </div>
 
-        {/* Agents List */}
-        <div className="grid gap-4">
-          {agents?.map((agent) => (
-            <Card key={agent.id} className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-semibold">{agent.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {agent.description}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium">${agent.price}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Version {agent.version_number}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-          
-          {!agents?.length && (
-            <Card className="p-6">
-              <p className="text-muted-foreground text-center">
-                No agents found. Create your first agent to get started.
-              </p>
-            </Card>
-          )}
-        </div>
+        <AgentStats />
+
+        <AgentFilters
+          onSearch={setSearch}
+          onSortChange={setSort}
+          onViewChange={setView}
+          view={view}
+        />
+
+        <AgentGrid
+          agents={agents || []}
+          loading={isLoading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onViewMetrics={handleViewMetrics}
+          view={view}
+        />
       </div>
     </DashboardLayout>
   );
