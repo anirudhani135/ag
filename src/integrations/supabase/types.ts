@@ -85,6 +85,57 @@ export type Database = {
           },
         ]
       }
+      agent_configurations: {
+        Row: {
+          agent_id: string | null
+          api_config: Json | null
+          created_at: string | null
+          environment_variables: Json | null
+          id: string
+          resource_allocation: Json | null
+          runtime_config: Json | null
+          updated_at: string | null
+          version_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          api_config?: Json | null
+          created_at?: string | null
+          environment_variables?: Json | null
+          id?: string
+          resource_allocation?: Json | null
+          runtime_config?: Json | null
+          updated_at?: string | null
+          version_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          api_config?: Json | null
+          created_at?: string | null
+          environment_variables?: Json | null
+          id?: string
+          resource_allocation?: Json | null
+          runtime_config?: Json | null
+          updated_at?: string | null
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_configurations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_configurations_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_logs: {
         Row: {
           agent_id: string | null
@@ -225,10 +276,14 @@ export type Database = {
           changes: string | null
           created_at: string | null
           created_by: string | null
+          deployment_config: Json | null
           id: string
+          integration_config: Json | null
+          performance_metrics: Json | null
           published_at: string | null
           runtime_config: Json | null
           status: string | null
+          test_cases: Json | null
           version_number: string
         }
         Insert: {
@@ -237,10 +292,14 @@ export type Database = {
           changes?: string | null
           created_at?: string | null
           created_by?: string | null
+          deployment_config?: Json | null
           id?: string
+          integration_config?: Json | null
+          performance_metrics?: Json | null
           published_at?: string | null
           runtime_config?: Json | null
           status?: string | null
+          test_cases?: Json | null
           version_number: string
         }
         Update: {
@@ -249,10 +308,14 @@ export type Database = {
           changes?: string | null
           created_at?: string | null
           created_by?: string | null
+          deployment_config?: Json | null
           id?: string
+          integration_config?: Json | null
+          performance_metrics?: Json | null
           published_at?: string | null
           runtime_config?: Json | null
           status?: string | null
+          test_cases?: Json | null
           version_number?: string
         }
         Relationships: [
@@ -575,6 +638,64 @@ export type Database = {
         }
         Relationships: []
       }
+      deployment_history: {
+        Row: {
+          agent_id: string | null
+          config_snapshot: Json | null
+          deployed_at: string | null
+          deployed_by: string | null
+          id: string
+          performance_impact: Json | null
+          rollback_from: string | null
+          status: string | null
+          version_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          config_snapshot?: Json | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          id?: string
+          performance_impact?: Json | null
+          rollback_from?: string | null
+          status?: string | null
+          version_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          config_snapshot?: Json | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          id?: string
+          performance_impact?: Json | null
+          rollback_from?: string | null
+          status?: string | null
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployment_history_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployment_history_rollback_from_fkey"
+            columns: ["rollback_from"]
+            isOneToOne: false
+            referencedRelation: "deployment_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployment_history_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployment_logs: {
         Row: {
           created_at: string | null
@@ -759,6 +880,47 @@ export type Database = {
             columns: ["deployment_id"]
             isOneToOne: false
             referencedRelation: "deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monitoring_metrics: {
+        Row: {
+          agent_id: string | null
+          alert_status: string | null
+          error_rate: number | null
+          id: string
+          metrics: Json
+          request_count: number | null
+          response_time: number | null
+          timestamp: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          alert_status?: string | null
+          error_rate?: number | null
+          id?: string
+          metrics: Json
+          request_count?: number | null
+          response_time?: number | null
+          timestamp?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          alert_status?: string | null
+          error_rate?: number | null
+          id?: string
+          metrics?: Json
+          request_count?: number | null
+          response_time?: number | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_metrics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
         ]
@@ -1287,6 +1449,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_suites: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          results: Json | null
+          status: string | null
+          test_cases: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          results?: Json | null
+          status?: string | null
+          test_cases?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          results?: Json | null
+          status?: string | null
+          test_cases?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_suites_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
         ]
