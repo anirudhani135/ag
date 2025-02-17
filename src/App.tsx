@@ -20,6 +20,7 @@ const UsageHistory = lazy(() => import("./pages/dashboard/UsageHistory"));
 const SavedAgents = lazy(() => import("./pages/dashboard/SavedAgents"));
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
 const AgentManagement = lazy(() => import("./pages/developer/AgentManagement"));
+const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
 const Analytics = lazy(() => import("./pages/developer/Analytics"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
@@ -40,69 +41,109 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+          >
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify" element={<VerifyEmail />} />
-              
+
               {/* Protected Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardOverview />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/credits" element={
-                <ProtectedRoute>
-                  <Credits />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/usage" element={
-                <ProtectedRoute>
-                  <UsageHistory />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/saved" element={
-                <ProtectedRoute>
-                  <SavedAgents />
-                </ProtectedRoute>
-              } />
-              <Route path="/developer" element={
-                <ProtectedRoute>
-                  <DeveloperOverview />
-                </ProtectedRoute>
-              } />
-              <Route path="/developer/agents" element={
-                <ProtectedRoute>
-                  <AgentManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/developer/analytics" element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
-              } />
-              <Route path="/developer/settings" element={
-                <ProtectedRoute>
-                  <DeveloperSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/marketplace" element={
-                <ProtectedRoute>
-                  <Marketplace />
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardOverview />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/credits"
+                element={
+                  <ProtectedRoute>
+                    <Credits />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/usage"
+                element={
+                  <ProtectedRoute>
+                    <UsageHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/saved"
+                element={
+                  <ProtectedRoute>
+                    <SavedAgents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer"
+                element={
+                  <ProtectedRoute>
+                    <DeveloperOverview />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/agents"
+                element={
+                  <ProtectedRoute>
+                    <AgentManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/agents/create"
+                element={
+                  <ProtectedRoute>
+                    <AgentCreation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/analytics"
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer/settings"
+                element={
+                  <ProtectedRoute>
+                    <DeveloperSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/marketplace"
+                element={
+                  <ProtectedRoute>
+                    <Marketplace />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </Suspense>
         </AuthProvider>
