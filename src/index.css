@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -27,33 +28,84 @@
   }
 
   * {
-    @apply border-border;
+    @apply border-border selection:bg-primary/5;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01" on, "ss02" on, "cv01" on, "cv02" on;
+    @apply bg-background text-foreground antialiased overflow-x-hidden;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+
+  /* Optimize animations for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .responsive-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-optimized {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .card-hover {
+    @apply hover:shadow-lg transition-shadow duration-200;
   }
 
   .glass {
-    @apply bg-white/10 backdrop-blur-lg border border-white/20;
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 md:backdrop-blur-md;
+  }
+
+  .touch-target {
+    @apply p-3 sm:p-2;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 
   .bg-grid-white\/5 {
     background-size: 40px 40px;
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    @apply bg-fixed; /* Improve performance */
   }
 
   .bg-grid-black\/5 {
     background-size: 40px 40px;
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    @apply bg-fixed; /* Improve performance */
   }
 }
 
+/* Optimized animations */
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes float {
@@ -62,5 +114,17 @@
   }
   50% {
     transform: translateY(-20px);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .animate-float {
+    animation-duration: 4s;
+  }
+
+  .touch-optimized {
+    @apply p-4 my-2;
+    min-height: 44px;
   }
 }
