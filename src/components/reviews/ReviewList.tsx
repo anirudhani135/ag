@@ -8,7 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, ThumbsUp, ThumbsDown, Search, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
+type ReviewUpdate = Database['public']['Tables']['reviews']['Update'];
 type SortOption = 'date' | 'rating' | 'helpful';
 
 interface ReviewListProps {
@@ -26,8 +28,8 @@ interface Review {
   helpful_votes: number;
   unhelpful_votes: number;
   screenshot_url: string | null;
-  developer_reply?: string;
-  developer_reply_at?: string;
+  developer_reply: string | null;
+  developer_reply_at: string | null;
   sentiment_score: number;
   profiles: {
     name: string;
@@ -95,12 +97,14 @@ export const ReviewList = ({ agentId, isDeveloper }: ReviewListProps) => {
 
   const handleReply = async (reviewId: string) => {
     try {
+      const updateData: ReviewUpdate = {
+        developer_reply: replyText[reviewId],
+        developer_reply_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('reviews')
-        .update({
-          developer_reply: replyText[reviewId],
-          developer_reply_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', reviewId);
 
       if (error) throw error;
