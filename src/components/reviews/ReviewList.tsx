@@ -13,6 +13,22 @@ interface ReviewListProps {
   agentId?: string;
 }
 
+interface Review {
+  id: string;
+  agent_id: string;
+  user_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  helpful_votes: number;
+  unhelpful_votes: number;
+  screenshot_url: string | null;
+  profiles: {
+    name: string;
+    avatar_url: string | null;
+  };
+}
+
 export const ReviewList = ({ agentId }: ReviewListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('date');
@@ -44,7 +60,7 @@ export const ReviewList = ({ agentId }: ReviewListProps) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as Review[];
     },
   });
 
