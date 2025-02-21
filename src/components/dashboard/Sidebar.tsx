@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -11,15 +13,19 @@ import {
   X,
   Search,
   ChevronRight,
-  ChevronLeft,
-  Switch
+  ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { SearchOverlay } from "@/components/ui/search-overlay";
-import { FloatingCTA } from "@/components/ui/floating-cta";
-import { TooltipProvider } from "@/components/ui/tooltip-provider";
+import { Switch } from "@/components/ui/switch";
+import { FloatingCTA } from "../shared/sidebar/FloatingCTA";
+import { SearchOverlay } from "../shared/sidebar/SearchOverlay";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -83,17 +89,6 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
       ariaLabel: "Manage Developer Settings"
     }
   ];
-
-  const handleKeyNavigation = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
-    if (e.key === 'Enter') {
-      const nextIndex = (index + 1) % menuItems.length;
-      const nextItem = menuItems[nextIndex];
-      if (nextItem) {
-        e.preventDefault();
-        window.location.href = nextItem.path;
-      }
-    }
-  };
 
   return (
     <TooltipProvider>
@@ -176,8 +171,6 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
                         role="menuitem"
                         aria-label={item.ariaLabel}
                         aria-current={location.pathname === item.path ? "page" : undefined}
-                        data-index={index}
-                        onKeyDown={(e) => handleKeyNavigation(e, index)}
                       >
                         <item.icon 
                           className={cn(
@@ -199,7 +192,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
               ))}
             </ul>
           </nav>
-
+          
           <div className="px-4 py-4 border-t border-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
