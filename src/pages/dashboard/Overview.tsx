@@ -1,5 +1,5 @@
 
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserDashboardLayout } from "@/components/user-dashboard/DashboardLayout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { NotificationsCenter } from "@/components/dashboard/NotificationsCenter";
@@ -81,7 +81,7 @@ const DashboardOverview = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <UserDashboardLayout>
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Welcome back, {profile?.name}</h1>
@@ -143,7 +143,7 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </UserDashboardLayout>
   );
 };
 
