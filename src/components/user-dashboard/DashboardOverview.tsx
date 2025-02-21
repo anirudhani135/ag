@@ -28,7 +28,7 @@ export const DashboardOverview = () => {
     },
   });
 
-  // Fetch active agents count
+  // Fetch active agents count using agent_metrics table
   const { data: activeAgentsCount, isLoading: isLoadingAgents } = useQuery({
     queryKey: ['active-agents-count'],
     queryFn: async () => {
@@ -36,10 +36,10 @@ export const DashboardOverview = () => {
       if (!user) throw new Error('No user found');
 
       const { count, error } = await supabase
-        .from('agent_usage')
+        .from('agent_metrics')
         .select('agent_id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        .eq('date', new Date().toISOString().split('T')[0])
+        .gt('views', 0);
 
       if (error) throw error;
       return count || 0;
