@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -9,10 +8,18 @@ import {
   BarChart2,
   MessageSquare,
   LifeBuoy,
-  X
+  X,
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  Switch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { SearchOverlay } from "@/components/ui/search-overlay";
+import { FloatingCTA } from "@/components/ui/floating-cta";
+import { TooltipProvider } from "@/components/ui/tooltip-provider";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -21,6 +28,9 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   
   const menuItems = [
@@ -74,67 +84,149 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
     }
   ];
 
+  const handleKeyNavigation = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
+    if (e.key === 'Enter') {
+      const nextIndex = (index + 1) % menuItems.length;
+      const nextItem = menuItems[nextIndex];
+      if (nextItem) {
+        e.preventDefault();
+        window.location.href = nextItem.path;
+      }
+    }
+  };
+
   return (
-    <aside 
-      className={cn(
-        "fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-background border-r border-border transition-transform duration-300 z-40",
-        isOpen ? "translate-x-0" : "-translate-x-64",
-        isMobile && "shadow-lg"
-      )}
-      aria-label="Developer Navigation"
-      role="navigation"
-    >
-      {isMobile && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2 top-2 md:hidden"
-          onClick={onClose}
-          aria-label="Close navigation menu"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      )}
+    <TooltipProvider>
+      <aside 
+        className={cn(
+          "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-background border-r border-border",
+          "transition-all duration-300 z-40",
+          isCollapsed ? "w-16" : "w-64",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+          isMobile && "shadow-lg",
+          "md:rounded-lg md:shadow-md"
+        )}
+        aria-label="Developer Navigation"
+        role="navigation"
+      >
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 md:hidden"
+            onClick={onClose}
+            aria-label="Close navigation menu"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
 
-      <div className="flex flex-col h-full py-4">
-        <nav className="flex-1">
-          <ul className="space-y-1" role="menu">
-            {menuItems.map((item) => (
-              <li key={item.path} role="none">
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-2 text-sm transition-colors",
-                    "hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
-                    location.pathname === item.path 
-                      ? "bg-accent/20 text-accent font-medium" 
-                      : "text-muted-foreground"
-                  )}
-                  onClick={() => isMobile && onClose()}
-                  role="menuitem"
-                  aria-label={item.ariaLabel}
-                  aria-current={location.pathname === item.path ? "page" : undefined}
-                >
-                  <item.icon className="w-4 h-4" aria-hidden="true" />
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="flex flex-col h-full py-4">
+          <div className="px-4 mb-4 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(true)}
+              className="hover:bg-accent/10"
+              aria-label="Open search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            <Switch
+              checked={isDarkMode}
+              onCheckedChange={setIsDarkMode}
+              aria-label="Toggle dark mode"
+            />
+            {!isMobile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="hover:bg-accent/10"
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
 
-        <div className="px-4 py-4 border-t border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-              <Users className="w-4 h-4 text-accent" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">John Developer</p>
-              <p className="text-xs text-muted-foreground">john@example.com</p>
+          <nav className="flex-1">
+            <ul className="space-y-1" role="menu">
+              {menuItems.map((item, index) => (
+                <li key={item.path} role="none">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={item.path}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-2 text-sm transition-all duration-200",
+                          "hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
+                          "relative",
+                          location.pathname === item.path && [
+                            "bg-accent/20 text-accent font-medium",
+                            "before:absolute before:left-0 before:top-0 before:h-full",
+                            "before:w-1 before:bg-accent before:rounded-r"
+                          ]
+                        )}
+                        onClick={() => isMobile && onClose()}
+                        role="menuitem"
+                        aria-label={item.ariaLabel}
+                        aria-current={location.pathname === item.path ? "page" : undefined}
+                        data-index={index}
+                        onKeyDown={(e) => handleKeyNavigation(e, index)}
+                      >
+                        <item.icon 
+                          className={cn(
+                            "w-5 h-5 transition-transform duration-200",
+                            "hover:scale-110"
+                          )}
+                          aria-hidden="true"
+                        />
+                        {!isCollapsed && <span>{item.label}</span>}
+                      </Link>
+                    </TooltipTrigger>
+                    {isCollapsed && (
+                      <TooltipContent side="right">
+                        {item.label}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="px-4 py-4 border-t border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                <Users className="w-4 h-4 text-accent" aria-hidden="true" />
+              </div>
+              {!isCollapsed && (
+                <div>
+                  <p className="text-sm font-medium">John Developer</p>
+                  <p className="text-xs text-muted-foreground">john@example.com</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
-    </aside>
+
+        <SearchOverlay
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          placeholder="Search agents, analytics, or settings..."
+        />
+
+        <FloatingCTA
+          label="Withdraw Funds"
+          icon={<DollarSign className="h-4 w-4" />}
+          onClick={() => console.log('Withdraw funds clicked')}
+        />
+      </aside>
+    </TooltipProvider>
   );
 };
