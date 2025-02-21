@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
@@ -7,10 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Star, ThumbsUp, ThumbsDown, Search, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import type { Database } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
 
-type ReviewUpdate = Database['public']['Tables']['reviews']['Update'];
 type SortOption = 'date' | 'rating' | 'helpful';
 
 interface ReviewListProps {
@@ -23,14 +20,13 @@ interface Review {
   agent_id: string;
   user_id: string;
   rating: number;
-  comment: string;
+  comment: string | null;
   created_at: string;
   helpful_votes: number;
   unhelpful_votes: number;
   screenshot_url: string | null;
   developer_reply: string | null;
   developer_reply_at: string | null;
-  sentiment_score: number;
   profiles: {
     name: string;
     avatar_url: string | null;
@@ -82,7 +78,7 @@ export const ReviewList = ({ agentId, isDeveloper }: ReviewListProps) => {
   });
 
   const filteredReviews = reviews?.filter(review =>
-    review.comment.toLowerCase().includes(searchTerm.toLowerCase())
+    review.comment?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sentimentSummary: SentimentSummary | undefined = reviews?.reduce(
@@ -97,14 +93,12 @@ export const ReviewList = ({ agentId, isDeveloper }: ReviewListProps) => {
 
   const handleReply = async (reviewId: string) => {
     try {
-      const updateData: ReviewUpdate = {
-        developer_reply: replyText[reviewId],
-        developer_reply_at: new Date().toISOString()
-      };
-
       const { error } = await supabase
         .from('reviews')
-        .update(updateData)
+        .update({
+          developer_reply: replyText[reviewId],
+          developer_reply_at: new Date().toISOString()
+        })
         .eq('id', reviewId);
 
       if (error) throw error;

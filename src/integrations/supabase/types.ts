@@ -1197,6 +1197,8 @@ export type Database = {
           agent_id: string
           comment: string | null
           created_at: string
+          developer_reply: string | null
+          developer_reply_at: string | null
           id: string
           rating: number
           user_id: string
@@ -1205,6 +1207,8 @@ export type Database = {
           agent_id: string
           comment?: string | null
           created_at?: string
+          developer_reply?: string | null
+          developer_reply_at?: string | null
           id?: string
           rating: number
           user_id: string
@@ -1213,6 +1217,8 @@ export type Database = {
           agent_id?: string
           comment?: string | null
           created_at?: string
+          developer_reply?: string | null
+          developer_reply_at?: string | null
           id?: string
           rating?: number
           user_id?: string
