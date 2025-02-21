@@ -8,50 +8,114 @@ import {
   MessageSquare,
   LifeBuoy,
   Settings,
-  Star
+  Star,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   isOpen: boolean;
+  isMobile: boolean;
+  onClose: () => void;
 }
 
-export const UserSidebar = ({ isOpen }: SidebarProps) => {
+export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
   const location = useLocation();
   
   const menuItems = [
-    { icon: Home, label: "Overview", path: "/dashboard" },
-    { icon: Bot, label: "My Agents", path: "/dashboard/agents" },
-    { icon: CreditCard, label: "Credits", path: "/dashboard/credits" },
-    { icon: Star, label: "Saved Agents", path: "/dashboard/saved" },
-    { icon: BarChart2, label: "Analytics", path: "/dashboard/analytics" },
-    { icon: MessageSquare, label: "Reviews", path: "/dashboard/reviews" },
-    { icon: LifeBuoy, label: "Support", path: "/dashboard/support" },
-    { icon: Settings, label: "Settings", path: "/dashboard/settings" }
+    { 
+      icon: Home, 
+      label: "Overview", 
+      path: "/dashboard",
+      ariaLabel: "Go to Dashboard Overview"
+    },
+    { 
+      icon: Bot, 
+      label: "My Agents", 
+      path: "/dashboard/agents",
+      ariaLabel: "View My AI Agents"
+    },
+    { 
+      icon: CreditCard, 
+      label: "Credits", 
+      path: "/dashboard/credits",
+      ariaLabel: "Manage Credits and Transactions"
+    },
+    { 
+      icon: Star, 
+      label: "Saved Agents", 
+      path: "/dashboard/saved",
+      ariaLabel: "View Saved Agents"
+    },
+    { 
+      icon: BarChart2, 
+      label: "Analytics", 
+      path: "/dashboard/analytics",
+      ariaLabel: "View Usage Analytics"
+    },
+    { 
+      icon: MessageSquare, 
+      label: "Reviews", 
+      path: "/dashboard/reviews",
+      ariaLabel: "Manage Reviews"
+    },
+    { 
+      icon: LifeBuoy, 
+      label: "Support", 
+      path: "/dashboard/support",
+      ariaLabel: "Access Support"
+    },
+    { 
+      icon: Settings, 
+      label: "Settings", 
+      path: "/dashboard/settings",
+      ariaLabel: "Manage Account Settings"
+    }
   ];
 
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-background border-r border-border transition-transform duration-300",
-        isOpen ? "translate-x-0" : "-translate-x-64"
+        "fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-background border-r border-border transition-transform duration-300 z-40",
+        isOpen ? "translate-x-0" : "-translate-x-64",
+        isMobile && "shadow-lg"
       )}
+      aria-label="User Navigation"
+      role="navigation"
     >
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-2 md:hidden"
+          onClick={onClose}
+          aria-label="Close navigation menu"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
+
       <div className="flex flex-col h-full py-4">
         <nav className="flex-1">
-          <ul className="space-y-1">
+          <ul className="space-y-1" role="menu">
             {menuItems.map((item) => (
-              <li key={item.path}>
+              <li key={item.path} role="none">
                 <Link
                   to={item.path}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent/10 transition-colors",
+                    "flex items-center gap-3 px-4 py-2 text-sm transition-colors",
+                    "hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
                     location.pathname === item.path 
                       ? "bg-accent/20 text-accent font-medium" 
                       : "text-muted-foreground"
                   )}
+                  onClick={() => isMobile && onClose()}
+                  role="menuitem"
+                  aria-label={item.ariaLabel}
+                  aria-current={location.pathname === item.path ? "page" : undefined}
                 >
-                  <item.icon className="w-4 h-4" />
+                  <item.icon className="w-4 h-4" aria-hidden="true" />
                   <span>{item.label}</span>
                 </Link>
               </li>
