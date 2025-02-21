@@ -4,13 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Star, ThumbsUp, ThumbsDown, Search } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Star, ThumbsUp, ThumbsDown, Search, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 type SortOption = 'date' | 'rating' | 'helpful';
 
 interface ReviewListProps {
   agentId?: string;
+  isDeveloper?: boolean;
 }
 
 interface Review {
@@ -23,17 +26,29 @@ interface Review {
   helpful_votes: number;
   unhelpful_votes: number;
   screenshot_url: string | null;
+  developer_reply?: string;
+  developer_reply_at?: string;
+  sentiment_score: number;
   profiles: {
     name: string;
     avatar_url: string | null;
   };
 }
 
-export const ReviewList = ({ agentId }: ReviewListProps) => {
+interface SentimentSummary {
+  positive: number;
+  neutral: number;
+  negative: number;
+  total: number;
+}
+
+export const ReviewList = ({ agentId, isDeveloper }: ReviewListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('date');
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+  const { toast } = useToast();
 
-  const { data: reviews, isLoading } = useQuery({
+  const { data: reviews, isLoading, refetch } = useQuery({
     queryKey: ['reviews', agentId, sortBy],
     queryFn: async () => {
       let query = supabase
@@ -68,8 +83,72 @@ export const ReviewList = ({ agentId }: ReviewListProps) => {
     review.comment.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const sentimentSummary: SentimentSummary | undefined = reviews?.reduce(
+    (acc, review) => ({
+      positive: acc.positive + (review.rating >= 4 ? 1 : 0),
+      neutral: acc.neutral + (review.rating === 3 ? 1 : 0),
+      negative: acc.negative + (review.rating < 3 ? 1 : 0),
+      total: acc.total + 1,
+    }),
+    { positive: 0, neutral: 0, negative: 0, total: 0 }
+  );
+
+  const handleReply = async (reviewId: string) => {
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .update({
+          developer_reply: replyText[reviewId],
+          developer_reply_at: new Date().toISOString(),
+        })
+        .eq('id', reviewId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reply posted",
+        description: "Your response has been added to the review."
+      });
+
+      setReplyText(prev => ({ ...prev, [reviewId]: '' }));
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {sentimentSummary && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Sentiment Summary</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-500">
+                {Math.round((sentimentSummary.positive / sentimentSummary.total) * 100)}%
+              </p>
+              <p className="text-sm text-muted-foreground">Positive</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-yellow-500">
+                {Math.round((sentimentSummary.neutral / sentimentSummary.total) * 100)}%
+              </p>
+              <p className="text-sm text-muted-foreground">Neutral</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-500">
+                {Math.round((sentimentSummary.negative / sentimentSummary.total) * 100)}%
+              </p>
+              <p className="text-sm text-muted-foreground">Negative</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -110,9 +189,14 @@ export const ReviewList = ({ agentId }: ReviewListProps) => {
           <p>Loading reviews...</p>
         ) : filteredReviews?.length ? (
           filteredReviews.map((review) => (
-            <Card key={review.id} className="p-6">
+            <Card 
+              key={review.id} 
+              className={`p-6 ${
+                review.rating < 3 ? 'border-red-200 bg-red-50/50' : ''
+              }`}
+            >
               <div className="flex items-start justify-between">
-                <div className="flex gap-4">
+                <div className="flex gap-4 w-full">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       {review.profiles?.avatar_url ? (
@@ -128,7 +212,7 @@ export const ReviewList = ({ agentId }: ReviewListProps) => {
                       )}
                     </div>
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{review.profiles?.name}</span>
                       <div className="flex">
@@ -165,6 +249,38 @@ export const ReviewList = ({ agentId }: ReviewListProps) => {
                         {review.unhelpful_votes}
                       </Button>
                     </div>
+
+                    {review.developer_reply && (
+                      <div className="mt-4 pl-4 border-l-2 border-primary">
+                        <p className="text-sm font-semibold">Developer Response</p>
+                        <p className="mt-1">{review.developer_reply}</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {new Date(review.developer_reply_at!).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+
+                    {isDeveloper && !review.developer_reply && (
+                      <div className="mt-4">
+                        <Textarea
+                          placeholder="Write a response..."
+                          value={replyText[review.id] || ''}
+                          onChange={(e) => setReplyText(prev => ({
+                            ...prev,
+                            [review.id]: e.target.value
+                          }))}
+                          className="mb-2"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleReply(review.id)}
+                          disabled={!replyText[review.id]}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Post Reply
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
