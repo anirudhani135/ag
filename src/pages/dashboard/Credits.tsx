@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -99,6 +100,11 @@ const Credits = () => {
                     </p>
                   </div>
                 ))}
+                {!transactions?.length && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No transaction history available</p>
+                  </div>
+                )}
               </div>
             )}
           </ScrollArea>
