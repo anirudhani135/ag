@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
+import { useAuth } from "@/context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const { userRole, isLoading } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -25,6 +28,12 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Redirect if user tries to access wrong dashboard type
+  if (!isLoading && ((type === "developer" && userRole !== "developer") || 
+      (type === "user" && userRole === "developer"))) {
+    return <Navigate to={userRole === "developer" ? "/developer/dashboard" : "/user/dashboard"} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

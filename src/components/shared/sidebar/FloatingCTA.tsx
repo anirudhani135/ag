@@ -1,19 +1,42 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 interface FloatingCTAProps {
   label: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   className?: string;
   type?: "user" | "developer";
 }
 
 export const FloatingCTA = ({ label, icon, onClick, className, type = "user" }: FloatingCTAProps) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+
+    if (type === "developer") {
+      // Implement withdrawal flow
+      toast({
+        title: "Withdrawal Request",
+        description: "Your withdrawal request has been initiated. Please check your email for confirmation.",
+      });
+    } else {
+      // Navigate to credits page for users
+      navigate("/user/credits");
+    }
+  };
+
   return (
     <Button
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         "fixed bottom-8 right-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg",
         "flex items-center gap-2 px-6 py-3 font-medium transition-all duration-200",
