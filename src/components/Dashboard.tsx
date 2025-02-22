@@ -19,6 +19,14 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { Database } from "@/integrations/supabase/types";
+
+type UserActivity = Database["public"]["Tables"]["user_activity"]["Row"] & {
+  details: {
+    agent_name?: string;
+    [key: string]: any;
+  };
+};
 
 interface DashboardData {
   creditBalance: number;
@@ -38,7 +46,6 @@ interface DashboardData {
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  // Fetch user profile and dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['dashboard-data'],
     queryFn: async () => {
@@ -92,7 +99,7 @@ export const Dashboard = () => {
         averageRating,
         lastLoginDate: profile?.last_login || new Date().toISOString(),
         userName: profile?.name || 'User',
-        recentActivity: recentActivity?.map(activity => ({
+        recentActivity: (recentActivity as UserActivity[])?.map(activity => ({
           id: activity.id,
           action: activity.activity_type,
           timestamp: activity.created_at,

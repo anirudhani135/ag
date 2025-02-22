@@ -1,48 +1,19 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 
 interface UserActivity {
   id: string;
-  activity_type: string;
-  details: Record<string, any>;
-  created_at: string;
+  action: string;
+  timestamp: string;
+  agentName: string;
 }
 
-export const UserActivityFeed = () => {
-  const { data: activities, isLoading } = useQuery({
-    queryKey: ['user-activity'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+interface UserActivityFeedProps {
+  activities?: UserActivity[];
+}
 
-      const { data, error } = await supabase
-        .from('user_activity')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data as UserActivity[];
-    },
-  });
-
-  const getActivityMessage = (activity: UserActivity) => {
-    switch (activity.activity_type) {
-      case 'credit_purchase':
-        return `Purchased ${activity.details.amount} credits`;
-      case 'credit_usage':
-        return `Used ${activity.details.amount} credits for ${activity.details.purpose}`;
-      case 'agent_interaction':
-        return `Interacted with agent: ${activity.details.agent_name}`;
-      default:
-        return activity.activity_type;
-    }
-  };
-
+export const UserActivityFeed = ({ activities = [] }: UserActivityFeedProps) => {
   return (
     <Card>
       <CardHeader>
@@ -53,18 +24,19 @@ export const UserActivityFeed = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {isLoading ? (
-            <p className="text-muted-foreground">Loading activities...</p>
-          ) : activities?.length ? (
+          {activities?.length ? (
             activities.map((activity) => (
               <div
                 key={activity.id}
                 className="flex items-start gap-4 border-b border-border pb-4 last:border-0 last:pb-0"
               >
                 <div className="flex-1">
-                  <p className="font-medium">{getActivityMessage(activity)}</p>
+                  <p className="font-medium">{activity.action}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Agent: {activity.agentName}
+                  </p>
                   <time className="text-sm text-muted-foreground">
-                    {new Date(activity.created_at).toLocaleString()}
+                    {new Date(activity.timestamp).toLocaleString()}
                   </time>
                 </div>
               </div>
