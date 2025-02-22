@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Analytics = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout type="developer">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>

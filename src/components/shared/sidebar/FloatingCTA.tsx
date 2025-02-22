@@ -23,13 +23,11 @@ export const FloatingCTA = ({ label, icon, onClick, className, type = "user" }: 
     }
 
     if (type === "developer") {
-      // Implement withdrawal flow
       toast({
         title: "Withdrawal Request",
         description: "Your withdrawal request has been initiated. Please check your email for confirmation.",
       });
     } else {
-      // Navigate to credits page for users
       navigate("/user/credits");
     }
   };
@@ -38,7 +36,7 @@ export const FloatingCTA = ({ label, icon, onClick, className, type = "user" }: 
     <Button
       onClick={handleClick}
       className={cn(
-        "fixed bottom-8 right-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg",
+        "fixed bottom-4 right-4 z-50 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg",
         "flex items-center gap-2 px-6 py-3 font-medium transition-all duration-200",
         "hover:scale-105 hover:shadow-xl",
         className

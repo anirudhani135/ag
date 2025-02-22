@@ -15,7 +15,6 @@ const AgentManagement = () => {
   const [sort, setSort] = useState("created_at");
   const [view, setView] = useState<'grid' | 'list'>('grid');
 
-  // Fetch agents with search and sort
   const { data: agents, isLoading } = useQuery({
     queryKey: ['agents', search, sort],
     queryFn: async () => {
@@ -39,7 +38,6 @@ const AgentManagement = () => {
   });
 
   const handleEdit = (id: string) => {
-    // To be implemented
     toast.info("Edit functionality coming soon");
   };
 
@@ -58,16 +56,15 @@ const AgentManagement = () => {
   };
 
   const handleViewMetrics = (id: string) => {
-    // To be implemented
     toast.info("Metrics view coming soon");
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout type="developer">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Agent Management</h2>
-          <Button>
+          <Button className="bg-primary hover:bg-primary/90 text-white">
             <Plus className="w-4 h-4 mr-2" />
             New Agent
           </Button>

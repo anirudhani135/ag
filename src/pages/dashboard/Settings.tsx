@@ -1,217 +1,45 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { User, Settings as SettingsIcon, Bell } from 'lucide-react';
-import type { Json } from '@/integrations/supabase/types';
 
-interface NotificationSettings {
-  email_notifications: boolean;
-  push_notifications: boolean;
-}
-
-interface Profile {
-  name: string;
-  email: string;
-  company: string | null;
-  website: string | null;
-  notification_settings: NotificationSettings | null;
-}
-
-interface ProfileUpdate {
-  name?: string;
-  company?: string | null;
-  website?: string | null;
-  notification_settings?: Json;
-}
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Settings = () => {
-  const { toast } = useToast();
-  const [profile, setProfile] = useState<Profile | null>(null);
-
-  const { data: userData, isLoading } = useQuery({
-    queryKey: ['user-profile'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      // Transform the data to match our Profile interface
-      const transformedProfile: Profile = {
-        name: data.name || '',
-        email: data.email,
-        company: data.company,
-        website: data.website,
-        notification_settings: data.notification_settings ? {
-          email_notifications: (data.notification_settings as any).email_notifications || false,
-          push_notifications: (data.notification_settings as any).push_notifications || false
-        } : {
-          email_notifications: false,
-          push_notifications: false
-        }
-      };
-
-      setProfile(transformedProfile);
-      return transformedProfile;
-    },
-  });
-
-  const updateProfile = useMutation({
-    mutationFn: async (updatedProfile: ProfileUpdate) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updatedProfile)
-        .eq('id', user.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Settings updated",
-        description: "Your profile settings have been saved successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update settings. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (profile) {
-      const updateData: ProfileUpdate = {
-        name: profile.name,
-        company: profile.company,
-        website: profile.website,
-        notification_settings: profile.notification_settings as unknown as Json
-      };
-      updateProfile.mutate(updateData);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <p>Loading settings...</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout>
+    <DashboardLayout type="user">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Settings</h2>
-          <p className="text-muted-foreground">Manage your account settings and preferences</p>
-        </div>
+        <h2 className="text-2xl font-bold">Settings</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Information
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  value={profile?.name || ''}
-                  onChange={(e) => setProfile(prev => ({ ...prev!, name: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Company</label>
-                <Input
-                  value={profile?.company || ''}
-                  onChange={(e) => setProfile(prev => ({ ...prev!, company: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Website</label>
-                <Input
-                  value={profile?.website || ''}
-                  onChange={(e) => setProfile(prev => ({ ...prev!, website: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Profile Settings</h3>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" defaultValue="John Doe" />
             </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notification Preferences
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-muted-foreground">Receive updates via email</p>
-                </div>
-                <Button
-                  type="button"
-                  variant={profile?.notification_settings?.email_notifications ? "default" : "outline"}
-                  onClick={() => setProfile(prev => ({
-                    ...prev!,
-                    notification_settings: {
-                      ...prev!.notification_settings!,
-                      email_notifications: !prev!.notification_settings?.email_notifications
-                    }
-                  }))}
-                >
-                  {profile?.notification_settings?.email_notifications ? 'Enabled' : 'Disabled'}
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Push Notifications</p>
-                  <p className="text-sm text-muted-foreground">Receive push notifications</p>
-                </div>
-                <Button
-                  type="button"
-                  variant={profile?.notification_settings?.push_notifications ? "default" : "outline"}
-                  onClick={() => setProfile(prev => ({
-                    ...prev!,
-                    notification_settings: {
-                      ...prev!.notification_settings!,
-                      push_notifications: !prev!.notification_settings?.push_notifications
-                    }
-                  }))}
-                >
-                  {profile?.notification_settings?.push_notifications ? 'Enabled' : 'Disabled'}
-                </Button>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" defaultValue="john@example.com" />
             </div>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
+            <Button className="bg-primary hover:bg-primary/90 text-white">
+              Save Changes
             </Button>
           </div>
-        </form>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="notifications">Email Notifications</Label>
+              <Input id="notifications" type="email" placeholder="Add email" />
+            </div>
+            <Button className="bg-primary hover:bg-primary/90 text-white">
+              Update Notifications
+            </Button>
+          </div>
+        </Card>
       </div>
     </DashboardLayout>
   );
