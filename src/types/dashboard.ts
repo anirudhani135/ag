@@ -19,16 +19,27 @@ export interface UserActivity {
   status?: 'success' | 'warning' | 'error';
 }
 
-export interface DashboardMetrics {
-  creditBalance: number;
-  activeAgents: number;
-  monthlyUsage: number;
-  averageRating: number;
-  lastLoginDate: string;
+export interface BaseDashboardMetrics {
   userName: string;
+  lastLoginDate: string;
+  averageRating: number;
   unreadNotifications: number;
   recentActivity: UserActivity[];
 }
+
+export interface UserDashboardMetrics extends BaseDashboardMetrics {
+  creditBalance: number;
+  activeAgents: number;
+  monthlyUsage: number;
+}
+
+export interface DeveloperDashboardMetrics extends BaseDashboardMetrics {
+  availableBalance: number;
+  publishedAgents: number;
+  monthlyRevenue: number;
+}
+
+export type DashboardMetrics = UserDashboardMetrics | DeveloperDashboardMetrics;
 
 export interface NotificationItem {
   id: string;

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { supabase } from "@/integrations/supabase/client";
-import { type DashboardMetrics } from "@/types/dashboard";
+import { type DeveloperDashboardMetrics } from "@/types/dashboard";
 import { DashboardHeader } from "../dashboard/DashboardHeader";
 import { DashboardStatsGrid } from "../dashboard/DashboardStatsGrid";
 import { QuickActions } from "../dashboard/QuickActions";
@@ -26,7 +26,7 @@ export const DeveloperDashboard = () => {
       // Fetch published agents count
       const { count: publishedAgents } = await supabase
         .from('agents')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .eq('developer_id', user.id)
         .eq('status', 'published');
 
@@ -39,7 +39,7 @@ export const DeveloperDashboard = () => {
 
       const totalRevenue = monthlyRevenue?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
-      // Fetch average rating for developer's agents
+      // Fetch agent ratings
       const { data: ratings } = await supabase
         .from('reviews')
         .select('rating')
@@ -49,13 +49,29 @@ export const DeveloperDashboard = () => {
         ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length 
         : 0;
 
-      // Fetch recent activity
+      // Fetch unread notifications count
+      const { count: unreadNotifications } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
+      // Fetch recent activity from user_activity table
       const { data: recentActivity } = await supabase
-        .from('developer_activity')
+        .from('user_activity')
         .select('*')
-        .eq('developer_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
+
+      const formattedActivity = recentActivity?.map(activity => ({
+        id: activity.id,
+        action: activity.activity_type,
+        timestamp: activity.created_at || new Date().toISOString(),
+        agentName: activity.metadata?.agent_name || 'Unknown Agent',
+        metadata: activity.metadata,
+        status: activity.metadata?.status || 'success'
+      })) || [];
 
       return {
         availableBalance: totalRevenue || 0,
@@ -64,8 +80,9 @@ export const DeveloperDashboard = () => {
         averageRating,
         lastLoginDate: profile?.last_login || new Date().toISOString(),
         userName: profile?.name || 'Developer',
-        recentActivity: recentActivity || []
-      } as DashboardMetrics;
+        unreadNotifications: unreadNotifications || 0,
+        recentActivity: formattedActivity
+      } as DeveloperDashboardMetrics;
     },
   });
 

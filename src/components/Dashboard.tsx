@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { supabase } from "@/integrations/supabase/client";
-import { type DashboardMetrics } from "@/types/dashboard";
+import { type UserDashboardMetrics } from "@/types/dashboard";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { DashboardStatsGrid } from "./dashboard/DashboardStatsGrid";
 import { QuickActions } from "./dashboard/QuickActions";
@@ -23,12 +23,11 @@ export const Dashboard = () => {
         .eq('id', user.id)
         .single();
 
-      // Fetch active agents count
+      // Fetch active agents count from saved_agents
       const { count: activeAgents } = await supabase
-        .from('user_agents')
-        .select('agent_id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'active');
+        .from('saved_agents')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
       // Fetch monthly usage
       const { data: monthlyUsage } = await supabase
@@ -38,7 +37,7 @@ export const Dashboard = () => {
         .gte('created_at', new Date(new Date().setDate(1)).toISOString())
         .single();
 
-      // Fetch user rating
+      // Fetch user ratings (reviews given by the user)
       const { data: ratings } = await supabase
         .from('reviews')
         .select('rating')
@@ -48,6 +47,13 @@ export const Dashboard = () => {
         ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length 
         : 0;
 
+      // Fetch unread notifications count
+      const { count: unreadNotifications } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
       // Fetch recent activity
       const { data: recentActivity } = await supabase
         .from('user_activity')
@@ -56,6 +62,15 @@ export const Dashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      const formattedActivity = recentActivity?.map(activity => ({
+        id: activity.id,
+        action: activity.activity_type,
+        timestamp: activity.created_at || new Date().toISOString(),
+        agentName: activity.metadata?.agent_name || 'Unknown Agent',
+        metadata: activity.metadata,
+        status: activity.metadata?.status || 'success'
+      })) || [];
+
       return {
         creditBalance: profile?.credit_balance || 0,
         activeAgents: activeAgents || 0,
@@ -63,8 +78,9 @@ export const Dashboard = () => {
         averageRating,
         lastLoginDate: profile?.last_login || new Date().toISOString(),
         userName: profile?.name || 'User',
-        recentActivity: recentActivity || []
-      } as DashboardMetrics;
+        unreadNotifications: unreadNotifications || 0,
+        recentActivity: formattedActivity
+      } as UserDashboardMetrics;
     },
   });
 
