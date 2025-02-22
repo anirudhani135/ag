@@ -20,6 +20,37 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { type DashboardMetrics, type UserActivity } from "@/types/dashboard";
+import { Database } from "@/integrations/supabase/types";
+
+type DbUserActivity = Database["public"]["Tables"]["user_activity"]["Row"];
+
+const parseActivityDetails = (details: any): { 
+  agent_name?: string; 
+  status?: string; 
+  [key: string]: any; 
+} => {
+  if (typeof details === 'object' && details !== null) {
+    return details;
+  }
+  try {
+    return JSON.parse(details as string);
+  } catch {
+    return {};
+  }
+};
+
+const formatUserActivity = (activity: DbUserActivity): UserActivity => {
+  const details = parseActivityDetails(activity.details);
+  
+  return {
+    id: activity.id,
+    action: activity.activity_type,
+    timestamp: activity.created_at,
+    agentName: details?.agent_name || 'Unknown Agent',
+    metadata: details || {},
+    status: details?.status || 'info'
+  };
+};
 
 interface DashboardProps {
   type?: "user" | "developer";
@@ -81,14 +112,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      const formattedActivity: UserActivity[] = recentActivity?.map(activity => ({
-        id: activity.id,
-        action: activity.activity_type,
-        timestamp: activity.created_at,
-        agentName: activity.details?.agent_name || 'Unknown Agent',
-        metadata: activity.details,
-        status: activity.details?.status
-      })) || [];
+      const formattedActivity = (recentActivity || []).map(formatUserActivity);
 
       return {
         creditBalance: profile?.credit_balance || 0,
