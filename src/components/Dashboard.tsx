@@ -17,6 +17,25 @@ interface DashboardProps {
   type?: "user" | "developer";
 }
 
+interface DeveloperMetrics {
+  agent_id: string;
+  revenue: number;
+  unique_views: number;
+  conversion_rate: number;
+  agent_count: number;
+  date: string;
+  created_at: string;
+  id: string;
+}
+
+interface UserMetrics {
+  id: string;
+  user_id: string;
+  active_agents: number;
+  total_interactions: number;
+  created_at: string;
+}
+
 export const Dashboard = ({ type = "user" }: DashboardProps) => {
   const navigate = useNavigate();
   
@@ -44,20 +63,23 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
         const { data, error } = await supabase
           .from('agent_metrics')
           .select('*')
-          .eq('date', new Date().toISOString().split('T')[0]);
+          .eq('date', new Date().toISOString().split('T')[0])
+          .limit(1)
+          .single();
 
         if (error) throw error;
-        return data;
+        return data as DeveloperMetrics;
       } else {
         const { data, error } = await supabase
           .from('user_engagement_metrics')
           .select('*')
           .eq('user_id', profile?.id)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(1)
+          .single();
 
         if (error) throw error;
-        return data?.[0];
+        return data as UserMetrics;
       }
     },
     enabled: !!profile?.id,
