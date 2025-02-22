@@ -15,6 +15,14 @@ interface ActivityMetadata {
   [key: string]: any;
 }
 
+interface TransactionData {
+  amount: number;
+}
+
+interface ReviewData {
+  rating: number;
+}
+
 export const DeveloperDashboard = () => {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['developer-dashboard-data'],
@@ -36,19 +44,19 @@ export const DeveloperDashboard = () => {
         .eq('developer_id', user.id)
         .eq('status', 'published');
 
-      // Fetch monthly revenue with explicit type
+      // Fetch monthly revenue
       const { data: monthlyRevenue } = await supabase
         .from('transactions')
-        .select<'amount', { amount: number }>('amount')
+        .select<string, TransactionData>('amount')
         .eq('developer_id', user.id)
         .gte('created_at', new Date(new Date().setDate(1)).toISOString());
 
       const totalRevenue = monthlyRevenue?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
-      // Fetch agent ratings with explicit type
+      // Fetch agent ratings
       const { data: ratings } = await supabase
         .from('reviews')
-        .select<'rating', { rating: number }>('rating')
+        .select<string, ReviewData>('rating')
         .eq('developer_id', user.id);
 
       const averageRating = ratings?.length 
