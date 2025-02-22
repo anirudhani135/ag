@@ -9,6 +9,12 @@ import { DashboardStatsGrid } from "./dashboard/DashboardStatsGrid";
 import { QuickActions } from "./dashboard/QuickActions";
 import { DashboardMetricsPanel } from "./dashboard/DashboardMetricsPanel";
 
+interface ActivityMetadata {
+  agent_name?: string;
+  status?: string;
+  [key: string]: any;
+}
+
 export const Dashboard = () => {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['user-dashboard-data'],
@@ -37,7 +43,7 @@ export const Dashboard = () => {
         .gte('created_at', new Date(new Date().setDate(1)).toISOString())
         .single();
 
-      // Fetch user ratings (reviews given by the user)
+      // Fetch user ratings
       const { data: ratings } = await supabase
         .from('reviews')
         .select('rating')
@@ -62,14 +68,17 @@ export const Dashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      const formattedActivity = recentActivity?.map(activity => ({
-        id: activity.id,
-        action: activity.activity_type,
-        timestamp: activity.created_at || new Date().toISOString(),
-        agentName: activity.metadata?.agent_name || 'Unknown Agent',
-        metadata: activity.metadata,
-        status: activity.metadata?.status || 'success'
-      })) || [];
+      const formattedActivity = recentActivity?.map(activity => {
+        const metadata = activity.metadata as ActivityMetadata;
+        return {
+          id: activity.id,
+          action: activity.activity_type,
+          timestamp: activity.created_at || new Date().toISOString(),
+          agentName: metadata?.agent_name || 'Unknown Agent',
+          metadata: metadata,
+          status: metadata?.status || 'success'
+        };
+      }) || [];
 
       return {
         creditBalance: profile?.credit_balance || 0,

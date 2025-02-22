@@ -9,6 +9,12 @@ import { DashboardStatsGrid } from "../dashboard/DashboardStatsGrid";
 import { QuickActions } from "../dashboard/QuickActions";
 import { DashboardMetricsPanel } from "../dashboard/DashboardMetricsPanel";
 
+interface ActivityMetadata {
+  agent_name?: string;
+  status?: string;
+  [key: string]: any;
+}
+
 export const DeveloperDashboard = () => {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['developer-dashboard-data'],
@@ -19,16 +25,17 @@ export const DeveloperDashboard = () => {
       // Fetch developer profile data
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select()
         .eq('id', user.id)
         .single();
 
       // Fetch published agents count
       const { count: publishedAgents } = await supabase
         .from('agents')
-        .select('*', { count: 'exact', head: true })
+        .select()
         .eq('developer_id', user.id)
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .count();
 
       // Fetch monthly revenue
       const { data: monthlyRevenue } = await supabase
@@ -56,7 +63,7 @@ export const DeveloperDashboard = () => {
         .eq('user_id', user.id)
         .eq('read', false);
 
-      // Fetch recent activity from user_activity table
+      // Fetch recent activity
       const { data: recentActivity } = await supabase
         .from('user_activity')
         .select('*')
@@ -64,14 +71,17 @@ export const DeveloperDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      const formattedActivity = recentActivity?.map(activity => ({
-        id: activity.id,
-        action: activity.activity_type,
-        timestamp: activity.created_at || new Date().toISOString(),
-        agentName: activity.metadata?.agent_name || 'Unknown Agent',
-        metadata: activity.metadata,
-        status: activity.metadata?.status || 'success'
-      })) || [];
+      const formattedActivity = recentActivity?.map(activity => {
+        const metadata = activity.metadata as ActivityMetadata;
+        return {
+          id: activity.id,
+          action: activity.activity_type,
+          timestamp: activity.created_at || new Date().toISOString(),
+          agentName: metadata?.agent_name || 'Unknown Agent',
+          metadata: metadata,
+          status: metadata?.status || 'success'
+        };
+      }) || [];
 
       return {
         availableBalance: totalRevenue || 0,
