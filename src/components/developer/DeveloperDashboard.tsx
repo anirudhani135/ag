@@ -15,13 +15,13 @@ interface ActivityMetadata {
   [key: string]: any;
 }
 
-interface TransactionData {
+type TransactionRow = {
   amount: number;
-}
+};
 
-interface ReviewData {
+type ReviewRow = {
   rating: number;
-}
+};
 
 export const DeveloperDashboard = () => {
   const { data: dashboardData, isLoading } = useQuery({
@@ -37,7 +37,7 @@ export const DeveloperDashboard = () => {
         .eq('id', user.id)
         .single();
 
-      // Fetch published agents count using count with head option
+      // Fetch published agents count
       const { count: publishedAgents } = await supabase
         .from('agents')
         .select('*', { count: 'exact', head: true })
@@ -47,20 +47,18 @@ export const DeveloperDashboard = () => {
       // Fetch monthly revenue
       const { data: monthlyRevenue } = await supabase
         .from('transactions')
-        .select<string, TransactionData>('amount')
-        .eq('developer_id', user.id)
-        .gte('created_at', new Date(new Date().setDate(1)).toISOString());
-
-      const totalRevenue = monthlyRevenue?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+        .select('amount');
+      const typedRevenue = (monthlyRevenue || []) as TransactionRow[];
+      const totalRevenue = typedRevenue
+        .reduce((acc, curr) => acc + curr.amount, 0);
 
       // Fetch agent ratings
       const { data: ratings } = await supabase
         .from('reviews')
-        .select<string, ReviewData>('rating')
-        .eq('developer_id', user.id);
-
-      const averageRating = ratings?.length 
-        ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length 
+        .select('rating');
+      const typedRatings = (ratings || []) as ReviewRow[];
+      const averageRating = typedRatings.length 
+        ? typedRatings.reduce((acc, curr) => acc + curr.rating, 0) / typedRatings.length 
         : 0;
 
       // Fetch unread notifications count
