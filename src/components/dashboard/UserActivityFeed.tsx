@@ -1,19 +1,24 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
+import { type UserActivityFeedProps } from "@/types/dashboard";
+import { cn } from "@/lib/utils";
 
-interface UserActivity {
-  id: string;
-  action: string;
-  timestamp: string;
-  agentName: string;
-}
+export const UserActivityFeed = ({ 
+  activities = [], 
+  isLoading, 
+  error 
+}: UserActivityFeedProps) => {
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-destructive">Error loading activities</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-interface UserActivityFeedProps {
-  activities?: UserActivity[];
-}
-
-export const UserActivityFeed = ({ activities = [] }: UserActivityFeedProps) => {
   return (
     <Card>
       <CardHeader>
@@ -24,7 +29,9 @@ export const UserActivityFeed = ({ activities = [] }: UserActivityFeedProps) => 
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {activities?.length ? (
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading activities...</p>
+          ) : activities?.length ? (
             activities.map((activity) => (
               <div
                 key={activity.id}
@@ -35,7 +42,14 @@ export const UserActivityFeed = ({ activities = [] }: UserActivityFeedProps) => 
                   <p className="text-sm text-muted-foreground">
                     Agent: {activity.agentName}
                   </p>
-                  <time className="text-sm text-muted-foreground">
+                  <time 
+                    className={cn(
+                      "text-sm text-muted-foreground",
+                      activity.status === 'error' && "text-destructive",
+                      activity.status === 'warning' && "text-warning",
+                      activity.status === 'success' && "text-success"
+                    )}
+                  >
                     {new Date(activity.timestamp).toLocaleString()}
                   </time>
                 </div>

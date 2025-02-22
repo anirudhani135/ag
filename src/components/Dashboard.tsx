@@ -19,31 +19,13 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Database } from "@/integrations/supabase/types";
+import { type DashboardMetrics, type UserActivity } from "@/types/dashboard";
 
-type UserActivity = Database["public"]["Tables"]["user_activity"]["Row"] & {
-  details: {
-    agent_name?: string;
-    [key: string]: any;
-  };
-};
-
-interface DashboardData {
-  creditBalance: number;
-  activeAgents: number;
-  monthlyUsage: number;
-  averageRating: number;
-  lastLoginDate: string;
-  userName: string;
-  recentActivity: Array<{
-    id: string;
-    action: string;
-    timestamp: string;
-    agentName: string;
-  }>;
+interface DashboardProps {
+  type?: "user" | "developer";
 }
 
-export const Dashboard = () => {
+export const Dashboard = ({ type = "user" }: DashboardProps) => {
   const navigate = useNavigate();
 
   const { data: dashboardData, isLoading } = useQuery({
@@ -84,6 +66,13 @@ export const Dashboard = () => {
         ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length 
         : 0;
 
+      // Fetch unread notifications count
+      const { count: unreadNotifications } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
       // Fetch recent activity
       const { data: recentActivity } = await supabase
         .from('user_activity')
@@ -92,6 +81,15 @@ export const Dashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      const formattedActivity: UserActivity[] = recentActivity?.map(activity => ({
+        id: activity.id,
+        action: activity.activity_type,
+        timestamp: activity.created_at,
+        agentName: activity.details?.agent_name || 'Unknown Agent',
+        metadata: activity.details,
+        status: activity.details?.status
+      })) || [];
+
       return {
         creditBalance: profile?.credit_balance || 0,
         activeAgents: activeAgents || 0,
@@ -99,13 +97,9 @@ export const Dashboard = () => {
         averageRating,
         lastLoginDate: profile?.last_login || new Date().toISOString(),
         userName: profile?.name || 'User',
-        recentActivity: (recentActivity as UserActivity[])?.map(activity => ({
-          id: activity.id,
-          action: activity.activity_type,
-          timestamp: activity.created_at,
-          agentName: activity.details?.agent_name || 'Unknown Agent'
-        })) || []
-      } as DashboardData;
+        unreadNotifications: unreadNotifications || 0,
+        recentActivity: formattedActivity
+      } as DashboardMetrics;
     },
   });
 
@@ -118,7 +112,7 @@ export const Dashboard = () => {
           {/* Header */}
           <div className="flex flex-col space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">
-              Welcome, {dashboardData?.userName}!
+              Welcome back, {dashboardData?.userName}!
             </h1>
             <p className="text-muted-foreground">
               Last login: {new Date(dashboardData?.lastLoginDate || '').toLocaleString()}
@@ -163,7 +157,7 @@ export const Dashboard = () => {
           <div className="flex flex-wrap gap-4">
             <Button
               size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               onClick={() => navigate('/dashboard/credits')}
             >
               <Coins className="w-5 h-5 mr-2" />
@@ -171,7 +165,7 @@ export const Dashboard = () => {
             </Button>
             <Button
               size="lg"
-              className="bg-teal-600 hover:bg-teal-700 text-white rounded-full"
+              className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               onClick={() => navigate('/marketplace')}
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -210,7 +204,10 @@ export const Dashboard = () => {
                   View All
                 </Button>
               </div>
-              <UserActivityFeed activities={dashboardData?.recentActivity} />
+              <UserActivityFeed 
+                activities={dashboardData?.recentActivity}
+                isLoading={isLoading}
+              />
             </Card>
           </div>
 
