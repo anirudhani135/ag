@@ -54,11 +54,13 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
     );
   }
 
-  // Redirect if user tries to access wrong dashboard type
+  // Role-based redirect temporarily commented out for development
+  /* 
   if (!isLoading && ((type === "developer" && userRole !== "developer") || 
       (type === "user" && userRole === "developer"))) {
     return <Navigate to={userRole === "developer" ? "/developer/dashboard" : "/user/dashboard"} />;
   }
+  */
 
   return (
     <div className="min-h-screen bg-background">

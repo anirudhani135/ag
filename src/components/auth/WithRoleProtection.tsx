@@ -18,9 +18,12 @@ const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps)
     );
   }
 
+  // Role check temporarily commented out for development
+  /*
   if (!userRole || !allowedRoles.includes(userRole)) {
     return <Navigate to="/user/dashboard" replace />;
   }
+  */
 
   return <>{children}</>;
 };
