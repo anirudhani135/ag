@@ -28,7 +28,7 @@ export const DashboardOverview = () => {
     },
   });
 
-  // Fetch active agents count using agent_metrics table
+  // Fetch active agents count
   const { data: activeAgentsCount, isLoading: isLoadingAgents } = useQuery({
     queryKey: ['active-agents-count'],
     queryFn: async () => {
@@ -76,7 +76,7 @@ export const DashboardOverview = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/dashboard/credits'}
+              onClick={() => window.location.href = '/user/credits'}
             >
               View Credit History
             </Button>
@@ -90,7 +90,7 @@ export const DashboardOverview = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/dashboard/agents'}
+              onClick={() => window.location.href = '/user/agents'}
             >
               View All Agents
             </Button>
@@ -104,7 +104,7 @@ export const DashboardOverview = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/dashboard/notifications'}
+              onClick={() => window.location.href = '/user/notifications'}
             >
               View All
             </Button>
@@ -118,7 +118,7 @@ export const DashboardOverview = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/dashboard/analytics'}
+              onClick={() => window.location.href = '/user/analytics'}
             >
               Analytics
             </Button>

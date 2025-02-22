@@ -8,6 +8,7 @@ import { IncidentTracker } from "@/components/developer/IncidentTracker";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartBar, Users, DollarSign, Activity } from "lucide-react";
+import { FloatingCTA } from "@/components/shared/sidebar/FloatingCTA";
 
 const DeveloperOverview = () => {
   const { data: revenueData } = useQuery({
@@ -68,7 +69,7 @@ const DeveloperOverview = () => {
   });
 
   return (
-    <DashboardLayout>
+    <DashboardLayout type="developer">
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">Developer Overview</h2>
         
@@ -109,6 +110,11 @@ const DeveloperOverview = () => {
           <IncidentTracker />
         </div>
       </div>
+      <FloatingCTA 
+        type="developer"
+        label="Withdraw Funds"
+        icon={<DollarSign className="h-5 w-5" />}
+      />
     </DashboardLayout>
   );
 };
