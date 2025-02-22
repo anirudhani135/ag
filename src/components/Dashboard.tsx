@@ -17,24 +17,40 @@ interface DashboardProps {
   type?: "user" | "developer";
 }
 
+// Match the actual database structure
 interface DeveloperMetrics {
   agent_id: string;
+  avg_session_duration: unknown;
+  bounce_rate: number;
+  conversion_rate: number;
+  created_at: string;
+  date: string;
+  id: string;
+  purchases: number;
   revenue: number;
   unique_views: number;
-  conversion_rate: number;
-  agent_count: number;
-  date: string;
-  created_at: string;
-  id: string;
+  views: number;
 }
 
-interface UserMetrics {
+// Match the actual database structure
+interface UserEngagementMetrics {
   id: string;
   user_id: string;
-  active_agents: number;
-  total_interactions: number;
+  conversion_points: any;
   created_at: string;
+  features_used: any;
+  pages_visited: any;
+  session_duration: number;
+  timestamp: string;
 }
+
+type DashboardMetrics = {
+  type: "developer";
+  data: DeveloperMetrics;
+} | {
+  type: "user";
+  data: UserEngagementMetrics;
+};
 
 export const Dashboard = ({ type = "user" }: DashboardProps) => {
   const navigate = useNavigate();
@@ -56,7 +72,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
     },
   });
 
-  const { data: metrics } = useQuery({
+  const { data: metricsData } = useQuery({
     queryKey: ['dashboard-metrics', type],
     queryFn: async () => {
       if (type === "developer") {
@@ -68,7 +84,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
           .single();
 
         if (error) throw error;
-        return data as DeveloperMetrics;
+        return { type: "developer", data } as const;
       } else {
         const { data, error } = await supabase
           .from('user_engagement_metrics')
@@ -79,7 +95,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
           .single();
 
         if (error) throw error;
-        return data as UserMetrics;
+        return { type: "user", data } as const;
       }
     },
     enabled: !!profile?.id,
@@ -106,30 +122,31 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
   }, [type, navigate]);
 
   const renderMetrics = () => {
-    if (type === "developer") {
+    if (type === "developer" && metricsData?.type === "developer") {
+      const metrics = metricsData.data;
       return (
         <>
           <StatsCard
             title="Total Revenue"
-            value={`$${metrics?.revenue || 0}`}
+            value={`$${metrics.revenue || 0}`}
             icon={DollarSign}
             description="View Revenue Details"
           />
           <StatsCard
             title="Active Users"
-            value={metrics?.unique_views || 0}
+            value={metrics.unique_views || 0}
             icon={Users}
             description="View User Analytics"
           />
           <StatsCard
             title="Agent Performance"
-            value={`${metrics?.conversion_rate || 0}%`}
+            value={`${metrics.conversion_rate || 0}%`}
             icon={Activity}
             description="View Performance Details"
           />
           <StatsCard
             title="Total Agents"
-            value={metrics?.agent_count || 0}
+            value={metrics.views || 0} // Using views as a proxy for agent count
             icon={Bot}
             description="Manage Your Agents"
           />
@@ -137,36 +154,42 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
       );
     }
 
-    return (
-      <>
-        <StatsCard
-          title="Available Credits"
-          value={profile?.credit_balance || 0}
-          icon={DollarSign}
-          description={
-            <Button
-              variant="link"
-              className="p-0 h-auto text-sm"
-              onClick={() => navigate('/dashboard/credits')}
-            >
-              Buy More Credits
-            </Button>
-          }
-        />
-        <StatsCard
-          title="Active Agents"
-          value={metrics?.active_agents || 0}
-          icon={Bot}
-          description="View Your Agents"
-        />
-        <StatsCard
-          title="Total Usage"
-          value={`${metrics?.total_interactions || 0} calls`}
-          icon={Activity}
-          description="View Analytics"
-        />
-      </>
-    );
+    // For user dashboard
+    if (type === "user" && metricsData?.type === "user") {
+      const metrics = metricsData.data;
+      return (
+        <>
+          <StatsCard
+            title="Available Credits"
+            value={profile?.credit_balance || 0}
+            icon={DollarSign}
+            description={
+              <Button
+                variant="link"
+                className="p-0 h-auto text-sm"
+                onClick={() => navigate('/dashboard/credits')}
+              >
+                Buy More Credits
+              </Button>
+            }
+          />
+          <StatsCard
+            title="Active Sessions"
+            value={metrics.session_duration || 0}
+            icon={Bot}
+            description="View Your Activity"
+          />
+          <StatsCard
+            title="Features Used"
+            value={metrics.features_used ? Object.keys(metrics.features_used).length : 0}
+            icon={Activity}
+            description="View Analytics"
+          />
+        </>
+      );
+    }
+
+    return null;
   };
 
   return (
