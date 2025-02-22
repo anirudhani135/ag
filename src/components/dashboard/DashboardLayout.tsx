@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,30 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="h-16 border-b">
+          <Skeleton className="h-full" />
+        </div>
+        <div className="flex h-[calc(100vh-4rem)]">
+          <Skeleton className="w-64 hidden md:block" />
+          <main className="flex-1 p-6">
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-[200px]" />
+              <Skeleton className="h-4 w-[300px]" />
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-32" />
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if user tries to access wrong dashboard type
   if (!isLoading && ((type === "developer" && userRole !== "developer") || 
@@ -53,7 +78,9 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
-          {children}
+          <div className="container mx-auto max-w-7xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>
