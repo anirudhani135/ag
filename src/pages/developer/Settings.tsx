@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 
 const DeveloperSettings = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout type="developer">
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">Developer Settings</h2>
 
@@ -23,7 +24,7 @@ const DeveloperSettings = () => {
                 readOnly
               />
             </div>
-            <Button variant="outline">Generate New Key</Button>
+            <Button variant="outline" className="bg-background text-foreground">Generate New Key</Button>
           </div>
         </Card>
 
@@ -39,7 +40,7 @@ const DeveloperSettings = () => {
                 placeholder="https://your-domain.com/webhook"
               />
             </div>
-            <Button>Save Webhook</Button>
+            <Button className="bg-primary text-primary-foreground">Save Webhook</Button>
           </div>
         </Card>
 

@@ -8,9 +8,8 @@ import { IncidentTracker } from "@/components/developer/IncidentTracker";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartBar, Users, DollarSign, Activity } from "lucide-react";
-import { FloatingCTA } from "@/components/shared/sidebar/FloatingCTA";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const DeveloperOverview = () => {
@@ -28,7 +27,7 @@ const DeveloperOverview = () => {
       if (error) throw error;
       return data[0];
     },
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
   });
 
   const { data: activeUsers, isLoading: isLoadingUsers } = useQuery({
@@ -43,7 +42,7 @@ const DeveloperOverview = () => {
       if (error) throw error;
       return data[0]?.daily_active_users || 0;
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
   });
 
   const { data: systemHealth, isLoading: isLoadingHealth } = useQuery({
@@ -162,11 +161,6 @@ const DeveloperOverview = () => {
           <IncidentTracker />
         </div>
       </div>
-      <FloatingCTA 
-        type="developer"
-        label="Withdraw Funds"
-        icon={<DollarSign className="h-5 w-5" />}
-      />
     </DashboardLayout>
   );
 };

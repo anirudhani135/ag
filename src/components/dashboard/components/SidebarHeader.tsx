@@ -1,7 +1,6 @@
 
-import { Search, ChevronRight, ChevronLeft, X } from "lucide-react";
+import { Search, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { SidebarHeaderProps } from "../types/sidebar";
 
 export const SidebarHeader = ({
@@ -23,11 +22,6 @@ export const SidebarHeader = ({
       >
         <Search className="h-4 w-4" />
       </Button>
-      <Switch
-        checked={isDarkMode}
-        onCheckedChange={setIsDarkMode}
-        aria-label="Toggle dark mode"
-      />
       {!isMobile && (
         <Button
           variant="ghost"
