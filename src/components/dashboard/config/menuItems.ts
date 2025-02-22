@@ -84,15 +84,15 @@ export const developerMenuItems: MenuItem[] = [
   },
   { 
     icon: BarChart2, 
-    label: "User Analytics", 
+    label: "Developer Analytics", 
     path: "/developer/analytics",
-    ariaLabel: "View User Analytics"
+    ariaLabel: "View Developer Analytics"
   },
   { 
     icon: MessageSquare, 
-    label: "Reviews & Feedback", 
+    label: "Developer Reviews", 
     path: "/developer/reviews",
-    ariaLabel: "Manage User Reviews and Feedback"
+    ariaLabel: "Manage Developer Reviews and Feedback"
   },
   { 
     icon: LifeBuoy, 

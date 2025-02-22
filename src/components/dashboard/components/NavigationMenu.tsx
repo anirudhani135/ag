@@ -27,7 +27,8 @@ export const NavigationMenu = ({
       return false;
     }
 
-    return location.pathname === itemPath;
+    // Check if the current path matches the menu item path
+    return location.pathname.startsWith(itemPath);
   };
 
   return (
