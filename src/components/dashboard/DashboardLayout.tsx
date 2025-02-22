@@ -6,9 +6,10 @@ import { TopNav } from "./TopNav";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  type?: "user" | "developer";
 }
 
-export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,6 +34,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           isOpen={sidebarOpen} 
           isMobile={isMobile}
           onClose={() => isMobile && setSidebarOpen(false)} 
+          type={type}
         />
         <main 
           className={cn(
@@ -40,7 +42,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             sidebarOpen && !isMobile ? "md:ml-64" : "ml-0"
           )}
           role="main"
-          aria-label="Developer Dashboard Main Content"
+          aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
           {children}
         </main>
