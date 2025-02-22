@@ -8,9 +8,12 @@ import { NotificationsCenter } from "@/components/dashboard/NotificationsCenter"
 import { CreditUsageChart } from "@/components/dashboard/CreditUsageChart";
 import { Coins, Bot, Bell, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const DashboardOverview = () => {
-  // Fetch user profile data including credit balance
+  const navigate = useNavigate();
+
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
@@ -26,9 +29,9 @@ export const DashboardOverview = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 30000, // Cache for 30 seconds
   });
 
-  // Fetch active agents count
   const { data: activeAgentsCount, isLoading: isLoadingAgents } = useQuery({
     queryKey: ['active-agents-count'],
     queryFn: async () => {
@@ -44,9 +47,9 @@ export const DashboardOverview = () => {
       if (error) throw error;
       return count || 0;
     },
+    staleTime: 60000, // Cache for 1 minute
   });
 
-  // Fetch unread notifications count
   const { data: unreadNotificationsCount, isLoading: isLoadingNotifications } = useQuery({
     queryKey: ['unread-notifications-count'],
     queryFn: async () => {
@@ -62,21 +65,40 @@ export const DashboardOverview = () => {
       if (error) throw error;
       return count || 0;
     },
+    staleTime: 30000,
   });
+
+  if (isLoadingProfile || isLoadingAgents || isLoadingNotifications) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-[300px]" />
+          <div className="space-y-6">
+            <Skeleton className="h-[200px]" />
+            <Skeleton className="h-[200px]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Available Credits"
-          value={isLoadingProfile ? "Loading..." : `${profile?.credit_balance || 0}`}
+          value={`${profile?.credit_balance || 0}`}
           icon={Coins}
           description={
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/user/credits'}
+              onClick={() => navigate('/user/credits')}
             >
               View Credit History
             </Button>
@@ -84,13 +106,13 @@ export const DashboardOverview = () => {
         />
         <StatsCard
           title="Active Agents"
-          value={isLoadingAgents ? "Loading..." : String(activeAgentsCount)}
+          value={String(activeAgentsCount)}
           icon={Bot}
           description={
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/user/agents'}
+              onClick={() => navigate('/user/agents')}
             >
               View All Agents
             </Button>
@@ -98,13 +120,13 @@ export const DashboardOverview = () => {
         />
         <StatsCard
           title="Notifications"
-          value={isLoadingNotifications ? "Loading..." : String(unreadNotificationsCount)}
+          value={String(unreadNotificationsCount)}
           icon={Bell}
           description={
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/user/notifications'}
+              onClick={() => navigate('/user/notifications')}
             >
               View All
             </Button>
@@ -118,7 +140,7 @@ export const DashboardOverview = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-sm"
-              onClick={() => window.location.href = '/user/analytics'}
+              onClick={() => navigate('/user/analytics')}
             >
               Analytics
             </Button>
@@ -127,12 +149,10 @@ export const DashboardOverview = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Credit Usage Chart */}
         <Card className="p-6">
           <CreditUsageChart />
         </Card>
 
-        {/* Activity Feed */}
         <div className="space-y-6">
           <UserActivityFeed />
           <NotificationsCenter />
