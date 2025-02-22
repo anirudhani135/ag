@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 
 interface WithRoleProtectionProps {
   children: React.ReactNode;
-  allowedRoles: ("developer" | "buyer")[];
+  allowedRoles: ("developer" | "buyer" | "admin")[];
 }
 
 const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps) => {
