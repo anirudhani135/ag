@@ -2,238 +2,219 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { DashboardLayout } from "./dashboard/DashboardLayout";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
-import { StatsCard } from "./dashboard/StatsCard";
-import { UserActivityFeed } from "./dashboard/UserActivityFeed";
-import { NotificationsCenter } from "./dashboard/NotificationsCenter";
-import { CreditUsageChart } from "./dashboard/CreditUsageChart";
-import { Button } from "./ui/button";
-import { Plus, DollarSign, Users, Activity, Bot } from "lucide-react";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
+import { CreditUsageChart } from "@/components/dashboard/CreditUsageChart";
+import {
+  Coins,
+  Bot,
+  BarChart2,
+  Star,
+  Plus,
+  ExternalLink,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-interface DashboardProps {
-  type?: "user" | "developer";
+interface DashboardData {
+  creditBalance: number;
+  activeAgents: number;
+  monthlyUsage: number;
+  averageRating: number;
+  lastLoginDate: string;
+  userName: string;
+  recentActivity: Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    agentName: string;
+  }>;
 }
 
-// Match the actual database structure
-interface DeveloperMetrics {
-  agent_id: string;
-  avg_session_duration: unknown;
-  bounce_rate: number;
-  conversion_rate: number;
-  created_at: string;
-  date: string;
-  id: string;
-  purchases: number;
-  revenue: number;
-  unique_views: number;
-  views: number;
-}
-
-// Match the actual database structure
-interface UserEngagementMetrics {
-  id: string;
-  user_id: string;
-  conversion_points: any;
-  created_at: string;
-  features_used: any;
-  pages_visited: any;
-  session_duration: number;
-  timestamp: string;
-}
-
-type DashboardMetrics = {
-  type: "developer";
-  data: DeveloperMetrics;
-} | {
-  type: "user";
-  data: UserEngagementMetrics;
-};
-
-export const Dashboard = ({ type = "user" }: DashboardProps) => {
+export const Dashboard = () => {
   const navigate = useNavigate();
-  
-  const { data: profile } = useQuery({
-    queryKey: ['user-profile'],
+
+  // Fetch user profile and dashboard data
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['dashboard-data'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      const { data, error } = await supabase
+      // Fetch profile data
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
-      return data;
-    },
-  });
+      // Fetch active agents count
+      const { count: activeAgents } = await supabase
+        .from('agent_metrics')
+        .select('agent_id', { count: 'exact', head: true })
+        .eq('date', new Date().toISOString().split('T')[0])
+        .gt('views', 0);
 
-  const { data: metricsData } = useQuery({
-    queryKey: ['dashboard-metrics', type],
-    queryFn: async () => {
-      if (type === "developer") {
-        const { data, error } = await supabase
-          .from('agent_metrics')
-          .select('*')
-          .eq('date', new Date().toISOString().split('T')[0])
-          .limit(1)
-          .single();
-
-        if (error) throw error;
-        return { type: "developer", data } as const;
-      } else {
-        const { data, error } = await supabase
-          .from('user_engagement_metrics')
-          .select('*')
-          .eq('user_id', profile?.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error) throw error;
-        return { type: "user", data } as const;
-      }
-    },
-    enabled: !!profile?.id,
-  });
-
-  // Redirect if user doesn't have the correct role
-  useEffect(() => {
-    const checkRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return navigate('/login');
-
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
+      // Fetch monthly usage
+      const { data: monthlyUsage } = await supabase
+        .from('user_engagement_metrics')
+        .select('session_duration')
         .eq('user_id', user.id)
+        .gte('created_at', new Date(new Date().setDate(1)).toISOString())
         .single();
 
-      if (type === "developer" && roles?.role !== 'developer') {
-        navigate('/dashboard');
-      }
-    };
+      // Fetch average rating
+      const { data: ratings } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('user_id', user.id);
 
-    checkRole();
-  }, [type, navigate]);
+      const averageRating = ratings?.length 
+        ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length 
+        : 0;
 
-  const renderMetrics = () => {
-    if (type === "developer" && metricsData?.type === "developer") {
-      const metrics = metricsData.data;
-      return (
-        <>
-          <StatsCard
-            title="Total Revenue"
-            value={`$${metrics.revenue || 0}`}
-            icon={DollarSign}
-            description="View Revenue Details"
-          />
-          <StatsCard
-            title="Active Users"
-            value={metrics.unique_views || 0}
-            icon={Users}
-            description="View User Analytics"
-          />
-          <StatsCard
-            title="Agent Performance"
-            value={`${metrics.conversion_rate || 0}%`}
-            icon={Activity}
-            description="View Performance Details"
-          />
-          <StatsCard
-            title="Total Agents"
-            value={metrics.views || 0} // Using views as a proxy for agent count
-            icon={Bot}
-            description="Manage Your Agents"
-          />
-        </>
-      );
-    }
+      // Fetch recent activity
+      const { data: recentActivity } = await supabase
+        .from('user_activity')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
 
-    // For user dashboard
-    if (type === "user" && metricsData?.type === "user") {
-      const metrics = metricsData.data;
-      return (
-        <>
-          <StatsCard
-            title="Available Credits"
-            value={profile?.credit_balance || 0}
-            icon={DollarSign}
-            description={
-              <Button
-                variant="link"
-                className="p-0 h-auto text-sm"
-                onClick={() => navigate('/dashboard/credits')}
-              >
-                Buy More Credits
-              </Button>
-            }
-          />
-          <StatsCard
-            title="Active Sessions"
-            value={metrics.session_duration || 0}
-            icon={Bot}
-            description="View Your Activity"
-          />
-          <StatsCard
-            title="Features Used"
-            value={metrics.features_used ? Object.keys(metrics.features_used).length : 0}
-            icon={Activity}
-            description="View Analytics"
-          />
-        </>
-      );
-    }
+      return {
+        creditBalance: profile?.credit_balance || 0,
+        activeAgents: activeAgents || 0,
+        monthlyUsage: monthlyUsage?.session_duration || 0,
+        averageRating,
+        lastLoginDate: profile?.last_login || new Date().toISOString(),
+        userName: profile?.name || 'User',
+        recentActivity: recentActivity?.map(activity => ({
+          id: activity.id,
+          action: activity.activity_type,
+          timestamp: activity.created_at,
+          agentName: activity.details?.agent_name || 'Unknown Agent'
+        })) || []
+      } as DashboardData;
+    },
+  });
 
-    return null;
-  };
+  const lowCredits = (dashboardData?.creditBalance || 0) < 50;
 
   return (
-    <DashboardProvider type={type}>
+    <DashboardProvider type="user">
       <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">
-                {type === "developer" ? "Developer Dashboard" : "Dashboard"}
-              </h2>
-              <p className="text-muted-foreground">
-                {type === "developer" 
-                  ? "Monitor your agent performance and manage your account"
-                  : "Welcome back! Here's what's happening with your AI agents"
-                }
-              </p>
-            </div>
-            
-            <Button 
+        <div className="space-y-6 p-6">
+          {/* Header */}
+          <div className="flex flex-col space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Welcome, {dashboardData?.userName}!
+            </h1>
+            <p className="text-muted-foreground">
+              Last login: {new Date(dashboardData?.lastLoginDate || '').toLocaleString()}
+            </p>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatsCard
+              title="Available Credits"
+              value={dashboardData?.creditBalance || 0}
+              icon={Coins}
+              description={lowCredits ? "Low balance!" : "Credits remaining"}
               className={cn(
-                "gap-2",
-                type === "developer" ? "bg-teal-600 hover:bg-teal-700" : "bg-orange-500 hover:bg-orange-600"
+                "transition-all duration-500",
+                lowCredits && "animate-pulse border-red-500"
               )}
-              onClick={() => navigate(type === "developer" ? "/developer/agents/new" : "/marketplace")}
+            />
+            <StatsCard
+              title="Active Agents"
+              value={dashboardData?.activeAgents || 0}
+              icon={Bot}
+              description="Currently active"
+              className="hover:shadow-lg transition-shadow"
+            />
+            <StatsCard
+              title="Usage This Month"
+              value={`${dashboardData?.monthlyUsage || 0} calls`}
+              icon={BarChart2}
+              description="API Usage"
+            />
+            <StatsCard
+              title="Average Rating"
+              value={`${dashboardData?.averageRating.toFixed(1)}/5.0`}
+              icon={Star}
+              description="Based on your reviews"
+              className="hover:shadow-lg transition-shadow"
+            />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-4">
+            <Button
+              size="lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+              onClick={() => navigate('/dashboard/credits')}
             >
-              <Plus className="h-4 w-4" />
-              {type === "developer" ? "Create Agent" : "Get New Agent"}
+              <Coins className="w-5 h-5 mr-2" />
+              Buy Credits
+            </Button>
+            <Button
+              size="lg"
+              className="bg-teal-600 hover:bg-teal-700 text-white rounded-full"
+              onClick={() => navigate('/marketplace')}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Browse Agents
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {renderMetrics()}
+          {/* Main Content */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Credit Usage History</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={() => navigate('/dashboard/credits')}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </div>
+              <CreditUsageChart />
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Recent Activity</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={() => navigate('/dashboard/activity')}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </div>
+              <UserActivityFeed activities={dashboardData?.recentActivity} />
+            </Card>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-6">
-              <CreditUsageChart />
-              <UserActivityFeed />
-            </div>
-            <NotificationsCenter />
+          {/* Expandable Section for Future Features */}
+          <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center">
+            <p className="text-muted-foreground">More features coming soon!</p>
           </div>
         </div>
       </DashboardLayout>
     </DashboardProvider>
   );
 };
+
+export default Dashboard;
