@@ -13,7 +13,9 @@ import {
   X,
   Search,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Bot,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,26 +33,72 @@ interface SidebarProps {
   isOpen: boolean;
   isMobile: boolean;
   onClose: () => void;
+  type: "user" | "developer";
 }
 
-export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
+export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   
-  const menuItems = [
+  const userMenuItems = [
     { 
       icon: LayoutDashboard, 
       label: "Dashboard", 
+      path: "/dashboard", 
+      ariaLabel: "Go to Dashboard Overview"
+    },
+    { 
+      icon: Bot, 
+      label: "My Agents", 
+      path: "/dashboard/agents",
+      ariaLabel: "Manage Your AI Agents"
+    },
+    { 
+      icon: DollarSign, 
+      label: "Transactions & Credits", 
+      path: "/dashboard/credits",
+      ariaLabel: "View Transactions and Credits"
+    },
+    { 
+      icon: BarChart2, 
+      label: "Analytics", 
+      path: "/dashboard/analytics",
+      ariaLabel: "View Your Analytics"
+    },
+    { 
+      icon: Star, 
+      label: "Reviews", 
+      path: "/dashboard/reviews",
+      ariaLabel: "Manage Reviews"
+    },
+    { 
+      icon: LifeBuoy, 
+      label: "Support", 
+      path: "/dashboard/support",
+      ariaLabel: "Access Support"
+    },
+    { 
+      icon: Settings, 
+      label: "Settings", 
+      path: "/dashboard/settings",
+      ariaLabel: "Manage Settings"
+    }
+  ];
+
+  const developerMenuItems = [
+    { 
+      icon: LayoutDashboard, 
+      label: "Developer Overview", 
       path: "/developer", 
       ariaLabel: "Go to Developer Dashboard Overview"
     },
     { 
-      icon: Users, 
-      label: "Agents", 
+      icon: Bot, 
+      label: "Agent Management", 
       path: "/developer/agents",
-      ariaLabel: "Manage Your AI Agents"
+      ariaLabel: "Manage Your Developed Agents"
     },
     { 
       icon: DollarSign, 
@@ -66,13 +114,13 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
     },
     { 
       icon: BarChart2, 
-      label: "Analytics", 
+      label: "User Analytics", 
       path: "/developer/analytics",
       ariaLabel: "View User Analytics"
     },
     { 
       icon: MessageSquare, 
-      label: "Reviews", 
+      label: "Reviews & Feedback", 
       path: "/developer/reviews",
       ariaLabel: "Manage User Reviews and Feedback"
     },
@@ -90,6 +138,19 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
     }
   ];
 
+  const menuItems = type === "developer" ? developerMenuItems : userMenuItems;
+  const ctaConfig = type === "developer" 
+    ? {
+        label: "Withdraw Funds",
+        icon: <DollarSign className="h-4 w-4" />,
+        onClick: () => console.log('Withdraw funds clicked'),
+      }
+    : {
+        label: "Buy Credits",
+        icon: <DollarSign className="h-4 w-4" />,
+        onClick: () => console.log('Buy credits clicked'),
+      };
+
   return (
     <TooltipProvider>
       <aside 
@@ -101,7 +162,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
           isMobile && "shadow-lg",
           "md:rounded-lg md:shadow-md"
         )}
-        aria-label="Developer Navigation"
+        aria-label={`${type === "developer" ? "Developer" : "User"} Navigation`}
         role="navigation"
       >
         {isMobile && (
@@ -151,7 +212,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
 
           <nav className="flex-1">
             <ul className="space-y-1" role="menu">
-              {menuItems.map((item, index) => (
+              {menuItems.map((item) => (
                 <li key={item.path} role="none">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -200,7 +261,9 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
               </div>
               {!isCollapsed && (
                 <div>
-                  <p className="text-sm font-medium">John Developer</p>
+                  <p className="text-sm font-medium">
+                    {type === "developer" ? "John Developer" : "John User"}
+                  </p>
                   <p className="text-xs text-muted-foreground">john@example.com</p>
                 </div>
               )}
@@ -211,13 +274,13 @@ export const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
         <SearchOverlay
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
-          placeholder="Search agents, analytics, or settings..."
+          placeholder={`Search ${type === "developer" ? "agents, analytics, or settings" : "agents, transactions, or settings"}...`}
         />
 
         <FloatingCTA
-          label="Withdraw Funds"
-          icon={<DollarSign className="h-4 w-4" />}
-          onClick={() => console.log('Withdraw funds clicked')}
+          label={ctaConfig.label}
+          icon={ctaConfig.icon}
+          onClick={ctaConfig.onClick}
         />
       </aside>
     </TooltipProvider>

@@ -120,7 +120,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
   });
 
   return (
-    <DashboardProvider type="user">
+    <DashboardProvider type={type}>
       <DashboardLayout>
         <div className="space-y-6 p-6">
           <DashboardHeader 
@@ -135,7 +135,7 @@ export const Dashboard = ({ type = "user" }: DashboardProps) => {
             averageRating={dashboardData?.averageRating || 0}
           />
 
-          <QuickActions />
+          <QuickActions type={type} />
 
           <DashboardMetricsPanel 
             activities={dashboardData?.recentActivity}
