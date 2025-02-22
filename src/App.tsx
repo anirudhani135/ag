@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -55,87 +55,94 @@ const App = () => (
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify" element={<VerifyEmail />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardOverview />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/credits"
-                element={
-                  <ProtectedRoute>
-                    <Credits />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/usage"
-                element={
-                  <ProtectedRoute>
-                    <UsageHistory />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/saved"
-                element={
-                  <ProtectedRoute>
-                    <SavedAgents />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/developer"
-                element={
-                  <ProtectedRoute>
-                    <DeveloperOverview />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/developer/agents"
-                element={
-                  <ProtectedRoute>
-                    <AgentManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/developer/agents/create"
-                element={
-                  <ProtectedRoute>
-                    <AgentCreation />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/developer/analytics"
-                element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/developer/settings"
-                element={
-                  <ProtectedRoute>
-                    <DeveloperSettings />
-                  </ProtectedRoute>
-                }
-              />
+              {/* User Dashboard Routes */}
+              <Route path="/user">
+                <Route
+                  path="dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="credits"
+                  element={
+                    <ProtectedRoute>
+                      <Credits />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="usage"
+                  element={
+                    <ProtectedRoute>
+                      <UsageHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="saved"
+                  element={
+                    <ProtectedRoute>
+                      <SavedAgents />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
+
+              {/* Developer Dashboard Routes */}
+              <Route path="/developer">
+                <Route
+                  path="dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DeveloperOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="agents"
+                  element={
+                    <ProtectedRoute>
+                      <AgentManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="agents/create"
+                  element={
+                    <ProtectedRoute>
+                      <AgentCreation />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="settings"
+                  element={
+                    <ProtectedRoute>
+                      <DeveloperSettings />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
+
               <Route
                 path="/marketplace"
                 element={
@@ -144,6 +151,9 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
+              {/* Redirects */}
+              <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
             </Routes>
           </Suspense>
         </AuthProvider>

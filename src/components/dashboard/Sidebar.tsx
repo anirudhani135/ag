@@ -46,43 +46,43 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
     { 
       icon: LayoutDashboard, 
       label: "Dashboard", 
-      path: "/dashboard", 
-      ariaLabel: "Go to Dashboard Overview"
+      path: "/user/dashboard", 
+      ariaLabel: "Go to User Dashboard Overview"
     },
     { 
       icon: Bot, 
       label: "My Agents", 
-      path: "/dashboard/agents",
+      path: "/user/agents",
       ariaLabel: "Manage Your AI Agents"
     },
     { 
       icon: DollarSign, 
       label: "Transactions & Credits", 
-      path: "/dashboard/credits",
+      path: "/user/credits",
       ariaLabel: "View Transactions and Credits"
     },
     { 
       icon: BarChart2, 
       label: "Analytics", 
-      path: "/dashboard/analytics",
+      path: "/user/analytics",
       ariaLabel: "View Your Analytics"
     },
     { 
       icon: Star, 
       label: "Reviews", 
-      path: "/dashboard/reviews",
+      path: "/user/reviews",
       ariaLabel: "Manage Reviews"
     },
     { 
       icon: LifeBuoy, 
       label: "Support", 
-      path: "/dashboard/support",
+      path: "/user/support",
       ariaLabel: "Access Support"
     },
     { 
       icon: Settings, 
       label: "Settings", 
-      path: "/dashboard/settings",
+      path: "/user/settings",
       ariaLabel: "Manage Settings"
     }
   ];
@@ -91,7 +91,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
     { 
       icon: LayoutDashboard, 
       label: "Developer Overview", 
-      path: "/developer", 
+      path: "/developer/dashboard", 
       ariaLabel: "Go to Developer Dashboard Overview"
     },
     { 
