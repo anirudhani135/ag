@@ -29,27 +29,26 @@ export const DeveloperDashboard = () => {
         .eq('id', user.id)
         .single();
 
-      // Fetch published agents count
+      // Fetch published agents count using count with head option
       const { count: publishedAgents } = await supabase
         .from('agents')
-        .select()
+        .select('*', { count: 'exact', head: true })
         .eq('developer_id', user.id)
-        .eq('status', 'published')
-        .count();
+        .eq('status', 'published');
 
-      // Fetch monthly revenue
+      // Fetch monthly revenue with explicit type
       const { data: monthlyRevenue } = await supabase
         .from('transactions')
-        .select('amount')
+        .select<'amount', { amount: number }>('amount')
         .eq('developer_id', user.id)
         .gte('created_at', new Date(new Date().setDate(1)).toISOString());
 
       const totalRevenue = monthlyRevenue?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
-      // Fetch agent ratings
+      // Fetch agent ratings with explicit type
       const { data: ratings } = await supabase
         .from('reviews')
-        .select('rating')
+        .select<'rating', { rating: number }>('rating')
         .eq('developer_id', user.id);
 
       const averageRating = ratings?.length 
