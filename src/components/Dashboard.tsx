@@ -26,7 +26,7 @@ type DbUserActivity = Database["public"]["Tables"]["user_activity"]["Row"];
 
 const parseActivityDetails = (details: any): { 
   agent_name?: string; 
-  status?: string; 
+  status?: 'success' | 'warning' | 'error'; 
   [key: string]: any; 
 } => {
   if (typeof details === 'object' && details !== null) {
@@ -41,6 +41,12 @@ const parseActivityDetails = (details: any): {
 
 const formatUserActivity = (activity: DbUserActivity): UserActivity => {
   const details = parseActivityDetails(activity.details);
+  const status = details?.status;
+  
+  // Ensure status is one of the allowed values
+  const validStatus = status === 'success' || status === 'warning' || status === 'error' 
+    ? status 
+    : undefined;
   
   return {
     id: activity.id,
@@ -48,7 +54,7 @@ const formatUserActivity = (activity: DbUserActivity): UserActivity => {
     timestamp: activity.created_at,
     agentName: details?.agent_name || 'Unknown Agent',
     metadata: details || {},
-    status: details?.status || 'info'
+    status: validStatus
   };
 };
 
