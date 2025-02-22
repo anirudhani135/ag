@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FloatingCTA } from "../shared/sidebar/FloatingCTA";
@@ -11,7 +11,6 @@ import { userMenuItems, developerMenuItems } from "./config/menuItems";
 import { SidebarHeader } from "./components/SidebarHeader";
 import { NavigationMenu } from "./components/NavigationMenu";
 import { UserProfile } from "./components/UserProfile";
-import { DollarSign } from "lucide-react";
 
 export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -90,6 +89,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
           label={ctaConfig.label}
           icon={ctaConfig.icon}
           onClick={ctaConfig.onClick}
+          type={type}
         />
       </aside>
     </TooltipProvider>

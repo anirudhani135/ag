@@ -8,21 +8,29 @@ import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
+// Lazy load components
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
-const DashboardOverview = lazy(() => import("./pages/dashboard/Overview"));
+
+// User Dashboard Pages
+const UserDashboard = lazy(() => import("./pages/dashboard/Overview"));
 const Credits = lazy(() => import("./pages/dashboard/Credits"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const UsageHistory = lazy(() => import("./pages/dashboard/UsageHistory"));
 const SavedAgents = lazy(() => import("./pages/dashboard/SavedAgents"));
+
+// Developer Dashboard Pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
 const AgentManagement = lazy(() => import("./pages/developer/AgentManagement"));
-const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
-const Analytics = lazy(() => import("./pages/developer/Analytics"));
+const Revenue = lazy(() => import("./pages/developer/Revenue"));
+const DeveloperAnalytics = lazy(() => import("./pages/developer/Analytics"));
+const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
+const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
+const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 
 const queryClient = new QueryClient({
@@ -61,7 +69,7 @@ const App = () => (
                   path="dashboard"
                   element={
                     <ProtectedRoute>
-                      <DashboardOverview />
+                      <UserDashboard />
                     </ProtectedRoute>
                   }
                 />
@@ -118,10 +126,10 @@ const App = () => (
                   }
                 />
                 <Route
-                  path="agents/create"
+                  path="revenue"
                   element={
                     <ProtectedRoute>
-                      <AgentCreation />
+                      <Revenue />
                     </ProtectedRoute>
                   }
                 />
@@ -129,7 +137,23 @@ const App = () => (
                   path="analytics"
                   element={
                     <ProtectedRoute>
-                      <Analytics />
+                      <DeveloperAnalytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="reviews"
+                  element={
+                    <ProtectedRoute>
+                      <DeveloperReviews />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="support"
+                  element={
+                    <ProtectedRoute>
+                      <DeveloperSupport />
                     </ProtectedRoute>
                   }
                 />
@@ -138,6 +162,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <DeveloperSettings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="agents/create"
+                  element={
+                    <ProtectedRoute>
+                      <AgentCreation />
                     </ProtectedRoute>
                   }
                 />
@@ -154,6 +186,7 @@ const App = () => (
 
               {/* Redirects */}
               <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
+              <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
             </Routes>
           </Suspense>
         </AuthProvider>

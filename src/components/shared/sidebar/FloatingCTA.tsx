@@ -7,9 +7,10 @@ interface FloatingCTAProps {
   icon: React.ReactNode;
   onClick: () => void;
   className?: string;
+  type?: "user" | "developer";
 }
 
-export const FloatingCTA = ({ label, icon, onClick, className }: FloatingCTAProps) => {
+export const FloatingCTA = ({ label, icon, onClick, className, type = "user" }: FloatingCTAProps) => {
   return (
     <Button
       onClick={onClick}
@@ -19,6 +20,7 @@ export const FloatingCTA = ({ label, icon, onClick, className }: FloatingCTAProp
         "hover:scale-105 hover:shadow-xl",
         className
       )}
+      aria-label={type === "developer" ? "Withdraw Funds" : "Buy Credits"}
     >
       {icon}
       <span>{label}</span>
