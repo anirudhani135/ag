@@ -7,6 +7,19 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import WithRoleProtection from "@/components/auth/WithRoleProtection";
+
+// Optimize the query client configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      cacheTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Lazy load components
 const Index = lazy(() => import("./pages/Index"));
@@ -21,6 +34,9 @@ const Credits = lazy(() => import("./pages/dashboard/Credits"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
 const UsageHistory = lazy(() => import("./pages/dashboard/UsageHistory"));
 const SavedAgents = lazy(() => import("./pages/dashboard/SavedAgents"));
+const UserAnalytics = lazy(() => import("./pages/dashboard/Analytics"));
+const UserAgents = lazy(() => import("./pages/dashboard/Agents"));
+const UserNotifications = lazy(() => import("./pages/dashboard/Notifications"));
 
 // Developer Dashboard Pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
@@ -32,15 +48,15 @@ const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
+const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
+const DeveloperMonitoring = lazy(() => import("./pages/developer/Monitoring"));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      gcTime: 5 * 60 * 1000,
-    },
-  },
-});
+// Loading component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -49,13 +65,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            }
-          >
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth/login" element={<Login />} />
@@ -69,7 +79,9 @@ const App = () => (
                   path="dashboard"
                   element={
                     <ProtectedRoute>
-                      <UserDashboard />
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UserDashboard />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -77,7 +89,9 @@ const App = () => (
                   path="credits"
                   element={
                     <ProtectedRoute>
-                      <Credits />
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <Credits />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -85,7 +99,9 @@ const App = () => (
                   path="settings"
                   element={
                     <ProtectedRoute>
-                      <Settings />
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <Settings />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -93,7 +109,9 @@ const App = () => (
                   path="usage"
                   element={
                     <ProtectedRoute>
-                      <UsageHistory />
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UsageHistory />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -101,7 +119,39 @@ const App = () => (
                   path="saved"
                   element={
                     <ProtectedRoute>
-                      <SavedAgents />
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <SavedAgents />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UserAnalytics />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="agents"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UserAgents />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="notifications"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UserNotifications />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -113,7 +163,9 @@ const App = () => (
                   path="dashboard"
                   element={
                     <ProtectedRoute>
-                      <DeveloperOverview />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperOverview />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -121,7 +173,9 @@ const App = () => (
                   path="agents"
                   element={
                     <ProtectedRoute>
-                      <AgentManagement />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <AgentManagement />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -129,7 +183,9 @@ const App = () => (
                   path="revenue"
                   element={
                     <ProtectedRoute>
-                      <Revenue />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <Revenue />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -137,7 +193,9 @@ const App = () => (
                   path="analytics"
                   element={
                     <ProtectedRoute>
-                      <DeveloperAnalytics />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperAnalytics />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -145,7 +203,9 @@ const App = () => (
                   path="reviews"
                   element={
                     <ProtectedRoute>
-                      <DeveloperReviews />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperReviews />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -153,7 +213,9 @@ const App = () => (
                   path="support"
                   element={
                     <ProtectedRoute>
-                      <DeveloperSupport />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperSupport />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -161,7 +223,9 @@ const App = () => (
                   path="settings"
                   element={
                     <ProtectedRoute>
-                      <DeveloperSettings />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperSettings />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -169,7 +233,29 @@ const App = () => (
                   path="agents/create"
                   element={
                     <ProtectedRoute>
-                      <AgentCreation />
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <AgentCreation />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="transactions"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperTransactions />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="monitoring"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <DeveloperMonitoring />
+                      </WithRoleProtection>
                     </ProtectedRoute>
                   }
                 />
@@ -187,6 +273,7 @@ const App = () => (
               {/* Redirects */}
               <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
               <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
             </Routes>
           </Suspense>
         </AuthProvider>
