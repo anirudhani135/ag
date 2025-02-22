@@ -72,7 +72,7 @@ export const developerMenuItems: MenuItem[] = [
   },
   { 
     icon: DollarSign, 
-    label: "Revenue", 
+    label: "Revenue Analytics", 
     path: "/developer/revenue",
     ariaLabel: "View Revenue Analytics"
   },
@@ -96,13 +96,13 @@ export const developerMenuItems: MenuItem[] = [
   },
   { 
     icon: LifeBuoy, 
-    label: "Support", 
+    label: "Developer Support", 
     path: "/developer/support",
     ariaLabel: "Access Developer Support"
   },
   { 
     icon: Settings, 
-    label: "Settings", 
+    label: "Developer Settings", 
     path: "/developer/settings",
     ariaLabel: "Manage Developer Settings"
   }
