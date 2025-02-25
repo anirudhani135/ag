@@ -5,13 +5,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 interface DeploymentLog {
   id: string;
-  agent_id: string;
+  deployment_id: string;
+  environment_id: string | null;
+  logs: string | null;
+  metadata: Json | null;
+  created_at: string | null;
   status: string;
-  logs: string;
-  created_at: string;
 }
 
 interface DeploymentLogsProps {
@@ -21,7 +24,6 @@ interface DeploymentLogsProps {
 
 export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
   const [logs, setLogs] = useState<DeploymentLog[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initial logs fetch
@@ -29,12 +31,12 @@ export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
       const { data, error } = await supabase
         .from('deployment_logs')
         .select('*')
-        .eq('agent_id', agentId)
+        .eq('deployment_id', agentId)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (!error && data) {
-        setLogs(data);
+        setLogs(data as DeploymentLog[]);
       }
     };
 
@@ -49,13 +51,11 @@ export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
           event: 'INSERT',
           schema: 'public',
           table: 'deployment_logs',
-          filter: `agent_id=eq.${agentId}`
+          filter: `deployment_id=eq.${agentId}`
         },
         (payload) => {
-          setLogs(current => [payload.new, ...current].slice(0, 100));
-          if (scrollRef.current) {
-            scrollRef.current.scrollTop = 0;
-          }
+          const newLog = payload.new as DeploymentLog;
+          setLogs(current => [newLog, ...current].slice(0, 100));
         }
       )
       .subscribe();
@@ -97,11 +97,11 @@ export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
                   {log.status}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(log.created_at).toLocaleString()}
+                  {log.created_at && new Date(log.created_at).toLocaleString()}
                 </span>
               </div>
               <pre className="whitespace-pre-wrap text-xs">
-                {log.logs}
+                {log.logs || 'No log content'}
               </pre>
             </div>
           ))}
