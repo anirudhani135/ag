@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,7 @@ import { DeploymentLogs } from "./DeploymentLogs";
 import { subscribeToHealthUpdates } from "@/lib/realtimeSubscriptions";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AgentDeploymentListProps {
   agents: any[];

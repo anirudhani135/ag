@@ -6,13 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
+interface DeploymentLog {
+  id: string;
+  agent_id: string;
+  status: string;
+  logs: string;
+  created_at: string;
+}
+
 interface DeploymentLogsProps {
   agentId: string;
   className?: string;
 }
 
 export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<DeploymentLog[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,7 +80,7 @@ export const DeploymentLogs = ({ agentId, className }: DeploymentLogsProps) => {
 
   return (
     <Card className={cn("p-4", className)}>
-      <ScrollArea className="h-[300px]" ref={scrollRef}>
+      <ScrollArea className="h-[300px]">
         <div className="space-y-2">
           {logs.map((log) => (
             <div
