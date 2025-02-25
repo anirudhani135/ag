@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -26,6 +25,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Bot, Plus, Activity, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { AgentModal } from "./AgentModals";
+import { useState } from "react";
 
 interface Agent {
   id: string;
@@ -63,7 +64,11 @@ const StatsCard = ({ title, value, icon: Icon, isLoading }: {
   </Card>
 );
 
-const AgentTable = ({ agents, isLoading }: { agents: Agent[], isLoading: boolean }) => {
+const AgentTable = ({ agents, isLoading, onEdit }: { 
+  agents: Agent[], 
+  isLoading: boolean,
+  onEdit: (agent: Agent) => void 
+}) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -114,7 +119,7 @@ const AgentTable = ({ agents, isLoading }: { agents: Agent[], isLoading: boolean
                     variant="outline" 
                     size="sm"
                     className="text-primary hover:text-primary/80"
-                    onClick={() => toast.info("Edit functionality coming soon")}
+                    onClick={() => onEdit(agent)}
                   >
                     Edit
                   </Button>
@@ -122,7 +127,7 @@ const AgentTable = ({ agents, isLoading }: { agents: Agent[], isLoading: boolean
                     variant="outline"
                     size="sm"
                     className="text-primary hover:text-primary/80"
-                    onClick={() => toast.info("Update functionality coming soon")}
+                    onClick={() => onEdit(agent)}
                   >
                     Update
                   </Button>
@@ -136,66 +141,11 @@ const AgentTable = ({ agents, isLoading }: { agents: Agent[], isLoading: boolean
   );
 };
 
-const DeployAgentModal = () => {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Deploy New Agent
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Deploy New Agent</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to deploy your new AI agent.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Agent Name</Label>
-            <Input id="name" placeholder="Enter agent name" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" placeholder="Describe your agent's functionality" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="price">Price (USD)</Label>
-            <Input id="price" type="number" placeholder="10.00" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="config">Configuration</Label>
-            <Input 
-              id="config" 
-              type="file" 
-              className="cursor-not-allowed opacity-50"
-              disabled
-              title="Configuration upload coming soon"
-            />
-            <p className="text-sm text-muted-foreground">
-              Coming Soon: Upload Langflow JSON configuration
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={() => toast.info("Deployment coming soon")}>
-            Cancel
-          </Button>
-          <Button 
-            className="bg-primary hover:bg-primary/90 text-white"
-            onClick={() => toast.info("Deployment coming soon")}
-          >
-            Deploy Agent
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 export const MyAgents = () => {
+  const [deployModalOpen, setDeployModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+
   const { data: agents, isLoading: isLoadingAgents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
@@ -223,11 +173,47 @@ export const MyAgents = () => {
     }
   });
 
+  const handleDeploySubmit = async (data: any) => {
+    const { error } = await supabase
+      .from('agents')
+      .insert([{
+        ...data,
+        developer_id: '123', // Replace with actual developer ID
+        deployment_status: 'pending'
+      }]);
+
+    if (error) throw error;
+    toast.success("Agent deployment initiated!");
+  };
+
+  const handleEditSubmit = async (data: any) => {
+    if (!selectedAgent) return;
+
+    const { error } = await supabase
+      .from('agents')
+      .update(data)
+      .eq('id', selectedAgent.id);
+
+    if (error) throw error;
+    toast.success("Agent updated successfully!");
+  };
+
+  const handleEdit = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setEditModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">My Agents</h2>
-        <DeployAgentModal />
+        <Button
+          className="bg-primary hover:bg-primary/90 text-white"
+          onClick={() => setDeployModalOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Deploy New Agent
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -253,7 +239,8 @@ export const MyAgents = () => {
 
       <AgentTable 
         agents={agents || []} 
-        isLoading={isLoadingAgents} 
+        isLoading={isLoadingAgents}
+        onEdit={handleEdit}
       />
 
       <Card className="p-6 bg-gray-50 dark:bg-gray-800/50">
@@ -269,6 +256,21 @@ export const MyAgents = () => {
           Coming Soon: Access detailed analytics and insights for your agents
         </p>
       </div>
+
+      <AgentModal
+        open={deployModalOpen}
+        onOpenChange={setDeployModalOpen}
+        type="deploy"
+        onSubmit={handleDeploySubmit}
+      />
+
+      <AgentModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        type="edit"
+        initialData={selectedAgent || undefined}
+        onSubmit={handleEditSubmit}
+      />
     </div>
   );
 };
