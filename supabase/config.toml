@@ -21,3 +21,6 @@ enabled = true
 [functions]
 [functions.process-langflow]
 verify_jwt = true
+
+[functions.deploy-agent]
+verify_jwt = true
