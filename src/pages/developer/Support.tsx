@@ -1,30 +1,42 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { LifeBuoy, MessageSquare, FileQuestion, Book } from "lucide-react";
+import { LifeBuoy, MessageSquare, FileQuestion, Book, ChevronRight } from "lucide-react";
 
 const DeveloperSupport = () => {
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen space-y-8 p-8 pt-16 pb-16">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Developer Support</h2>
+      <div className="min-h-screen p-4 md:p-8 pt-20 pb-16">
+        {/* Breadcrumb */}
+        <nav className="flex items-center text-sm text-muted-foreground mb-4">
+          <span>Dashboard</span>
+          <ChevronRight className="h-4 w-4 mx-2" />
+          <span className="text-foreground">Support</span>
+        </nav>
+
+        {/* Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Developer Support</h2>
           <p className="mt-2 text-muted-foreground">Get help with your development needs</p>
         </div>
         
         <div className="grid gap-8 md:grid-cols-2">
-          <Card className="p-8 bg-card shadow-md">
+          {/* Contact Support Form */}
+          <Card className="p-6 md:p-8 bg-card shadow-md hover:shadow-lg transition-all duration-200">
             <div className="flex items-center gap-3 mb-6">
-              <MessageSquare className="w-5 h-5 text-primary" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-primary" />
+              </div>
               <h3 className="text-xl font-semibold">Contact Support</h3>
             </div>
             <form className="space-y-6">
               <div className="space-y-2">
                 <Input 
                   placeholder="Subject" 
-                  className="w-full bg-background border-input"
+                  className="w-full bg-background border-input h-12"
                 />
               </div>
               <div className="space-y-2">
@@ -36,7 +48,8 @@ const DeveloperSupport = () => {
               </div>
               <Button 
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-6"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium h-12
+                  shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 Submit Ticket
               </Button>
@@ -44,9 +57,14 @@ const DeveloperSupport = () => {
           </Card>
 
           <div className="space-y-4">
-            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+            {/* Documentation Card */}
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-all duration-200 
+              cursor-pointer group">
               <div className="flex items-center gap-3">
-                <Book className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 
+                  transition-colors duration-200">
+                  <Book className="w-5 h-5 text-primary" />
+                </div>
                 <div>
                   <h4 className="font-medium">Documentation</h4>
                   <p className="text-sm text-muted-foreground">
@@ -56,9 +74,14 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+            {/* FAQs Card */}
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-all duration-200 
+              cursor-pointer group">
               <div className="flex items-center gap-3">
-                <FileQuestion className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 
+                  transition-colors duration-200">
+                  <FileQuestion className="w-5 h-5 text-primary" />
+                </div>
                 <div>
                   <h4 className="font-medium">FAQs</h4>
                   <p className="text-sm text-muted-foreground">
@@ -68,9 +91,14 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+            {/* Community Card */}
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-all duration-200 
+              cursor-pointer group">
               <div className="flex items-center gap-3">
-                <LifeBuoy className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 
+                  transition-colors duration-200">
+                  <LifeBuoy className="w-5 h-5 text-primary" />
+                </div>
                 <div>
                   <h4 className="font-medium">Developer Community</h4>
                   <p className="text-sm text-muted-foreground">
