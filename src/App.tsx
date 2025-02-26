@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,6 @@ import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import WithRoleProtection from "@/components/auth/WithRoleProtection";
-import { UserSupport } from "@/components/user-support/UserSupport";
 
 // Optimize the query client configuration
 const queryClient = new QueryClient({
@@ -37,7 +37,8 @@ const SavedAgents = lazy(() => import("./pages/dashboard/SavedAgents"));
 const UserAnalytics = lazy(() => import("./pages/dashboard/Analytics"));
 const UserAgents = lazy(() => import("./pages/dashboard/Agents"));
 const UserNotifications = lazy(() => import("./pages/dashboard/Notifications"));
-const UserSupport = lazy(() => import("./pages/dashboard/Support"));
+const Reviews = lazy(() => import("@/components/user-reviews/UserReviews"));
+const Support = lazy(() => import("@/components/user-support/UserSupport"));
 
 // Developer Dashboard Pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
@@ -157,11 +158,21 @@ const App = () => (
                   }
                 />
                 <Route
+                  path="reviews"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <Reviews />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="support"
                   element={
                     <ProtectedRoute>
                       <WithRoleProtection allowedRoles={["buyer"]}>
-                        <UserSupport />
+                        <Support />
                       </WithRoleProtection>
                     </ProtectedRoute>
                   }
