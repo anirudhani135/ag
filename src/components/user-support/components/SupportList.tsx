@@ -8,6 +8,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
 
+interface SupportTicket {
+  id: string;
+  subject: string;
+  description: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  created_at: string;
+  resolved_at: string | null;
+}
+
 interface SupportListProps {
   searchQuery: string;
 }
@@ -19,7 +28,7 @@ const SupportList = ({ searchQuery }: SupportListProps) => {
       const user = await supabase.auth.getUser();
       let query = supabase
         .from('support_tickets')
-        .select('*')
+        .select('id, subject, description, status, created_at, resolved_at')
         .eq('user_id', user.data.user?.id)
         .order('created_at', { ascending: false });
 
@@ -29,7 +38,7 @@ const SupportList = ({ searchQuery }: SupportListProps) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as SupportTicket[];
     },
   });
 

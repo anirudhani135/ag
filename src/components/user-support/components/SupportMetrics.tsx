@@ -4,21 +4,27 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BadgeHelp, Clock, CheckCircle } from 'lucide-react';
 
+interface SupportTicket {
+  id: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+}
+
 export const SupportMetrics = () => {
-  const { data: metrics, isLoading } = useQuery({
+  const { data: metrics } = useQuery({
     queryKey: ['support-metrics'],
     queryFn: async () => {
       const user = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('support_tickets')
-        .select('status')
+        .select('id, status')
         .eq('user_id', user.data.user?.id);
 
       if (error) throw error;
+      const tickets = data as SupportTicket[];
 
-      const openTickets = data.filter(t => t.status === 'open').length;
-      const resolvedTickets = data.filter(t => t.status === 'resolved').length;
-      const totalTickets = data.length;
+      const openTickets = tickets.filter(t => t.status === 'open').length;
+      const resolvedTickets = tickets.filter(t => t.status === 'resolved').length;
+      const totalTickets = tickets.length;
 
       return { openTickets, resolvedTickets, totalTickets };
     },
@@ -27,19 +33,19 @@ export const SupportMetrics = () => {
   const items = [
     {
       label: 'Open Tickets',
-      value: metrics?.openTickets ?? '[Loading...]',
+      value: metrics?.openTickets ?? 0,
       icon: BadgeHelp,
       color: 'text-orange-500',
     },
     {
       label: 'In Progress',
-      value: metrics?.totalTickets - (metrics?.openTickets ?? 0) - (metrics?.resolvedTickets ?? 0) ?? '[Loading...]',
+      value: (metrics?.totalTickets ?? 0) - (metrics?.openTickets ?? 0) - (metrics?.resolvedTickets ?? 0),
       icon: Clock,
       color: 'text-blue-500',
     },
     {
       label: 'Resolved',
-      value: metrics?.resolvedTickets ?? '[Loading...]',
+      value: metrics?.resolvedTickets ?? 0,
       icon: CheckCircle,
       color: 'text-green-500',
     },
