@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Plus } from "lucide-react";
+import { Bot, Plus, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AgentStats } from "@/components/agent-management/AgentStats";
@@ -41,30 +41,37 @@ const AgentManagement = () => {
 
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen p-8 pt-16 pb-16 space-y-8 bg-background">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Agent Management</h1>
-            <p className="mt-2 text-muted-foreground">Create and manage your AI agents</p>
-          </div>
+      <div className="min-h-screen p-4 md:p-8 space-y-8 bg-background">
+        {/* Header Section with improved visual hierarchy */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
+                Agent Management
+              </h1>
+              <p className="text-muted-foreground max-w-md">
+                Create and manage your AI agents with our intuitive interface
+              </p>
+            </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Button
               onClick={() => navigate("/developer/agents/create")}
-              className="bg-primary hover:bg-primary/90 text-white font-medium px-6"
+              className="bg-primary hover:bg-primary/90 text-white font-medium px-6 py-6 shadow-lg hover:shadow-xl transition-all duration-200 group"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-200" />
               Create New Agent
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* Stats Section with improved layout */}
+        <div className="grid gap-6 md:grid-cols-3">
           <AgentStats />
         </div>
         
-        <div className="rounded-lg border bg-card">
-          <div className="p-6">
+        {/* Main Content Section */}
+        <div className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-4 md:p-6">
             <AgentFilters
               onSearch={setSearch}
               onSortChange={setSort}

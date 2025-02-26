@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ArrowLeft, Save, ChevronRight } from "lucide-react";
 
 interface BasicInfoFormData {
   title: string;
@@ -70,15 +71,19 @@ const AgentCreationPage = () => {
     switch (currentStep) {
       case 0:
         return (
-          <Card className="p-8 bg-white shadow-md">
-            <BasicInfoStep data={basicInfo} onChange={setBasicInfo} />
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl overflow-hidden">
+            <div className="p-6 md:p-8 space-y-6">
+              <BasicInfoStep data={basicInfo} onChange={setBasicInfo} />
+            </div>
           </Card>
         );
       default:
         return (
-          <Card className="p-8 bg-white shadow-md text-center">
-            <div className="text-muted-foreground">
-              Step {currentStep + 1} content coming soon...
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl overflow-hidden">
+            <div className="p-6 md:p-8 text-center">
+              <div className="text-muted-foreground">
+                Step {currentStep + 1} content coming soon...
+              </div>
             </div>
           </Card>
         );
@@ -86,12 +91,26 @@ const AgentCreationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Agent</h1>
-          <p className="text-muted-foreground mt-2">
-            Configure your AI agent's settings and capabilities
+    <div className="min-h-screen bg-gradient-to-b from-background to-primary/5">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        {/* Header with improved visual hierarchy */}
+        <div className="mb-8 space-y-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/developer/agents")}
+              className="hover:text-primary"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to Agents
+            </Button>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight">
+            Create New Agent
+          </h1>
+          <p className="text-muted-foreground max-w-2xl">
+            Configure your AI agent's settings and capabilities. Follow the steps below to set up your agent.
           </p>
         </div>
 
@@ -107,11 +126,12 @@ const AgentCreationPage = () => {
             {renderCurrentStep()}
           </div>
 
+          {/* Navigation buttons with improved styling */}
           <div className="mt-8 flex items-center justify-between">
             <Button
               variant="outline"
               onClick={() => navigate("/developer/agents")}
-              className="bg-white hover:bg-gray-100 text-gray-700"
+              className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm"
             >
               Cancel
             </Button>
@@ -120,17 +140,19 @@ const AgentCreationPage = () => {
               <Button
                 variant="outline"
                 onClick={handleSaveDraft}
-                className="bg-white hover:bg-gray-100 text-primary border-primary"
+                className="bg-white hover:bg-primary/5 text-primary border-primary/20 shadow-sm"
               >
+                <Save className="w-4 h-4 mr-2" />
                 Save Draft
               </Button>
               
               <Button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="bg-primary hover:bg-primary/90 text-white px-8"
+                className="bg-primary hover:bg-primary/90 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 Next
+                <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </div>

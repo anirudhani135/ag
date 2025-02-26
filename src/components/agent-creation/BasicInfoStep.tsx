@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Tag, X, Plus } from "lucide-react";
 
 interface BasicInfoFormData {
   title: string;
@@ -44,36 +44,44 @@ export const BasicInfoStep = ({ data, onChange }: BasicInfoStepProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <Label htmlFor="title" className="text-sm font-medium">
+          Agent Title
+        </Label>
         <Input
           id="title"
           value={data.title}
           onChange={(e) => onChange({ ...data, title: e.target.value })}
-          placeholder="Enter agent title"
+          placeholder="Enter a descriptive title"
+          className="h-12 text-base"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+      <div className="space-y-3">
+        <Label htmlFor="description" className="text-sm font-medium">
+          Description
+        </Label>
         <Textarea
           id="description"
           value={data.description}
           onChange={(e) => onChange({ ...data, description: e.target.value })}
-          placeholder="Describe your agent's functionality"
+          placeholder="Describe your agent's functionality and capabilities"
+          className="min-h-[120px] text-base resize-none"
           rows={4}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
+      <div className="space-y-3">
+        <Label htmlFor="category" className="text-sm font-medium">
+          Category
+        </Label>
         <Select
           value={data.category}
           onValueChange={(value) => onChange({ ...data, category: value })}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select category" />
+          <SelectTrigger className="h-12 text-base">
+            <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="automation">Automation</SelectItem>
@@ -84,8 +92,10 @@ export const BasicInfoStep = ({ data, onChange }: BasicInfoStepProps) => {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="price">Price</Label>
+      <div className="space-y-3">
+        <Label htmlFor="price" className="text-sm font-medium">
+          Price
+        </Label>
         <Input
           id="price"
           type="number"
@@ -93,26 +103,35 @@ export const BasicInfoStep = ({ data, onChange }: BasicInfoStepProps) => {
           step="0.01"
           value={data.price}
           onChange={(e) => onChange({ ...data, price: e.target.value })}
-          placeholder="Enter price"
+          placeholder="Set your agent's price"
+          className="h-12 text-base"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tags">Tags</Label>
+      <div className="space-y-3">
+        <Label htmlFor="tags" className="text-sm font-medium flex items-center gap-2">
+          <Tag className="w-4 h-4" />
+          Tags
+        </Label>
         <Input
           id="tags"
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           onKeyDown={handleAddTag}
-          placeholder="Add tags (press Enter)"
+          placeholder="Add tags and press Enter"
+          className="h-12 text-base"
         />
         <div className="flex flex-wrap gap-2 mt-2">
           {data.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="px-2 py-1">
+            <Badge 
+              key={tag} 
+              variant="secondary" 
+              className="px-3 py-1.5 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
+            >
               {tag}
               <button
                 onClick={() => handleRemoveTag(tag)}
-                className="ml-2 hover:text-destructive"
+                className="ml-2 hover:text-destructive focus:outline-none"
               >
                 <X className="h-3 w-3" />
               </button>
