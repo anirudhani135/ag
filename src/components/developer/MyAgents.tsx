@@ -1,13 +1,14 @@
 
 import { lazy, Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Calendar, DollarSign } from "lucide-react";
+import { Bot, Calendar, DollarSign, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/shared/tables/DataTable";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 // Lazy loaded components
 const DeployAgentModal = lazy(() => import("./modals/DeployAgentModal"));
@@ -70,18 +71,23 @@ const columns = [
           <Button
             variant="outline"
             size="sm"
-            className="opacity-50 cursor-not-allowed"
-            disabled
+            className="bg-white hover:bg-gray-100 text-gray-700"
           >
             Edit
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="opacity-50 cursor-not-allowed"
-            disabled
+            className="bg-white hover:bg-gray-100 text-gray-700"
           >
             Update
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="hover:bg-red-600"
+          >
+            Delete
           </Button>
         </div>
       );
@@ -94,6 +100,7 @@ export const MyAgents = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: agents, isLoading: isLoadingAgents } = useQuery({
     queryKey: ["agents"],
@@ -143,18 +150,13 @@ export const MyAgents = () => {
     },
   });
 
-  const handleDeploy = () => {
-    // Feature is pending
-    toast({
-      title: "Coming Soon",
-      description: "Agent deployment will be available soon.",
-      variant: "default",
-    });
+  const handleCreateAgent = () => {
+    navigate("/agent-creation");
   };
 
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6 p-6 pb-16">
+      <div className="min-h-screen space-y-6 p-8 pt-16 pb-16 bg-background">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Agent Management</h2>
@@ -163,14 +165,27 @@ export const MyAgents = () => {
             </p>
           </div>
 
-          <Button onClick={() => setIsDeployModalOpen(true)}>
-            <Bot className="mr-2 h-4 w-4" />
-            Deploy New Agent
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => setIsDeployModalOpen(true)}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Bot className="mr-2 h-4 w-4" />
+              Deploy Existing Agent
+            </Button>
+            <Button 
+              onClick={handleCreateAgent}
+              variant="outline"
+              className="bg-white hover:bg-gray-100 border-primary text-primary hover:text-primary/90"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Agent
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="p-6">
+          <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Total Agents</h3>
               <Bot className="h-8 w-8 text-primary" />
@@ -180,7 +195,7 @@ export const MyAgents = () => {
             </p>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Active Deployments</h3>
               <Calendar className="h-8 w-8 text-primary" />
@@ -190,7 +205,7 @@ export const MyAgents = () => {
             </p>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Total Revenue</h3>
               <DollarSign className="h-8 w-8 text-primary" />
@@ -206,19 +221,26 @@ export const MyAgents = () => {
           </Card>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={agents || []}
-          isLoading={isLoadingAgents}
-          noResultsMessage="No agents found. Deploy your first agent to get started!"
-        />
+        <Card className="p-6 bg-white shadow-md">
+          <DataTable
+            columns={columns}
+            data={agents || []}
+            isLoading={isLoadingAgents}
+            noResultsMessage="No agents found. Deploy your first agent to get started!"
+          />
+        </Card>
 
         {isDeployModalOpen && (
           <Suspense fallback={null}>
             <DeployAgentModal
               isOpen={isDeployModalOpen}
               onClose={() => setIsDeployModalOpen(false)}
-              onDeploy={handleDeploy}
+              onDeploy={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "Agent deployment will be available soon.",
+                });
+              }}
             />
           </Suspense>
         )}

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -46,17 +46,12 @@ export const UserReviews = () => {
   });
 
   const handleNewReview = () => {
-    // Feature is pending
-    toast({
-      title: "Coming Soon",
-      description: "Review submission will be available soon.",
-      variant: "default"
-    });
+    setIsModalOpen(true);
   };
 
   return (
     <DashboardLayout type="user">
-      <div className="space-y-6 p-6 pb-16">
+      <div className="min-h-screen space-y-6 p-8 pt-16 pb-16 bg-background">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Reviews</h2>
@@ -69,7 +64,6 @@ export const UserReviews = () => {
             <Select
               value={sortBy}
               onValueChange={setSortBy}
-              disabled
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Sort by..." />
@@ -79,7 +73,10 @@ export const UserReviews = () => {
                 <SelectItem value="rating">Sort by Rating</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleNewReview}>
+            <Button 
+              onClick={handleNewReview}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
               <Plus className="mr-2 h-4 w-4" />
               New Review
             </Button>
@@ -87,7 +84,7 @@ export const UserReviews = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="p-6">
+          <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Average Rating</h3>
               <Star className="h-8 w-8 text-yellow-400" />
@@ -109,7 +106,7 @@ export const UserReviews = () => {
           <RecentActivity />
         </Suspense>
 
-        <Card className="p-6 text-center text-muted-foreground">
+        <Card className="p-6 text-center text-muted-foreground bg-white shadow-md">
           <Star className="mx-auto h-12 w-12 opacity-50" />
           <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
           <p className="mt-2">AI-powered review insights and sentiment analysis</p>
