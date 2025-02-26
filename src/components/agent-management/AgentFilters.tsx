@@ -15,16 +15,18 @@ interface AgentFiltersProps {
   onSortChange: (value: string) => void;
   onViewChange: (value: 'grid' | 'list') => void;
   view: 'grid' | 'list';
+  className?: string; // Added className as optional prop
 }
 
 export const AgentFilters = ({
   onSearch,
   onSortChange,
   onViewChange,
-  view
+  view,
+  className = '' // Added default empty string
 }: AgentFiltersProps) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+    <div className={`flex flex-col sm:flex-row gap-4 ${className}`}>
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input

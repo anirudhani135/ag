@@ -59,7 +59,9 @@ const AgentManagement = () => {
           </div>
         </div>
 
-        <AgentStats className="grid gap-4 md:grid-cols-3" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <AgentStats />
+        </div>
         
         <div className="rounded-lg border bg-card">
           <div className="p-6">
