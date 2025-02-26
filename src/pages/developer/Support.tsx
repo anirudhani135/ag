@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,37 +8,43 @@ import { LifeBuoy, MessageSquare, FileQuestion, Book } from "lucide-react";
 const DeveloperSupport = () => {
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen space-y-6 p-8 pt-16 pb-16">
-        <h2 className="text-3xl font-bold tracking-tight">Developer Support</h2>
+      <div className="min-h-screen space-y-8 p-8 pt-16 pb-16">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Developer Support</h2>
+          <p className="mt-2 text-muted-foreground">Get help with your development needs</p>
+        </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="p-8 bg-white shadow-md">
+        <div className="grid gap-8 md:grid-cols-2">
+          <Card className="p-8 bg-card shadow-md">
             <div className="flex items-center gap-3 mb-6">
               <MessageSquare className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold">Contact Support</h3>
+              <h3 className="text-xl font-semibold">Contact Support</h3>
             </div>
             <form className="space-y-6">
-              <div>
+              <div className="space-y-2">
                 <Input 
                   placeholder="Subject" 
-                  className="bg-white border-gray-200"
+                  className="w-full bg-background border-input"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Textarea 
                   placeholder="Describe your issue..." 
                   rows={5}
-                  className="bg-white border-gray-200 resize-none"
+                  className="w-full bg-background border-input min-h-[120px] resize-none"
                 />
               </div>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+              <Button 
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-6"
+              >
                 Submit Ticket
               </Button>
             </form>
           </Card>
 
           <div className="space-y-4">
-            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
               <div className="flex items-center gap-3">
                 <Book className="w-5 h-5 text-primary" />
                 <div>
@@ -51,7 +56,7 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
               <div className="flex items-center gap-3">
                 <FileQuestion className="w-5 h-5 text-primary" />
                 <div>
@@ -63,7 +68,7 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
+            <Card className="p-6 bg-card shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer">
               <div className="flex items-center gap-3">
                 <LifeBuoy className="w-5 h-5 text-primary" />
                 <div>
