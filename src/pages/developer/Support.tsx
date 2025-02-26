@@ -9,28 +9,37 @@ import { LifeBuoy, MessageSquare, FileQuestion, Book } from "lucide-react";
 const DeveloperSupport = () => {
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6">
+      <div className="min-h-screen space-y-6 p-8 pt-16 pb-16">
         <h2 className="text-3xl font-bold tracking-tight">Developer Support</h2>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4">
+          <Card className="p-8 bg-white shadow-md">
+            <div className="flex items-center gap-3 mb-6">
               <MessageSquare className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold">Contact Support</h3>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-6">
               <div>
-                <Input placeholder="Subject" />
+                <Input 
+                  placeholder="Subject" 
+                  className="bg-white border-gray-200"
+                />
               </div>
               <div>
-                <Textarea placeholder="Describe your issue..." rows={5} />
+                <Textarea 
+                  placeholder="Describe your issue..." 
+                  rows={5}
+                  className="bg-white border-gray-200 resize-none"
+                />
               </div>
-              <Button>Submit Ticket</Button>
+              <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                Submit Ticket
+              </Button>
             </form>
           </Card>
 
           <div className="space-y-4">
-            <Card className="p-4 hover:bg-accent/5 transition-colors cursor-pointer">
+            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
               <div className="flex items-center gap-3">
                 <Book className="w-5 h-5 text-primary" />
                 <div>
@@ -42,7 +51,7 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-4 hover:bg-accent/5 transition-colors cursor-pointer">
+            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
               <div className="flex items-center gap-3">
                 <FileQuestion className="w-5 h-5 text-primary" />
                 <div>
@@ -54,7 +63,7 @@ const DeveloperSupport = () => {
               </div>
             </Card>
 
-            <Card className="p-4 hover:bg-accent/5 transition-colors cursor-pointer">
+            <Card className="p-6 bg-white shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
               <div className="flex items-center gap-3">
                 <LifeBuoy className="w-5 h-5 text-primary" />
                 <div>
