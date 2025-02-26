@@ -36,6 +36,7 @@ const SavedAgents = lazy(() => import("./pages/dashboard/SavedAgents"));
 const UserAnalytics = lazy(() => import("./pages/dashboard/Analytics"));
 const UserAgents = lazy(() => import("./pages/dashboard/Agents"));
 const UserNotifications = lazy(() => import("./pages/dashboard/Notifications"));
+const UserSupport = lazy(() => import("./pages/dashboard/Support"));
 
 // Developer Dashboard Pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
@@ -150,6 +151,16 @@ const App = () => (
                     <ProtectedRoute>
                       <WithRoleProtection allowedRoles={["buyer"]}>
                         <UserNotifications />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="support"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["buyer"]}>
+                        <UserSupport />
                       </WithRoleProtection>
                     </ProtectedRoute>
                   }
