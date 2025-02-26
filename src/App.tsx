@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import WithRoleProtection from "@/components/auth/WithRoleProtection";
+import { UserSupport } from "@/components/user-support/UserSupport";
 
 // Optimize the query client configuration
 const queryClient = new QueryClient({
