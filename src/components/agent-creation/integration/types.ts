@@ -1,7 +1,26 @@
 
-import { WebhookFormValues } from "./WebhooksTab";
-import { ApiFormValues } from "./ApiTab";
+// Webhook related types
+export interface WebhookFormValues {
+  enableWebhook: boolean;
+  webhookUrl?: string;
+  webhookEvents: string[];
+  authType: string;
+  authDetails?: {
+    username?: string;
+    password?: string;
+    token?: string;
+    headerName?: string;
+  };
+}
 
+// API related types
+export interface ApiFormValues {
+  apiKey?: string;
+  enableRateLimit: boolean;
+  rateLimitPerMinute: number;
+}
+
+// Combined integration form values
 export interface IntegrationFormValues {
   // Webhook related fields
   enableWebhook: boolean;
