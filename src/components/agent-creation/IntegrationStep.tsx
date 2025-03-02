@@ -13,6 +13,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Checkbox } from "@/components/ui/checkbox";
 import { Globe, Share2, Key, RefreshCw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 const integrationSchema = z.object({
   enableWebhook: z.boolean().default(false),
@@ -230,15 +232,20 @@ export const IntegrationStep = ({ onSave, initialData }: IntegrationStepProps) =
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Authentication Type</FormLabel>
-                          <select
-                            className="w-full border border-gray-300 rounded-md p-2"
-                            {...field}
+                          <Select 
+                            value={field.value} 
+                            onValueChange={field.onChange}
                           >
-                            <option value="none">No Authentication</option>
-                            <option value="basic">Basic Auth</option>
-                            <option value="bearer">Bearer Token</option>
-                            <option value="api_key">API Key</option>
-                          </select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select authentication type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Authentication</SelectItem>
+                              <SelectItem value="basic">Basic Auth</SelectItem>
+                              <SelectItem value="bearer">Bearer Token</SelectItem>
+                              <SelectItem value="api_key">API Key</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormDescription>
                             Select how your webhook endpoint authenticates requests
                           </FormDescription>
