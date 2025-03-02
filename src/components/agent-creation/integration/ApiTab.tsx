@@ -120,8 +120,7 @@ Content-Type: application/json
 
 {
   \"message\": \"Hello, agent!\"
-}
-"
+}"
             className="min-h-[150px] font-mono text-sm"
           />
         </div>
