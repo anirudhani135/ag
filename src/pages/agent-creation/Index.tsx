@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { BasicInfoStep } from "@/components/agent-creation/BasicInfoStep";
+import { ConfigurationStep } from "@/components/agent-creation/ConfigurationStep";
+import { IntegrationStep } from "@/components/agent-creation/IntegrationStep";
+import { TestingStep } from "@/components/agent-creation/TestingStep";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,11 +12,10 @@ import { Card } from "@/components/ui/card";
 import { 
   ArrowLeft, 
   Save, 
-  ChevronRight, 
-  Bot, 
-  AlertCircle
+  ChevronRight
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BasicInfoFormData {
   title: string;
@@ -23,11 +25,49 @@ interface BasicInfoFormData {
   tags: string[];
 }
 
+interface ConfigFormData {
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  systemPrompt: string;
+  apiEndpoint?: string;
+  enableLogging: boolean;
+  enableMetrics: boolean;
+  enableRateLimiting: boolean;
+  requestsPerMinute?: number;
+}
+
+interface IntegrationFormData {
+  enableWebhook: boolean;
+  webhookUrl?: string;
+  webhookEvents: string[];
+  apiKey?: string;
+  enableRateLimit: boolean;
+  rateLimitPerMinute: number;
+  authType: string;
+  authDetails?: {
+    username?: string;
+    password?: string;
+    token?: string;
+    headerName?: string;
+  };
+}
+
+interface TestCase {
+  id: string;
+  name: string;
+  input: string;
+  expectedOutput?: string;
+  actualOutput?: string;
+  status?: "success" | "failure" | "pending";
+}
+
 const AgentCreationPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [basicInfo, setBasicInfo] = useState<BasicInfoFormData>({
     title: "",
     description: "",
@@ -35,6 +75,25 @@ const AgentCreationPage = () => {
     price: "",
     tags: [],
   });
+  const [configData, setConfigData] = useState<ConfigFormData>({
+    model: "gpt-4o",
+    maxTokens: 4096,
+    temperature: 0.7,
+    systemPrompt: "You are a helpful AI assistant.",
+    enableLogging: true,
+    enableMetrics: true,
+    enableRateLimiting: false,
+  });
+  const [integrationData, setIntegrationData] = useState<IntegrationFormData>({
+    enableWebhook: false,
+    webhookEvents: [],
+    enableRateLimit: true,
+    rateLimitPerMinute: 60,
+    authType: "none",
+  });
+  const [testCases, setTestCases] = useState<TestCase[]>([
+    { id: crypto.randomUUID(), name: "Test Case 1", input: "Hello, how are you?", expectedOutput: "" }
+  ]);
 
   const steps = [
     { id: "basic-info", title: "Basic Info", isCompleted: false },
@@ -43,20 +102,25 @@ const AgentCreationPage = () => {
     { id: "testing", title: "Testing", isCompleted: false },
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       // Update progress status for the current step
       const updatedSteps = [...steps];
       updatedSteps[currentStep] = { ...updatedSteps[currentStep], isCompleted: true };
       
-      // Move to next step
-      setCurrentStep(currentStep + 1);
-      
-      // Show progress toast
-      toast({
-        title: `Step ${currentStep + 1} completed`,
-        description: `Moving to ${steps[currentStep + 1].title}`,
-      });
+      // If it's the last step, submit everything
+      if (currentStep === steps.length - 1) {
+        await handleSubmit();
+      } else {
+        // Move to next step
+        setCurrentStep(currentStep + 1);
+        
+        // Show progress toast
+        toast({
+          title: `Step ${currentStep + 1} completed`,
+          description: `Moving to ${steps[currentStep + 1].title}`,
+        });
+      }
     }
   };
 
@@ -66,17 +130,102 @@ const AgentCreationPage = () => {
     }
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     setIsSaving(true);
     
-    // Simulate saving with a timeout
-    setTimeout(() => {
+    try {
+      // Prepare the data
+      const agentData = {
+        title: basicInfo.title,
+        description: basicInfo.description,
+        category_id: basicInfo.category,
+        price: parseFloat(basicInfo.price) || 0,
+        status: 'draft',
+        features: basicInfo.tags,
+        runtime_config: {
+          ...configData
+        },
+        technical_requirements: {
+          integration: integrationData
+        },
+        test_results: testCases
+      };
+
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('agents')
+        .insert(agentData)
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
       toast({
         title: "Draft saved",
         description: "Your agent configuration has been saved as a draft.",
       });
+      
+      // Optional: Navigate to the agent detail page
+      // navigate(`/developer/agents/${data.id}`);
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      toast({
+        title: "Error saving draft",
+        description: "There was an error saving your agent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSaving(false);
-    }, 800);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare the data
+      const agentData = {
+        title: basicInfo.title,
+        description: basicInfo.description,
+        category_id: basicInfo.category,
+        price: parseFloat(basicInfo.price) || 0,
+        status: 'pending_review',
+        features: basicInfo.tags,
+        runtime_config: {
+          ...configData
+        },
+        technical_requirements: {
+          integration: integrationData
+        },
+        test_results: testCases
+      };
+
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('agents')
+        .insert(agentData)
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Agent submitted",
+        description: "Your agent has been submitted for review.",
+      });
+      
+      // Navigate to the agent management page
+      navigate("/developer/agents");
+    } catch (error) {
+      console.error("Error submitting agent:", error);
+      toast({
+        title: "Error submitting agent",
+        description: "There was an error submitting your agent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const canProceed = () => {
@@ -87,9 +236,38 @@ const AgentCreationPage = () => {
           basicInfo.description.trim() !== "" &&
           basicInfo.category !== ""
         );
+      case 1:
+        return (
+          configData.model !== "" &&
+          configData.systemPrompt.trim() !== ""
+        );
+      case 2:
+        return true;
+      case 3:
+        return testCases.length > 0;
       default:
         return true;
     }
+  };
+
+  const handleConfigurationSave = (data: ConfigFormData) => {
+    setConfigData(data);
+    toast({
+      title: "Configuration saved",
+      description: "Your agent configuration has been updated.",
+    });
+  };
+
+  const handleIntegrationSave = (data: IntegrationFormData) => {
+    setIntegrationData(data);
+    toast({
+      title: "Integration settings saved",
+      description: "Your integration configuration has been updated.",
+    });
+  };
+
+  const handleTestCasesSave = (data: TestCase[]) => {
+    setTestCases(data);
   };
 
   const renderCurrentStep = () => {
@@ -102,27 +280,14 @@ const AgentCreationPage = () => {
             </div>
           </Card>
         );
+      case 1:
+        return <ConfigurationStep onSave={handleConfigurationSave} initialData={configData} />;
+      case 2:
+        return <IntegrationStep onSave={handleIntegrationSave} initialData={integrationData} />;
+      case 3:
+        return <TestingStep onSave={handleTestCasesSave} initialTestCases={testCases} />;
       default:
-        return (
-          <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0">
-            <div className="p-6 md:p-8 text-center">
-              <Bot className="h-12 w-12 mx-auto text-primary/50 mb-4" />
-              <div className="text-muted-foreground">
-                <h3 className="text-lg font-medium mb-2">Step {currentStep + 1}: {steps[currentStep].title}</h3>
-                <p>This step is coming soon...</p>
-                {currentStep === 1 && (
-                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 flex items-start">
-                    <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-yellow-700 text-left">
-                      In the Configuration step, you'll be able to define your agent's behavior, 
-                      capabilities, and response patterns.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        );
+        return null;
     }
   };
 
@@ -226,16 +391,22 @@ const AgentCreationPage = () => {
                     <TooltipTrigger asChild>
                       <Button
                         onClick={handleNext}
-                        disabled={!canProceed()}
+                        disabled={!canProceed() || isSubmitting}
                         className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 h-11
                           shadow-lg hover:shadow-xl transition-all duration-200"
                       >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-2" />
+                        {currentStep === steps.length - 1 ? (
+                          isSubmitting ? "Submitting..." : "Submit Agent"
+                        ) : (
+                          <>
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-2" />
+                          </>
+                        )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Continue to the next step</p>
+                      <p>{currentStep === steps.length - 1 ? "Submit your agent" : "Continue to the next step"}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
