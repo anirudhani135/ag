@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,6 +100,7 @@ export const WebhooksTab = ({ initialData, onSave }: WebhooksTabProps) => {
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  className="data-[state=checked]:bg-primary"
                 />
               </FormControl>
             </FormItem>
@@ -123,7 +123,7 @@ export const WebhooksTab = ({ initialData, onSave }: WebhooksTabProps) => {
                       type="button" 
                       variant="outline" 
                       onClick={testWebhook}
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 bg-background hover:bg-muted/50 text-foreground"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Test
@@ -299,7 +299,10 @@ export const WebhooksTab = ({ initialData, onSave }: WebhooksTabProps) => {
         )}
 
         <div className="pt-4">
-          <Button type="submit" className="w-full md:w-auto">
+          <Button 
+            type="submit" 
+            className="w-full md:w-auto bg-primary hover:bg-primary/90 text-white"
+          >
             Save Webhook Settings
           </Button>
         </div>
