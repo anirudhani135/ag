@@ -76,7 +76,7 @@ const ResetPassword = () => {
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full bg-primary text-white hover:bg-primary/90 shadow-sm" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Send reset link
         </Button>

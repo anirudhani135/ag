@@ -87,7 +87,7 @@ export const NavigationActions = ({
               <Button
                 onClick={onNext}
                 disabled={!canProceed || isSubmitting}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 h-11
+                className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 px-8 h-11
                   shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {isLastStep ? (

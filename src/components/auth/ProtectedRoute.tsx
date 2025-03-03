@@ -9,6 +9,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Authentication checks are commented out until development is completed
   // In a production environment, this would validate user authentication
   // and redirect unauthenticated users to the login page
+  
+  // This is a temporary bypass for development purposes
+  console.log("Protected route accessed - authentication checks temporarily disabled");
+  
   return <>{children}</>;
 };
 

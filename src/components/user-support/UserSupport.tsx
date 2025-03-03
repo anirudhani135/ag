@@ -1,102 +1,81 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-import React, { lazy, Suspense } from 'react';
-import { LifeBuoy, Plus, Search } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { SupportMetrics } from './components/SupportMetrics';
-import { LoadingSpinner } from './components/LoadingSpinner';
-import { cn } from '@/lib/utils';
+const UserSupport = () => {
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
-// Lazy loaded components
-const NewTicketModal = lazy(() => import('./components/NewTicketModal'));
-const SupportList = lazy(() => import('./components/SupportList'));
-const FAQSection = lazy(() => import('./components/FAQSection'));
-const RecentActivity = lazy(() => import('./components/RecentActivity'));
+  const openTicketModal = () => {
+    setIsTicketModalOpen(true);
+  };
 
-export const UserSupport = () => {
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const { toast } = useToast();
-
-  const handleNewTicket = () => {
-    // Feature is pending
-    toast({
-      title: "Coming Soon",
-      description: "Ticket submission will be available soon.",
-      variant: "default"
-    });
-    // setIsModalOpen(true); // Enable when feature is ready
+  const closeTicketModal = () => {
+    setIsTicketModalOpen(false);
   };
 
   return (
-    <DashboardLayout type="user">
-      <div className="space-y-6 p-4 md:p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Support</h2>
-            <p className="text-muted-foreground">
-              Get help with your AI agents and marketplace queries
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Support Center</h2>
+        <Button 
+          onClick={openTicketModal} 
+          className="bg-accent text-accent-foreground hover:bg-accent/90 font-medium shadow-sm"
+        >
+          New Ticket
+        </Button>
+      </div>
+
+      <Dialog open={isTicketModalOpen} onOpenChange={setIsTicketModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Submit a Support Ticket</DialogTitle>
+            <DialogDescription>
+              Please provide details about your issue. Our support team will
+              get back to you as soon as possible.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input id="name" defaultValue="John Doe" className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
               <Input
-                placeholder="Search support..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                id="email"
+                type="email"
+                defaultValue="john.doe@example.com"
+                className="col-span-3"
               />
             </div>
-            <Button 
-              onClick={handleNewTicket}
-              className="whitespace-nowrap bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Ticket
-            </Button>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="message" className="text-right mt-2">
+                Message
+              </Label>
+              <Textarea id="message" className="col-span-3" />
+            </div>
           </div>
-        </div>
-
-        <Suspense fallback={<LoadingSpinner />}>
-          <SupportMetrics />
-        </Suspense>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Suspense fallback={<LoadingSpinner />}>
-            <SupportList searchQuery={searchQuery} />
-          </Suspense>
-
-          <Suspense fallback={<LoadingSpinner />}>
-            <FAQSection searchQuery={searchQuery} />
-          </Suspense>
-        </div>
-
-        <Suspense fallback={<LoadingSpinner />}>
-          <RecentActivity />
-        </Suspense>
-
-        {/* Future Features Section */}
-        <Card className="p-6 text-center text-muted-foreground">
-          <LifeBuoy className="mx-auto h-12 w-12 opacity-50" />
-          <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
-          <p className="mt-2">Live chat support and AI-powered assistance</p>
-        </Card>
-
-        <Suspense fallback={<LoadingSpinner />}>
-          {isModalOpen && (
-            <NewTicketModal 
-              isOpen={isModalOpen} 
-              onClose={() => setIsModalOpen(false)}
-            />
-          )}
-        </Suspense>
-      </div>
-    </DashboardLayout>
+          {/* @ts-ignore */}
+          <DialogTrigger asChild>
+            <Button type="submit">Submit Ticket</Button>
+          </DialogTrigger>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

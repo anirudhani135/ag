@@ -22,12 +22,10 @@ const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps)
   // Role check temporarily commented out until development is completed
   // In production, this would validate user roles and redirect users without 
   // the necessary permissions to an appropriate page
-  /* 
-  if (!userRole || !allowedRoles.includes(userRole)) {
-    return <Navigate to="/user/dashboard" replace />;
-  }
-  */
-
+  
+  // This is a temporary bypass for development purposes
+  console.log("Role protection accessed - role checks temporarily disabled", { allowedRoles });
+  
   return <>{children}</>;
 };
 
