@@ -119,7 +119,7 @@ POST /api/v1/agents/{agent_id}/chat
 Content-Type: application/json
 
 {
-  \"message\": \"Hello, agent!\"
+  &quot;message&quot;: &quot;Hello, agent!&quot;
 }"
             className="min-h-[150px] font-mono text-sm"
           />
