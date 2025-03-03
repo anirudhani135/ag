@@ -20,6 +20,9 @@ export interface ApiFormValues {
   rateLimitPerMinute: number;
 }
 
+// Add the missing IntegrationFormData export to fix the import errors
+export type IntegrationFormData = IntegrationFormValues;
+
 // Combined integration form values
 export interface IntegrationFormValues {
   // Webhook related fields
