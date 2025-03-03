@@ -1,8 +1,9 @@
 
 import { useState, ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface WizardStep {
   id: string;
@@ -32,23 +33,25 @@ export const WizardLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        {/* Progress Steps */}
+        {/* Progress Steps with improved accessibility */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={currentStep + 1}>
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2",
+                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all",
                     currentStep > index || step.isCompleted
-                      ? "border-primary bg-primary text-primary-foreground"
+                      ? "border-accent bg-accent text-accent-foreground"
                       : currentStep === index
-                      ? "border-primary"
+                      ? "border-accent"
                       : "border-muted"
                   )}
+                  aria-label={`Step ${index + 1}: ${step.title}`}
+                  aria-current={currentStep === index ? "step" : undefined}
                 >
                   {currentStep > index || step.isCompleted ? (
-                    <Check className="w-5 h-5" />
+                    <Check className="w-5 h-5" aria-hidden="true" />
                   ) : (
                     <span>{index + 1}</span>
                   )}
@@ -56,19 +59,23 @@ export const WizardLayout = ({
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
-                      "h-[2px] w-16 mx-2",
-                      currentStep > index ? "bg-primary" : "bg-muted"
+                      "h-[2px] w-16 mx-2 transition-colors",
+                      currentStep > index ? "bg-accent" : "bg-muted"
                     )}
+                    aria-hidden="true"
                   />
                 )}
               </div>
             ))}
           </div>
           <div className="flex justify-between mt-2">
-            {steps.map((step) => (
+            {steps.map((step, index) => (
               <span
                 key={`title-${step.id}`}
-                className="text-sm text-muted-foreground"
+                className={cn(
+                  "text-sm",
+                  currentStep === index ? "text-foreground font-medium" : "text-muted-foreground"
+                )}
               >
                 {step.title}
               </span>
@@ -76,43 +83,18 @@ export const WizardLayout = ({
           </div>
         </div>
 
-        {/* Content Area */}
+        {/* Content Area with animations for feedback */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
-          className="bg-card rounded-lg border p-6"
+          className="bg-card rounded-lg border p-6 shadow-sm"
         >
           {children}
         </motion.div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={onPrevious}
-            disabled={currentStep === 0}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <div className="space-x-4">
-            <button
-              onClick={onSaveDraft}
-              className="px-4 py-2 text-sm font-medium text-primary hover:text-primary/80"
-            >
-              Save Draft
-            </button>
-            <button
-              onClick={onNext}
-              disabled={!canProceed}
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center"
-            >
-              Next
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        {/* We're removing the duplicate navigation buttons here since they're now handled in NavigationActions */}
       </div>
     </div>
   );

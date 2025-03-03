@@ -18,7 +18,10 @@ export const ApiIntegrationsHeader = () => {
             </p>
             <HoverCard>
               <HoverCardTrigger asChild>
-                <button className="inline-flex items-center ml-2">
+                <button 
+                  className="inline-flex items-center ml-2"
+                  aria-label="More information about API & Integrations"
+                >
                   <Info className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                 </button>
               </HoverCardTrigger>

@@ -1,12 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Save, ChevronRight } from "lucide-react";
+import { Save, ChevronRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface NavigationActionsProps {
   onSaveDraft: () => Promise<void>;
   onNext: () => Promise<void>;
+  onPrevious: () => void;
   canProceed: boolean;
   isSaving: boolean;
   isSubmitting: boolean;
@@ -16,6 +17,7 @@ interface NavigationActionsProps {
 export const NavigationActions = ({
   onSaveDraft,
   onNext,
+  onPrevious,
   canProceed,
   isSaving,
   isSubmitting,
@@ -27,10 +29,11 @@ export const NavigationActions = ({
     <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
       <Button
         variant="outline"
-        onClick={() => navigate("/developer/agents")}
+        onClick={onPrevious}
         className="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm"
       >
-        Cancel
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
       </Button>
       
       <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -42,6 +45,7 @@ export const NavigationActions = ({
                 onClick={onSaveDraft}
                 disabled={isSaving}
                 className="w-full sm:w-auto bg-white hover:bg-primary/5 text-primary border-primary/20 shadow-sm relative"
+                aria-label="Save draft of your agent"
               >
                 {isSaving ? (
                   <>
@@ -51,6 +55,7 @@ export const NavigationActions = ({
                       xmlns="http://www.w3.org/2000/svg" 
                       fill="none" 
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <circle 
                         className="opacity-25" 
@@ -89,12 +94,13 @@ export const NavigationActions = ({
                 disabled={!canProceed || isSubmitting}
                 className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 px-8 h-11
                   shadow-lg hover:shadow-xl transition-all duration-200"
+                aria-label={isLastStep ? "Submit your agent" : "Continue to the next step"}
               >
                 {isLastStep ? (
                   isSubmitting ? "Submitting..." : "Submit Agent"
                 ) : (
                   <>
-                    Next
+                    Continue
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </>
                 )}

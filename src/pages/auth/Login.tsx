@@ -4,6 +4,7 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import AuthForm from "@/components/auth/AuthForm";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { LogIn } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,11 +14,25 @@ const Login = () => {
     toast({
       title: "Login Successful",
       description: "Welcome back! You've been signed in successfully.",
+      variant: "success",
     });
     
     // Redirect to the dashboard
     setTimeout(() => {
       navigate("/user/dashboard");
+    }, 1000);
+  };
+
+  const handleDevSignIn = () => {
+    toast({
+      title: "Developer Login",
+      description: "Logged in as a developer (development mode)",
+      variant: "success",
+    });
+    
+    // Redirect to developer dashboard
+    setTimeout(() => {
+      navigate("/developer/dashboard");
     }, 1000);
   };
 
@@ -32,12 +47,21 @@ const Login = () => {
 
       <AuthForm type="signin" />
 
-      <div className="mt-4 text-center">
+      <div className="mt-4 space-y-3">
         <Button 
           onClick={handleSignIn} 
-          className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
+          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
         >
-          Sign In (Development Mode)
+          <LogIn className="h-4 w-4 mr-2" />
+          Sign In as User
+        </Button>
+        
+        <Button 
+          onClick={handleDevSignIn} 
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+        >
+          <LogIn className="h-4 w-4 mr-2" />
+          Sign In as Developer
         </Button>
       </div>
 

@@ -20,12 +20,20 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
+        // Added new variants for improved accessibility and visibility
+        primary: "bg-primary text-white hover:bg-primary/90 shadow-sm",
+        success: "bg-success text-white hover:bg-success/90 shadow-sm",
+        warning: "bg-warning text-primary hover:bg-warning/90 shadow-sm",
+        info: "bg-info text-white hover:bg-info/90 shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        // Added new sizes for better flexibility
+        xl: "h-12 rounded-md px-10 text-base",
+        xxl: "h-14 rounded-md px-12 text-lg",
       },
     },
     defaultVariants: {
