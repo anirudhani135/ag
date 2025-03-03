@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Copy, Key, Webhook, FileText } from 'lucide-react';
+import { Plus, Copy, Key, FileText } from 'lucide-react';
+import { WebhookIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -52,7 +53,7 @@ export const ApiIntegrationsContent = ({
               <span>API Keys</span>
             </TabsTrigger>
             <TabsTrigger value="webhooks" className="flex items-center gap-2">
-              <Webhook className="h-4 w-4" />
+              <WebhookIcon className="h-4 w-4" />
               <span>Webhooks</span>
             </TabsTrigger>
             <TabsTrigger value="documentation" className="flex items-center gap-2">
