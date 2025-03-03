@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { BasicInfoStep } from "@/components/agent-creation/BasicInfoStep";
@@ -97,13 +96,11 @@ const AgentCreationPage = () => {
   ]);
 
   useEffect(() => {
-    // Get the current authenticated user
     const fetchUserDetails = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserDetails({ id: user.id });
       } else {
-        // Handle unauthenticated user
         toast({
           title: "Authentication required",
           description: "You need to be logged in to create an agent.",
@@ -125,18 +122,13 @@ const AgentCreationPage = () => {
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-      // Update progress status for the current step
       const updatedSteps = [...steps];
       updatedSteps[currentStep] = { ...updatedSteps[currentStep], isCompleted: true };
       
-      // If it's the last step, submit everything
       if (currentStep === steps.length - 1) {
         await handleSubmit();
       } else {
-        // Move to next step
         setCurrentStep(currentStep + 1);
-        
-        // Show progress toast
         toast({
           title: `Step ${currentStep + 1} completed`,
           description: `Moving to ${steps[currentStep + 1].title}`,
@@ -164,7 +156,6 @@ const AgentCreationPage = () => {
     setIsSaving(true);
     
     try {
-      // Prepare the data
       const agentData = {
         title: basicInfo.title,
         description: basicInfo.description,
@@ -172,17 +163,14 @@ const AgentCreationPage = () => {
         price: parseFloat(basicInfo.price) || 0,
         status: 'draft',
         features: basicInfo.tags,
-        developer_id: userDetails.id, // Add the required developer_id field
-        runtime_config: {
-          ...configData
-        },
-        technical_requirements: {
+        developer_id: userDetails.id,
+        runtime_config: JSON.parse(JSON.stringify(configData)),
+        technical_requirements: JSON.parse(JSON.stringify({
           integration: integrationData
-        },
-        test_results: testCases
+        })),
+        test_results: JSON.parse(JSON.stringify(testCases))
       };
 
-      // Save to Supabase
       const { data, error } = await supabase
         .from('agents')
         .insert(agentData)
@@ -196,8 +184,6 @@ const AgentCreationPage = () => {
         description: "Your agent configuration has been saved as a draft.",
       });
       
-      // Optional: Navigate to the agent detail page
-      // navigate(`/developer/agents/${data.id}`);
     } catch (error) {
       console.error("Error saving draft:", error);
       toast({
@@ -223,7 +209,6 @@ const AgentCreationPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Prepare the data
       const agentData = {
         title: basicInfo.title,
         description: basicInfo.description,
@@ -231,17 +216,14 @@ const AgentCreationPage = () => {
         price: parseFloat(basicInfo.price) || 0,
         status: 'pending_review',
         features: basicInfo.tags,
-        developer_id: userDetails.id, // Add the required developer_id field
-        runtime_config: {
-          ...configData
-        },
-        technical_requirements: {
+        developer_id: userDetails.id,
+        runtime_config: JSON.parse(JSON.stringify(configData)),
+        technical_requirements: JSON.parse(JSON.stringify({
           integration: integrationData
-        },
-        test_results: testCases
+        })),
+        test_results: JSON.parse(JSON.stringify(testCases))
       };
 
-      // Save to Supabase
       const { data, error } = await supabase
         .from('agents')
         .insert(agentData)
@@ -255,7 +237,6 @@ const AgentCreationPage = () => {
         description: "Your agent has been submitted for review.",
       });
       
-      // Navigate to the agent management page
       navigate("/developer/agents");
     } catch (error) {
       console.error("Error submitting agent:", error);
@@ -335,7 +316,6 @@ const AgentCreationPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-primary/5">
       <div className="container mx-auto px-4 py-8 md:py-12 pt-20">
-        {/* Header with improved visual hierarchy */}
         <div className="mb-8 space-y-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Button
@@ -369,7 +349,6 @@ const AgentCreationPage = () => {
               {renderCurrentStep()}
             </div>
 
-            {/* Navigation buttons with improved styling */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
               <Button
                 variant="outline"
