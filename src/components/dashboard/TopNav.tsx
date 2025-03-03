@@ -20,7 +20,7 @@ export const TopNav = ({ onMenuClick }: TopNavProps) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-50">
-      <div className="flex items-center justify-between h-full px-4">
+      <div className="flex items-center justify-between h-full px-4 max-w-7xl mx-auto">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" onClick={onMenuClick} aria-label="Toggle menu">
             <Menu className="h-5 w-5" />

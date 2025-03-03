@@ -48,6 +48,7 @@ const DeveloperAnalytics = lazy(() => import("./pages/developer/Analytics"));
 const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
 const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
+const ApiIntegrations = lazy(() => import("./pages/developer/ApiIntegrations"));
 const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
@@ -207,6 +208,16 @@ const App = () => (
                     <ProtectedRoute>
                       <WithRoleProtection allowedRoles={["developer"]}>
                         <Revenue />
+                      </WithRoleProtection>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="api"
+                  element={
+                    <ProtectedRoute>
+                      <WithRoleProtection allowedRoles={["developer"]}>
+                        <ApiIntegrations />
                       </WithRoleProtection>
                     </ProtectedRoute>
                   }

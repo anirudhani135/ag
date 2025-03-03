@@ -33,7 +33,7 @@ export const UserSupport = () => {
 
   return (
     <DashboardLayout type="user">
-      <div className="space-y-6 p-6 pb-16">
+      <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Support</h2>
@@ -54,7 +54,7 @@ export const UserSupport = () => {
             </div>
             <Button 
               onClick={handleNewTicket}
-              className="whitespace-nowrap"
+              className="whitespace-nowrap bg-primary hover:bg-primary/90" // Added background color to make it more visible
             >
               <Plus className="mr-2 h-4 w-4" />
               New Ticket

@@ -74,7 +74,7 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto p-6 transition-all duration-300",
+            "flex-1 overflow-auto pt-20 pb-6 px-6 transition-all duration-300", // Added pt-20 to create space between navbar and content
             sidebarOpen && !isMobile ? "md:ml-64" : "ml-0"
           )}
           role="main"
