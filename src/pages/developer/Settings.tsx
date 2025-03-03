@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Schema for profile form validation
 const profileFormSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   company: z.string().optional(),
@@ -38,7 +36,6 @@ const profileFormSchema = z.object({
   bio: z.string().optional(),
 });
 
-// Schema for notification preferences
 const notificationFormSchema = z.object({
   emailNotifications: z.boolean().default(true),
   agentUpdates: z.boolean().default(true),
@@ -46,7 +43,6 @@ const notificationFormSchema = z.object({
   marketingEmails: z.boolean().default(false),
 });
 
-// Schema for billing information
 const billingFormSchema = z.object({
   paymentMethod: z.string(),
   taxId: z.string().optional(),
@@ -63,7 +59,6 @@ const DeveloperSettings = () => {
   
   const { toast } = useToast();
 
-  // Initialize forms with default values
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -100,7 +95,7 @@ const DeveloperSettings = () => {
     toast({
       title: "API Key Copied",
       description: "API key has been copied to clipboard",
-      variant: "success",
+      variant: "default",
     });
     
     setTimeout(() => {
@@ -121,7 +116,7 @@ const DeveloperSettings = () => {
     toast({
       title: "New API Key Generated",
       description: "Your new API key has been generated successfully. Make sure to save it securely.",
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -131,7 +126,7 @@ const DeveloperSettings = () => {
     toast({
       title: "API Key Revoked",
       description: "Your API key has been revoked successfully.",
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -139,7 +134,7 @@ const DeveloperSettings = () => {
     toast({
       title: "Profile Updated",
       description: "Your profile information has been updated successfully.",
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -147,7 +142,7 @@ const DeveloperSettings = () => {
     toast({
       title: "Notification Preferences Updated",
       description: "Your notification preferences have been updated successfully.",
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -155,14 +150,13 @@ const DeveloperSettings = () => {
     toast({
       title: "Billing Information Updated",
       description: "Your billing information has been updated successfully.",
-      variant: "success",
+      variant: "default",
     });
   };
 
   return (
     <DashboardLayout type="developer">
       <div className="min-h-screen p-6 pt-20 pb-16">
-        {/* Page Header with clear hierarchy */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight">Developer Settings</h2>
           <p className="mt-2 text-muted-foreground">
@@ -170,7 +164,6 @@ const DeveloperSettings = () => {
           </p>
         </div>
 
-        {/* Organized settings with tabs for clear structure */}
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-6 bg-muted/50">
             <TabsTrigger value="profile" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
@@ -195,7 +188,6 @@ const DeveloperSettings = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Profile Settings with form validation */}
           <TabsContent value="profile" className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
@@ -300,7 +292,6 @@ const DeveloperSettings = () => {
             </Card>
           </TabsContent>
 
-          {/* API Keys with clear actions and feedback */}
           <TabsContent value="api" className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
@@ -320,7 +311,6 @@ const DeveloperSettings = () => {
               </div>
               
               <div className="space-y-4">
-                {/* API Keys Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
@@ -380,7 +370,6 @@ const DeveloperSettings = () => {
             </Card>
           </TabsContent>
 
-          {/* Billing Information */}
           <TabsContent value="billing" className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
@@ -490,7 +479,6 @@ const DeveloperSettings = () => {
             </Card>
           </TabsContent>
 
-          {/* Notification Preferences */}
           <TabsContent value="notifications" className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
@@ -607,7 +595,6 @@ const DeveloperSettings = () => {
             </Card>
           </TabsContent>
 
-          {/* Security Settings */}
           <TabsContent value="security" className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between border-b pb-4 mb-4">

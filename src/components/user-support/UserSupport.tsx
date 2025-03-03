@@ -32,7 +32,7 @@ const UserSupport = () => {
     toast({
       title: "Ticket submitted",
       description: "Your support ticket has been submitted successfully.",
-      variant: "success",
+      variant: "default",
     });
     closeTicketModal();
   };

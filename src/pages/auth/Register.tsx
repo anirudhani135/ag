@@ -14,7 +14,7 @@ const Register = () => {
     toast({
       title: "Registration Successful",
       description: "Your account has been created successfully!",
-      variant: "success",
+      variant: "default",
     });
     
     // Redirect to the dashboard
@@ -27,7 +27,7 @@ const Register = () => {
     toast({
       title: "Developer Registration",
       description: "Developer account created successfully!",
-      variant: "success",
+      variant: "default",
     });
     
     // Redirect to the developer dashboard

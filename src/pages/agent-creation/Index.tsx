@@ -59,6 +59,7 @@ const AgentCreationPage = () => {
             <NavigationActions
               onSaveDraft={handleSaveDraft}
               onNext={handleNext}
+              onPrevious={handlePrevious}
               canProceed={canProceed()}
               isSaving={isSaving}
               isSubmitting={isSubmitting}

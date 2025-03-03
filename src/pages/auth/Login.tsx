@@ -14,7 +14,7 @@ const Login = () => {
     toast({
       title: "Login Successful",
       description: "Welcome back! You've been signed in successfully.",
-      variant: "success",
+      variant: "default",
     });
     
     // Redirect to the dashboard
@@ -27,7 +27,7 @@ const Login = () => {
     toast({
       title: "Developer Login",
       description: "Logged in as a developer (development mode)",
-      variant: "success",
+      variant: "default",
     });
     
     // Redirect to developer dashboard
