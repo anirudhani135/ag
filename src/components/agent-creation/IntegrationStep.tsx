@@ -32,7 +32,7 @@ export const IntegrationStep = ({ onSave, initialData }: IntegrationStepProps) =
   };
 
   // Extract data for individual tabs
-  const webhookTabData: WebhookTabData = {
+  const webhookTabData: Partial<WebhookTabData> = {
     enableWebhook: initialData?.enableWebhook ?? false,
     webhookUrl: initialData?.webhookUrl,
     webhookEvents: initialData?.webhookEvents ?? [],
@@ -40,7 +40,7 @@ export const IntegrationStep = ({ onSave, initialData }: IntegrationStepProps) =
     authDetails: initialData?.authDetails,
   };
 
-  const apiTabData: ApiTabData = {
+  const apiTabData: Partial<ApiTabData> = {
     apiKey: initialData?.apiKey,
     enableRateLimit: initialData?.enableRateLimit ?? true,
     rateLimitPerMinute: initialData?.rateLimitPerMinute ?? 60,

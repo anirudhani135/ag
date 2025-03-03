@@ -114,13 +114,13 @@ export const ApiTab = ({ initialData, onSave }: ApiTabProps) => {
             Add custom documentation for your API endpoints
           </p>
           <Textarea 
-            placeholder="# Example API Usage
+            placeholder={`# Example API Usage
 POST /api/v1/agents/{agent_id}/chat
 Content-Type: application/json
 
 {
-  &quot;message&quot;: &quot;Hello, agent!&quot;
-}"
+  "message": "Hello, agent!"
+}`}
             className="min-h-[150px] font-mono text-sm"
           />
         </div>

@@ -4,7 +4,7 @@ export interface WebhookFormValues {
   enableWebhook: boolean;
   webhookUrl?: string;
   webhookEvents: string[];
-  authType: string;
+  authType: "none" | "basic" | "bearer" | "api_key";
   authDetails?: {
     username?: string;
     password?: string;
@@ -26,7 +26,7 @@ export interface IntegrationFormValues {
   enableWebhook: boolean;
   webhookUrl?: string;
   webhookEvents: string[];
-  authType: string;
+  authType: "none" | "basic" | "bearer" | "api_key";
   authDetails?: {
     username?: string;
     password?: string;

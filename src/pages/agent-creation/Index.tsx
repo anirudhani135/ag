@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { BasicInfoStep } from "@/components/agent-creation/BasicInfoStep";
 import { ConfigurationStep } from "@/components/agent-creation/ConfigurationStep";
@@ -44,7 +44,7 @@ interface IntegrationFormData {
   apiKey?: string;
   enableRateLimit: boolean;
   rateLimitPerMinute: number;
-  authType: string;
+  authType: "none" | "basic" | "bearer" | "api_key";
   authDetails?: {
     username?: string;
     password?: string;
@@ -68,6 +68,7 @@ const AgentCreationPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userDetails, setUserDetails] = useState<{ id: string } | null>(null);
   const [basicInfo, setBasicInfo] = useState<BasicInfoFormData>({
     title: "",
     description: "",
@@ -94,6 +95,26 @@ const AgentCreationPage = () => {
   const [testCases, setTestCases] = useState<TestCase[]>([
     { id: crypto.randomUUID(), name: "Test Case 1", input: "Hello, how are you?", expectedOutput: "" }
   ]);
+
+  useEffect(() => {
+    // Get the current authenticated user
+    const fetchUserDetails = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserDetails({ id: user.id });
+      } else {
+        // Handle unauthenticated user
+        toast({
+          title: "Authentication required",
+          description: "You need to be logged in to create an agent.",
+          variant: "destructive",
+        });
+        navigate("/auth/login");
+      }
+    };
+    
+    fetchUserDetails();
+  }, [navigate, toast]);
 
   const steps = [
     { id: "basic-info", title: "Basic Info", isCompleted: false },
@@ -131,6 +152,15 @@ const AgentCreationPage = () => {
   };
 
   const handleSaveDraft = async () => {
+    if (!userDetails?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to save a draft.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     
     try {
@@ -142,6 +172,7 @@ const AgentCreationPage = () => {
         price: parseFloat(basicInfo.price) || 0,
         status: 'draft',
         features: basicInfo.tags,
+        developer_id: userDetails.id, // Add the required developer_id field
         runtime_config: {
           ...configData
         },
@@ -180,6 +211,15 @@ const AgentCreationPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!userDetails?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to submit an agent.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -191,6 +231,7 @@ const AgentCreationPage = () => {
         price: parseFloat(basicInfo.price) || 0,
         status: 'pending_review',
         features: basicInfo.tags,
+        developer_id: userDetails.id, // Add the required developer_id field
         runtime_config: {
           ...configData
         },
