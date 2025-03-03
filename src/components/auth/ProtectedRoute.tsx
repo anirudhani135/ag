@@ -6,7 +6,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // Temporarily disable authentication checks
+  // Authentication checks are commented out until development is completed
+  // In a production environment, this would validate user authentication
+  // and redirect unauthenticated users to the login page
   return <>{children}</>;
 };
 

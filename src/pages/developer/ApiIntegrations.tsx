@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { ApiIntegrationsHeader } from '@/components/developer/api-integrations/ApiIntegrationsHeader';
 import { ApiIntegrationsContent } from '@/components/developer/api-integrations/ApiIntegrationsContent';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { ApiKey, Webhook } from '@/components/developer/api-integrations/types';
 
 const ApiIntegrations = () => {
   const [activeTab, setActiveTab] = useState<'api-keys' | 'webhooks' | 'documentation'>('api-keys');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   // Mock data for API keys
   const mockApiKeys: ApiKey[] = [
@@ -88,7 +89,7 @@ const ApiIntegrations = () => {
 
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-8 pt-20 pb-16">
         <ApiIntegrationsHeader />
         <ApiIntegrationsContent
           activeTab={activeTab}

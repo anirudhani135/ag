@@ -10,6 +10,7 @@ interface WithRoleProtectionProps {
 const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps) => {
   const { userRole, isLoading } = useAuth();
 
+  // Loading state is maintained for UX
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -18,8 +19,10 @@ const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps)
     );
   }
 
-  // Role check temporarily commented out for development
-  /*
+  // Role check temporarily commented out until development is completed
+  // In production, this would validate user roles and redirect users without 
+  // the necessary permissions to an appropriate page
+  /* 
   if (!userRole || !allowedRoles.includes(userRole)) {
     return <Navigate to="/user/dashboard" replace />;
   }
