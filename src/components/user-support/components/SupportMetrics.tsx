@@ -2,7 +2,7 @@
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BadgeHelp, Clock, CheckCircle, UserClock, ScanSearch } from 'lucide-react';
+import { BadgeHelp, Clock, CheckCircle, Timer, ScanSearch } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SupportTicket {
@@ -74,7 +74,7 @@ export const SupportMetrics = () => {
     {
       label: 'Response Time',
       value: metrics?.avgResponseTime ?? 'N/A',
-      icon: UserClock,
+      icon: Timer,
       color: 'text-purple-500 bg-purple-500/10',
       description: 'Average time to first response'
     },
