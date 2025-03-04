@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { KnowledgeBase } from "@/components/knowledge-base/KnowledgeBase";
+import { ChatSupport } from "@/components/chat-support/ChatSupport";
 
 const UserSupport = () => {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
@@ -85,9 +87,10 @@ const UserSupport = () => {
 
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="tickets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">My Tickets</TabsTrigger>
-            <TabsTrigger value="knowledge" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Knowledge Base</TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Recent Activity</TabsTrigger>
+            <TabsTrigger value="tickets">My Tickets</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+            <TabsTrigger value="chat">Chat Support</TabsTrigger>
+            <TabsTrigger value="activity">Recent Activity</TabsTrigger>
           </TabsList>
           
           <TabsContent value="tickets" className="space-y-4">
@@ -95,7 +98,11 @@ const UserSupport = () => {
           </TabsContent>
           
           <TabsContent value="knowledge" className="space-y-4">
-            <FAQSection searchQuery={searchQuery} />
+            <KnowledgeBase />
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            <ChatSupport />
           </TabsContent>
           
           <TabsContent value="activity" className="space-y-4">
