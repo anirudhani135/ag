@@ -1,9 +1,9 @@
 
-import { AuthForm } from "@/components/auth/AuthForm";
-import { AuthLayout } from "@/components/auth/AuthLayout";
+import { useNavigate } from "react-router-dom";
+import AuthForm from "@/components/auth/AuthForm";
+import AuthLayout from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const { toast } = useToast();
@@ -41,7 +41,7 @@ const Register = () => {
       </div>
 
       <AuthForm
-        type="register"
+        type="signup"
         onSubmit={handleRegister}
       />
 

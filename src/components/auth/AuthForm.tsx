@@ -30,9 +30,10 @@ const authSchema = z.object({
 
 interface AuthFormProps {
   type: "signin" | "signup";
+  onSubmit: (email: string, password: string) => void;
 }
 
-const AuthForm = ({ type }: AuthFormProps) => {
+const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
@@ -44,13 +45,15 @@ const AuthForm = ({ type }: AuthFormProps) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof authSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof authSchema>) => {
     try {
       setIsLoading(true);
       if (type === "signin") {
-        await signIn(values.email, values.password);
+        // Use the provided onSubmit function instead of auth context
+        onSubmit(values.email, values.password);
       } else {
-        await signUp(values.email, values.password);
+        // Use the provided onSubmit function instead of auth context
+        onSubmit(values.email, values.password);
       }
     } catch (error) {
       // Error is handled in the auth context
@@ -61,7 +64,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="email"

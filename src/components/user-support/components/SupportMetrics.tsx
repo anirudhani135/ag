@@ -9,6 +9,12 @@ interface SupportTicket {
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
 }
 
+interface MetricsProps {
+  openTickets: number;
+  resolvedTickets: number;
+  totalTickets: number;
+}
+
 export const SupportMetrics = () => {
   const { data: metrics } = useQuery({
     queryKey: ['support-metrics'],

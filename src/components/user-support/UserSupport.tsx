@@ -3,15 +3,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { SupportMetrics } from "@/components/user-support/components/SupportMetrics";
-import { SupportList } from "@/components/user-support/components/SupportList";
-import { FAQSection } from "@/components/user-support/components/FAQSection";
-import { NewTicketModal } from "@/components/user-support/components/NewTicketModal";
-import { RecentActivity } from "@/components/user-support/components/RecentActivity";
+import SupportList from "@/components/user-support/components/SupportList";
+import FAQSection from "@/components/user-support/components/FAQSection";
+import NewTicketModal from "@/components/user-support/components/NewTicketModal";
+import RecentActivity from "@/components/user-support/components/RecentActivity";
 import { LoadingSpinner } from "@/components/user-support/components/LoadingSpinner";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-export const UserSupport = () => {
+const UserSupport = () => {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const { toast } = useToast();
 
@@ -59,30 +59,24 @@ export const UserSupport = () => {
         </Button>
       </div>
 
-      <SupportMetrics 
-        metrics={{
-          open: 2,
-          resolved: 5,
-          averageResponseTime: '4 hours',
-          satisfaction: '96%'
-        }}
-      />
+      <SupportMetrics />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <SupportList tickets={tickets || []} />
+          <SupportList searchQuery="" />
           <RecentActivity />
         </div>
         <div>
-          <FAQSection />
+          <FAQSection searchQuery="" />
         </div>
       </div>
 
       <NewTicketModal 
-        open={isNewTicketModalOpen}
-        onOpenChange={setIsNewTicketModalOpen}
-        onSubmit={handleNewTicket}
+        isOpen={isNewTicketModalOpen}
+        onClose={() => setIsNewTicketModalOpen(false)}
       />
     </div>
   );
 };
+
+export default UserSupport;

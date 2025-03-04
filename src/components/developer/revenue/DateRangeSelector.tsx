@@ -1,73 +1,81 @@
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { addDays, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from "date-fns";
+import { format } from "date-fns";
+import { useState } from "react";
 
-interface DateRangeSelectorProps {
-  startDate: Date;
-  endDate: Date;
-  onRangeChange: (start: Date, end: Date) => void;
+export interface DateRangeSelectorProps {
+  onDateRangeChange: (range: { from: Date; to: Date }) => void;
+  dateRange: { from: Date; to: Date };
 }
 
-const presets = [
-  { label: 'Today', getDates: () => [startOfDay(new Date()), endOfDay(new Date())] },
-  { label: 'Last 7 Days', getDates: () => [addDays(new Date(), -7), new Date()] },
-  { label: 'This Week', getDates: () => [startOfWeek(new Date()), endOfWeek(new Date())] },
-  { label: 'This Month', getDates: () => [startOfMonth(new Date()), endOfMonth(new Date())] },
-  { label: 'This Quarter', getDates: () => [startOfQuarter(new Date()), endOfQuarter(new Date())] },
-];
+export const DateRangeSelector = ({ onDateRangeChange, dateRange }: DateRangeSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-export const DateRangeSelector = ({ startDate, endDate, onRangeChange }: DateRangeSelectorProps) => {
-  const handlePresetClick = (preset: typeof presets[0]) => {
-    const [start, end] = preset.getDates();
-    onRangeChange(start, end);
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+
+    const newRange = { ...dateRange };
+    
+    if (!newRange.from || (newRange.from && newRange.to)) {
+      // If no from date is set or both dates are set, start a new range
+      newRange.from = date;
+      newRange.to = date;
+    } else {
+      // If only from date is set, set the to date
+      const from = newRange.from;
+      if (date < from) {
+        newRange.from = date;
+      } else {
+        newRange.to = date;
+        setIsOpen(false);
+      }
+    }
+    
+    onDateRangeChange(newRange);
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex gap-2">
-        {presets.map((preset) => (
-          <Button
-            key={preset.label}
-            variant="outline"
-            size="sm"
-            onClick={() => handlePresetClick(preset)}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </div>
-
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="min-w-[260px] justify-start text-left font-normal">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {format(startDate, "LLL dd, y")} - {format(endDate, "LLL dd, y")}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="range"
-            selected={{
-              from: startDate,
-              to: endDate,
-            }}
-            onSelect={(range) => {
-              if (range?.from && range?.to) {
-                onRangeChange(range.from, range.to);
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <CalendarIcon className="h-4 w-4 mr-2" />
+          {dateRange.from ? (
+            dateRange.to ? (
+              <>
+                {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+              </>
+            ) : (
+              format(dateRange.from, "LLL dd, y")
+            )
+          ) : (
+            <span>Pick a date range</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <Calendar
+          mode="range"
+          selected={{
+            from: dateRange.from,
+            to: dateRange.to,
+          }}
+          onSelect={(range) => {
+            if (range?.from) {
+              onDateRangeChange({
+                from: range.from,
+                to: range.to || range.from,
+              });
+              if (range.to) {
+                setIsOpen(false);
               }
-            }}
-            numberOfMonths={2}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
+            }
+          }}
+          numberOfMonths={2}
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
