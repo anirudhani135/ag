@@ -8,13 +8,16 @@ import FAQSection from "@/components/user-support/components/FAQSection";
 import NewTicketModal from "@/components/user-support/components/NewTicketModal";
 import RecentActivity from "@/components/user-support/components/RecentActivity";
 import { LoadingSpinner } from "@/components/user-support/components/LoadingSpinner";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const UserSupport = () => {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("tickets");
   const { toast } = useToast();
 
   const { data: tickets, isLoading } = useQuery({
@@ -39,8 +42,8 @@ const UserSupport = () => {
     setIsNewTicketModalOpen(false);
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   if (isLoading) {
@@ -50,33 +53,55 @@ const UserSupport = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Support Dashboard</h2>
             <p className="text-muted-foreground">
               Get help with your account and services
             </p>
           </div>
-          <Button 
-            onClick={() => setIsNewTicketModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white font-medium"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            New Ticket
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search tickets..."
+                className="pl-9 w-full md:w-[250px]"
+                value={searchQuery}
+                onChange={handleSearch}
+              />
+            </div>
+            <Button 
+              onClick={() => setIsNewTicketModalOpen(true)}
+              className="bg-primary hover:bg-primary/90 text-white font-medium"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              New Ticket
+            </Button>
+          </div>
         </div>
 
         <SupportMetrics />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="tickets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">My Tickets</TabsTrigger>
+            <TabsTrigger value="knowledge" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Knowledge Base</TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Recent Activity</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="tickets" className="space-y-4">
             <SupportList searchQuery={searchQuery} />
-            <RecentActivity />
-          </div>
-          <div>
+          </TabsContent>
+          
+          <TabsContent value="knowledge" className="space-y-4">
             <FAQSection searchQuery={searchQuery} />
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="activity" className="space-y-4">
+            <RecentActivity />
+          </TabsContent>
+        </Tabs>
 
         <NewTicketModal 
           isOpen={isNewTicketModalOpen}
