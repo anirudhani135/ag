@@ -10,9 +10,11 @@ import RecentActivity from "@/components/user-support/components/RecentActivity"
 import { LoadingSpinner } from "@/components/user-support/components/LoadingSpinner";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 const UserSupport = () => {
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const { data: tickets, isLoading } = useQuery({
@@ -37,45 +39,52 @@ const UserSupport = () => {
     setIsNewTicketModalOpen(false);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Support Dashboard</h2>
-          <p className="text-muted-foreground">
-            Get help with your account and services
-          </p>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Support Dashboard</h2>
+            <p className="text-muted-foreground">
+              Get help with your account and services
+            </p>
+          </div>
+          <Button 
+            onClick={() => setIsNewTicketModalOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-white font-medium"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Ticket
+          </Button>
         </div>
-        <Button 
-          onClick={() => setIsNewTicketModalOpen(true)}
-          className="bg-primary hover:bg-primary/90 text-white font-medium"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Ticket
-        </Button>
+
+        <SupportMetrics />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <SupportList searchQuery={searchQuery} />
+            <RecentActivity />
+          </div>
+          <div>
+            <FAQSection searchQuery={searchQuery} />
+          </div>
+        </div>
+
+        <NewTicketModal 
+          isOpen={isNewTicketModalOpen}
+          onClose={() => setIsNewTicketModalOpen(false)}
+          onSubmit={handleNewTicket}
+        />
       </div>
-
-      <SupportMetrics />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <SupportList searchQuery="" />
-          <RecentActivity />
-        </div>
-        <div>
-          <FAQSection searchQuery="" />
-        </div>
-      </div>
-
-      <NewTicketModal 
-        isOpen={isNewTicketModalOpen}
-        onClose={() => setIsNewTicketModalOpen(false)}
-      />
-    </div>
+    </DashboardLayout>
   );
 };
 

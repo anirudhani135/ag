@@ -9,12 +9,6 @@ interface SupportTicket {
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
 }
 
-interface MetricsProps {
-  openTickets: number;
-  resolvedTickets: number;
-  totalTickets: number;
-}
-
 export const SupportMetrics = () => {
   const { data: metrics } = useQuery({
     queryKey: ['support-metrics'],
@@ -28,9 +22,9 @@ export const SupportMetrics = () => {
       if (error) throw error;
       const tickets = data as SupportTicket[];
 
-      const openTickets = tickets.filter(t => t.status === 'open').length;
-      const resolvedTickets = tickets.filter(t => t.status === 'resolved').length;
-      const totalTickets = tickets.length;
+      const openTickets = tickets?.filter(t => t.status === 'open').length || 0;
+      const resolvedTickets = tickets?.filter(t => t.status === 'resolved').length || 0;
+      const totalTickets = tickets?.length || 0;
 
       return { openTickets, resolvedTickets, totalTickets };
     },

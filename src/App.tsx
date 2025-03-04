@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,7 +37,7 @@ const UserAnalytics = lazy(() => import("./pages/dashboard/Analytics"));
 const UserAgents = lazy(() => import("./pages/dashboard/Agents"));
 const UserNotifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Reviews = lazy(() => import("@/components/user-reviews/UserReviews"));
-const Support = lazy(() => import("@/components/user-support/UserSupport"));
+const Support = lazy(() => import("./components/user-support/UserSupport"));
 
 // Developer Dashboard Pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
