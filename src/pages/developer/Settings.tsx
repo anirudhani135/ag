@@ -1,693 +1,411 @@
+
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { 
-  Copy, Save, Key, User, CreditCard, Shield, 
-  FileText, CheckCircle, AlertCircle, HelpCircle 
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-const profileFormSchema = z.object({
-  fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  company: z.string().optional(),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  bio: z.string().optional(),
-});
-
-const notificationFormSchema = z.object({
-  emailNotifications: z.boolean().default(true),
-  agentUpdates: z.boolean().default(true),
-  paymentNotifications: z.boolean().default(true),
-  marketingEmails: z.boolean().default(false),
-});
-
-const billingFormSchema = z.object({
-  paymentMethod: z.string(),
-  taxId: z.string().optional(),
-  billingEmail: z.string().email({ message: "Please enter a valid email address." }),
-  billingAddress: z.string().optional(),
-});
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { User, CreditCard, Bell, Key, Shield, Plus, Save, HelpCircle, Users, Globe, Database } from "lucide-react";
 
 const DeveloperSettings = () => {
-  const [isCopied, setIsCopied] = useState(false);
-  const [apiKeys, setApiKeys] = useState([
-    { id: 1, key: "sk_test_••••••••••••••••", created: "Oct 15, 2023", description: "Test API Key" },
-    { id: 2, key: "sk_live_••••••••••••••••", created: "Nov 20, 2023", description: "Production API Key" }
-  ]);
-  
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("profile");
 
-  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      fullName: "John Developer",
-      company: "Acme Inc.",
-      email: "john@example.com",
-      bio: "Experienced AI developer specializing in agent creation.",
-    },
-  });
-
-  const notificationForm = useForm<z.infer<typeof notificationFormSchema>>({
-    resolver: zodResolver(notificationFormSchema),
-    defaultValues: {
-      emailNotifications: true,
-      agentUpdates: true,
-      paymentNotifications: true,
-      marketingEmails: false,
-    },
-  });
-
-  const billingForm = useForm<z.infer<typeof billingFormSchema>>({
-    resolver: zodResolver(billingFormSchema),
-    defaultValues: {
-      paymentMethod: "creditCard",
-      taxId: "",
-      billingEmail: "john@example.com",
-      billingAddress: "123 Developer St, San Francisco, CA 94103",
-    },
-  });
-
-  const handleCopyApiKey = (key: string) => {
-    navigator.clipboard.writeText(key.replace("••••••••••••••••", "sk_test_example123456789"));
-    setIsCopied(true);
+  const handleSaveProfile = () => {
     toast({
-      title: "API Key Copied",
-      description: "API key has been copied to clipboard",
-      variant: "default",
-    });
-    
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
-  };
-
-  const handleGenerateNewKey = () => {
-    const newKey = {
-      id: apiKeys.length + 1,
-      key: "sk_new_••••••••••••••••",
-      created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      description: "New API Key"
-    };
-    
-    setApiKeys([...apiKeys, newKey]);
-    
-    toast({
-      title: "New API Key Generated",
-      description: "Your new API key has been generated successfully. Make sure to save it securely.",
+      title: "Profile updated",
+      description: "Your profile information has been saved successfully.",
       variant: "default",
     });
   };
 
-  const handleRevokeKey = (id: number) => {
-    setApiKeys(apiKeys.filter(key => key.id !== id));
-    
+  const handleSavePayment = () => {
     toast({
-      title: "API Key Revoked",
-      description: "Your API key has been revoked successfully.",
+      title: "Payment information updated",
+      description: "Your payment details have been saved successfully.",
       variant: "default",
     });
   };
 
-  const onProfileSubmit = (data: z.infer<typeof profileFormSchema>) => {
+  const handleSaveNotifications = () => {
     toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully.",
+      title: "Notification preferences updated",
+      description: "Your notification preferences have been saved successfully.",
       variant: "default",
     });
   };
 
-  const onNotificationSubmit = (data: z.infer<typeof notificationFormSchema>) => {
+  const handleGenerateApiKey = () => {
     toast({
-      title: "Notification Preferences Updated",
-      description: "Your notification preferences have been updated successfully.",
+      title: "New API key generated",
+      description: "Your new API key has been generated. Keep it secure!",
       variant: "default",
     });
   };
 
-  const onBillingSubmit = (data: z.infer<typeof billingFormSchema>) => {
+  const handleSaveTeamMember = () => {
     toast({
-      title: "Billing Information Updated",
-      description: "Your billing information has been updated successfully.",
+      title: "Team member added",
+      description: "The new team member has been added successfully.",
+      variant: "default",
+    });
+  };
+
+  const handleSaveSecuritySettings = () => {
+    toast({
+      title: "Security settings updated",
+      description: "Your security settings have been updated successfully.",
       variant: "default",
     });
   };
 
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen p-6 pt-20 pb-16">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold tracking-tight">Developer Settings</h2>
-          <p className="mt-2 text-muted-foreground">
-            Manage your developer account settings, API keys, and preferences
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences
           </p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-6 bg-muted/50">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2 h-auto p-1">
+            <TabsTrigger value="profile" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <User className="h-4 w-4 mr-2" />
-              Profile
+              <span className="hidden md:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="api" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Key className="h-4 w-4 mr-2" />
-              API Keys
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="payment" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <CreditCard className="h-4 w-4 mr-2" />
-              Billing
+              <span className="hidden md:inline">Payment</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <FileText className="h-4 w-4 mr-2" />
-              Notifications
+            <TabsTrigger value="notifications" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Bell className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="api" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Key className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">API</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Users className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">Team</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Shield className="h-4 w-4 mr-2" />
-              Security
+              <span className="hidden md:inline">Security</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-center justify-between border-b pb-4 mb-4">
-                <h3 className="text-lg font-semibold">Profile Information</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Update your profile information to help us personalize your experience.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4 max-w-md">
-                  <FormField
-                    control={profileForm.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter your full name" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>
+                  Update your developer profile information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" defaultValue="Alex Johnson" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" defaultValue="alex@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input id="company" defaultValue="TechInnovate" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input id="website" defaultValue="https://techinnovate.com" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    defaultValue="AI developer specializing in conversational agents and natural language processing."
+                    rows={4}
                   />
-                  
-                  <FormField
-                    control={profileForm.control}
-                    name="company"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company/Organization</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter your company name" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={profileForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email" 
-                            placeholder="Enter your email address" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={profileForm.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Tell us about yourself" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This will be displayed on your developer profile.
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button 
-                    type="submit"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 mt-4"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Profile
-                  </Button>
-                </form>
-              </Form>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSaveProfile}>Save Changes</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
 
-          <TabsContent value="api" className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-center justify-between border-b pb-4 mb-4">
-                <h3 className="text-lg font-semibold">API Keys</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">API keys allow your applications to authenticate with our service. Keep these secure!</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted/30">
-                        <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">Key</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">Created</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">Description</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {apiKeys.map((apiKey) => (
-                        <tr key={apiKey.id} className="border-t border-border">
-                          <td className="px-4 py-3 text-sm font-mono">{apiKey.key}</td>
-                          <td className="px-4 py-3 text-sm">{apiKey.created}</td>
-                          <td className="px-4 py-3 text-sm">{apiKey.description}</td>
-                          <td className="px-4 py-3 text-sm">
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleCopyApiKey(apiKey.key)}
-                                className="bg-white hover:bg-muted/50 text-foreground border-border"
-                              >
-                                <Copy className="h-3 w-3 mr-1" />
-                                {apiKey.id === 1 && isCopied ? "Copied" : "Copy"}
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="bg-white hover:bg-destructive/10 text-destructive border-destructive/20"
-                                onClick={() => handleRevokeKey(apiKey.id)}
-                              >
-                                Revoke
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          <TabsContent value="payment" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Information</CardTitle>
+                <CardDescription>
+                  Manage your payment methods and billing information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cardName">Name on Card</Label>
+                    <Input id="cardName" defaultValue="Alex Johnson" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <Input id="cardNumber" defaultValue="•••• •••• •••• 4242" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input id="expiryDate" defaultValue="12/25" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input id="cvv" defaultValue="•••" />
+                  </div>
                 </div>
-                
-                <div className="pt-4">
-                  <Button 
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    onClick={handleGenerateNewKey}
-                  >
-                    <Key className="h-4 w-4 mr-2" />
-                    Generate New API Key
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Keep your API keys secure. Do not share them in public repositories or client-side code.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="billing" className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-center justify-between border-b pb-4 mb-4">
-                <h3 className="text-lg font-semibold">Billing Information</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Update your billing details for invoices and payments.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <Form {...billingForm}>
-                <form onSubmit={billingForm.handleSubmit(onBillingSubmit)} className="space-y-4 max-w-md">
-                  <FormField
-                    control={billingForm.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payment Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a payment method" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="creditCard">Credit Card</SelectItem>
-                            <SelectItem value="paypal">PayPal</SelectItem>
-                            <SelectItem value="bankTransfer">Bank Transfer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={billingForm.control}
-                    name="billingEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billing Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email" 
-                            placeholder="Enter billing email" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          We'll send invoices to this email address.
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={billingForm.control}
-                    name="taxId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tax ID/VAT Number (optional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter your Tax ID" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={billingForm.control}
-                    name="billingAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billing Address</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter billing address" 
-                            className="bg-background" 
-                            {...field} 
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button 
-                    type="submit"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 mt-4"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Billing Information
-                  </Button>
-                </form>
-              </Form>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSavePayment}>Save Payment Method</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-center justify-between border-b pb-4 mb-4">
-                <h3 className="text-lg font-semibold">Notification Preferences</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Control which notifications you receive from AgentVerse.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <Form {...notificationForm}>
-                <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-6 max-w-md">
-                  <FormField
-                    control={notificationForm.control}
-                    name="emailNotifications"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between space-y-0 rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">Email Notifications</FormLabel>
-                          <FormDescription>
-                            Receive updates via email
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Preferences</CardTitle>
+                <CardDescription>
+                  Control how and when you receive notifications
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive email notifications for important updates
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Agent Updates</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when your agents receive updates or reviews
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Revenue Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive notifications for significant revenue changes
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Marketing Updates</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive marketing and promotional information
+                    </p>
+                  </div>
+                  <Switch />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSaveNotifications}>Save Preferences</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="api" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>API Keys</CardTitle>
+                <CardDescription>
+                  Manage your API keys for integrating with the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Current API Key</Label>
+                  <div className="flex items-center">
+                    <Input
+                      value="sk_live_7h4j5k6l7j8k9l0j1k2l3k4j5k6l7j8k"
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button variant="outline" className="ml-2">
+                      Copy
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    This key grants full access to your account. Keep it secure!
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>API Usage</Label>
+                  <div className="p-4 border rounded-md">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Current Month</span>
+                      <Badge variant="outline">1,243 / 10,000</Badge>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: "12.4%" }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      12.4% of your monthly API calls used
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Webhooks</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://your-app.com/webhooks"
+                      className="flex-1"
+                    />
+                    <Button variant="outline">Set URL</Button>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleGenerateApiKey}>Generate New API Key</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="team" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Management</CardTitle>
+                <CardDescription>
+                  Add and manage team members who can access your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="border rounded-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Alex Johnson (You)</p>
+                        <p className="text-sm text-muted-foreground">alex@example.com</p>
+                      </div>
+                      <Badge>Owner</Badge>
+                    </div>
+                  </div>
                   
-                  <FormField
-                    control={notificationForm.control}
-                    name="agentUpdates"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between space-y-0 rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">Agent Updates</FormLabel>
-                          <FormDescription>
-                            Updates about your agents
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={notificationForm.control}
-                    name="paymentNotifications"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between space-y-0 rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">Payment Notifications</FormLabel>
-                          <FormDescription>
-                            Updates about payments and billing
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={notificationForm.control}
-                    name="marketingEmails"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between space-y-0 rounded-md border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">Marketing Emails</FormLabel>
-                          <FormDescription>
-                            Receive news, offers, and updates
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button 
-                    type="submit"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 mt-4"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Notification Preferences
-                  </Button>
-                </form>
-              </Form>
+                  <div className="border rounded-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Sarah Adams</p>
+                        <p className="text-sm text-muted-foreground">sarah@example.com</p>
+                      </div>
+                      <Badge variant="outline">Developer</Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Add Team Member</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <div className="md:col-span-1">
+                        <Input placeholder="Email Address" />
+                      </div>
+                      <div className="md:col-span-1">
+                        <Select defaultValue="developer">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="developer">Developer</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="md:col-span-1">
+                        <Button className="w-full" onClick={handleSaveTeamMember}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-center justify-between border-b pb-4 mb-4">
-                <h3 className="text-lg font-semibold">Security Settings</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Secure your account with additional protection.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <div className="space-y-6 max-w-md">
-                <div className="bg-accent/10 rounded-md p-4 flex items-start">
-                  <CheckCircle className="h-5 w-5 text-success mt-0.5 mr-3 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium mb-1">Account Security Status</h4>
-                    <p className="text-sm text-muted-foreground">Your account is currently using password protection.</p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>
+                  Manage your account security preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Add an extra layer of security to your account
+                    </p>
+                  </div>
+                  <Switch />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Change Password</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Input type="password" placeholder="Current Password" />
+                    <Input type="password" placeholder="New Password" />
+                    <Input type="password" placeholder="Confirm New Password" />
                   </div>
                 </div>
                 
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                      <h4 className="font-medium">Two-Factor Authentication</h4>
-                      <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                    </div>
-                    <Button 
-                      variant="outline"
-                      className="bg-white hover:bg-accent/10 text-foreground"
-                      onClick={() => toast({
-                        title: "Coming Soon",
-                        description: "Two-factor authentication will be available soon.",
-                        variant: "default",
-                      })}
-                    >
-                      Enable 2FA
-                    </Button>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Session Timeout</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically log out after period of inactivity
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                      <h4 className="font-medium">Password</h4>
-                      <p className="text-sm text-muted-foreground">Update your account password</p>
-                    </div>
-                    <Button 
-                      variant="outline"
-                      className="bg-white hover:bg-accent/10 text-foreground"
-                      onClick={() => toast({
-                        title: "Coming Soon",
-                        description: "Password change functionality will be available soon.",
-                        variant: "default",
-                      })}
-                    >
-                      Change Password
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-2">
-                    <div>
-                      <h4 className="font-medium">Active Sessions</h4>
-                      <p className="text-sm text-muted-foreground">Manage all active sessions for your account</p>
-                    </div>
-                    <Button 
-                      variant="outline"
-                      className="bg-white hover:bg-destructive/10 text-destructive border-destructive/20"
-                      onClick={() => toast({
-                        title: "Coming Soon",
-                        description: "Session management will be available soon.",
-                        variant: "default",
-                      })}
-                    >
-                      Sign Out All Devices
-                    </Button>
-                  </div>
+                  <Select defaultValue="60">
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select timeout" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                      <SelectItem value="240">4 hours</SelectItem>
+                      <SelectItem value="720">12 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                
-                <div className="mt-4 bg-muted/20 rounded-md p-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-warning mt-0.5 mr-3 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium mb-1">Security Recommendation</h4>
-                      <p className="text-sm text-muted-foreground">Enable two-factor authentication for increased account security.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSaveSecuritySettings}>Save Security Settings</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

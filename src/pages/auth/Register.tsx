@@ -1,80 +1,58 @@
 
-import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "@/components/auth/AuthLayout";
-import AuthForm from "@/components/auth/AuthForm";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSignUp = () => {
+  const handleRegister = (email: string, password: string) => {
+    // For development purposes, simulate successful registration
     toast({
-      title: "Registration Successful",
-      description: "Your account has been created successfully!",
+      title: "Account created",
+      description: "You have successfully registered in development mode.",
       variant: "default",
     });
-    
-    // Redirect to the dashboard
-    setTimeout(() => {
-      navigate("/user/dashboard");
-    }, 1000);
+    navigate("/dashboard/overview");
   };
 
-  const handleDevSignUp = () => {
+  const handleDeveloperRegister = () => {
+    // For development purposes, allow direct access to developer dashboard
     toast({
-      title: "Developer Registration",
-      description: "Developer account created successfully!",
+      title: "Developer account created",
+      description: "Accessing developer dashboard in development mode.",
       variant: "default",
     });
-    
-    // Redirect to the developer dashboard
-    setTimeout(() => {
-      navigate("/developer/dashboard");
-    }, 1000);
+    navigate("/developer/overview");
   };
 
   return (
     <AuthLayout>
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold tracking-tight">Create an account</h2>
-        <p className="text-sm text-muted-foreground mt-2">
-          Sign up to get started with AgentVerse
-        </p>
-      </div>
-
-      <AuthForm type="signup" />
-
-      <div className="mt-4 space-y-3">
-        <Button 
-          onClick={handleSignUp} 
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Sign Up as User
-        </Button>
-        
-        <Button 
-          onClick={handleDevSignUp} 
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Sign Up as Developer
-        </Button>
-      </div>
-
-      <div className="mt-6 text-center">
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create an account
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            to="/auth/login"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign in
-          </Link>
+          Enter your information below to create your account
         </p>
+      </div>
+
+      <AuthForm
+        type="register"
+        onSubmit={handleRegister}
+      />
+
+      <div className="mt-4">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleDeveloperRegister}
+        >
+          Register as Developer (Dev Mode)
+        </Button>
       </div>
     </AuthLayout>
   );

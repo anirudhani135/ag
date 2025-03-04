@@ -1,86 +1,58 @@
 
-import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "@/components/auth/AuthLayout";
-import AuthForm from "@/components/auth/AuthForm";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSignIn = () => {
+  const handleLogin = (email: string, password: string) => {
+    // For development purposes, allow direct access
     toast({
-      title: "Login Successful",
-      description: "Welcome back! You've been signed in successfully.",
+      title: "Development mode",
+      description: "Bypassing authentication for development. Welcome!",
       variant: "default",
     });
-    
-    // Redirect to the dashboard
-    setTimeout(() => {
-      navigate("/user/dashboard");
-    }, 1000);
+    navigate("/dashboard/overview");
   };
 
-  const handleDevSignIn = () => {
+  const handleDeveloperLogin = () => {
+    // For development purposes, allow direct access to developer dashboard
     toast({
-      title: "Developer Login",
-      description: "Logged in as a developer (development mode)",
+      title: "Developer access granted",
+      description: "Accessing developer dashboard in development mode.",
       variant: "default",
     });
-    
-    // Redirect to developer dashboard
-    setTimeout(() => {
-      navigate("/developer/dashboard");
-    }, 1000);
+    navigate("/developer/overview");
   };
 
   return (
     <AuthLayout>
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-        <p className="text-sm text-muted-foreground mt-2">
-          Sign in to your account to continue
-        </p>
-      </div>
-
-      <AuthForm type="signin" />
-
-      <div className="mt-4 space-y-3">
-        <Button 
-          onClick={handleSignIn} 
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
-        >
-          <LogIn className="h-4 w-4 mr-2" />
-          Sign In as User
-        </Button>
-        
-        <Button 
-          onClick={handleDevSignIn} 
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-        >
-          <LogIn className="h-4 w-4 mr-2" />
-          Sign In as Developer
-        </Button>
-      </div>
-
-      <div className="mt-6 text-center">
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Welcome back
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link
-            to="/auth/register"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign up
-          </Link>
+          Enter your credentials below to access your account
         </p>
-        <Link
-          to="/auth/reset-password"
-          className="text-sm font-medium text-primary hover:underline mt-2 inline-block"
+      </div>
+
+      <AuthForm
+        type="login"
+        onSubmit={handleLogin}
+      />
+
+      <div className="mt-4">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleDeveloperLogin}
         >
-          Forgot your password?
-        </Link>
+          Developer Dashboard (Dev Mode)
+        </Button>
       </div>
     </AuthLayout>
   );
