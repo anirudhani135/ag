@@ -50,10 +50,35 @@ export const FeatureTourProvider = ({ children }: { children: React.ReactNode })
         .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data.map(tour => ({
-        ...tour,
-        steps: tour.steps as FeatureTourStep[] // Type assertion for steps
-      }));
+      
+      // Safely transform the steps data with proper validation
+      return data.map(tour => {
+        // Ensure steps is an array
+        const stepsData = Array.isArray(tour.steps) ? tour.steps : [];
+        
+        // Validate and transform each step
+        const validSteps: FeatureTourStep[] = stepsData
+          .filter((step: any) => 
+            typeof step === 'object' && 
+            typeof step.target === 'string' && 
+            typeof step.title === 'string' && 
+            typeof step.content === 'string'
+          )
+          .map((step: any) => ({
+            target: step.target,
+            title: step.title,
+            content: step.content,
+            placement: ['top', 'right', 'bottom', 'left'].includes(step.placement) 
+              ? step.placement as 'top' | 'right' | 'bottom' | 'left'
+              : 'bottom'
+          }));
+        
+        return {
+          id: tour.id,
+          title: tour.title,
+          steps: validSteps
+        } as FeatureTour;
+      });
     }
   });
 
@@ -64,7 +89,9 @@ export const FeatureTourProvider = ({ children }: { children: React.ReactNode })
   }, [location.pathname]);
 
   const startTour = (tourId: string) => {
-    const tour = tours?.find(t => t.id === tourId);
+    if (!tours) return;
+    
+    const tour = tours.find(t => t.id === tourId);
     if (tour) {
       setCurrentTour(tour);
       setCurrentStep(0);
