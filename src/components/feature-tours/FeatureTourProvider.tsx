@@ -50,7 +50,10 @@ export const FeatureTourProvider = ({ children }: { children: React.ReactNode })
         .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data.map(tour => ({
+        ...tour,
+        steps: tour.steps as FeatureTourStep[] // Type assertion for steps
+      }));
     }
   });
 

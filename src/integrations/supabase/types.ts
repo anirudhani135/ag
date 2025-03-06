@@ -454,9 +454,12 @@ export type Database = {
         Row: {
           endpoint: string
           error_details: Json | null
+          error_rate: number | null
           id: string
           ip_address: string | null
           request_method: string
+          requests_count: number | null
+          requests_per_minute: number | null
           response_time: number
           status_code: number
           timestamp: string | null
@@ -465,9 +468,12 @@ export type Database = {
         Insert: {
           endpoint: string
           error_details?: Json | null
+          error_rate?: number | null
           id?: string
           ip_address?: string | null
           request_method: string
+          requests_count?: number | null
+          requests_per_minute?: number | null
           response_time: number
           status_code: number
           timestamp?: string | null
@@ -476,9 +482,12 @@ export type Database = {
         Update: {
           endpoint?: string
           error_details?: Json | null
+          error_rate?: number | null
           id?: string
           ip_address?: string | null
           request_method?: string
+          requests_count?: number | null
+          requests_per_minute?: number | null
           response_time?: number
           status_code?: number
           timestamp?: string | null

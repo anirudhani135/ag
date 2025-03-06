@@ -5,19 +5,26 @@ import { MetricCard } from "@/components/shared/metrics/MetricCard";
 import { Activity, AlertCircle, Server, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface APIMetricsData {
+  response_time: number;
+  error_rate: number;
+  requests_per_minute: number;
+  status_code: number;
+}
+
 export const APIMetrics = () => {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['api-metrics'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('api_metrics')
-        .select('*')
+        .select('response_time, error_rate, status_code, requests_per_minute')
         .order('timestamp', { ascending: false })
         .limit(1)
         .single();
       
       if (error) throw error;
-      return data;
+      return data as APIMetricsData;
     }
   });
 

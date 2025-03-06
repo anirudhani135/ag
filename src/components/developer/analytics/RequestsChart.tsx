@@ -4,6 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 
+interface RequestData {
+  time: string;
+  requests: number;
+}
+
 export const RequestsChart = () => {
   const { data: requestData, isLoading } = useQuery({
     queryKey: ['api-requests'],
@@ -18,7 +23,7 @@ export const RequestsChart = () => {
       return data.map(d => ({
         time: new Date(d.timestamp).toLocaleTimeString(),
         requests: d.requests_count
-      }));
+      })) as RequestData[];
     }
   });
 
