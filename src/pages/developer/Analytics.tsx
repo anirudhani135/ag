@@ -1,10 +1,8 @@
-
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { APIAnalyticsDashboard } from "@/components/developer/analytics/APIAnalyticsDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnalyticsDashboard } from "@/components/developer/analytics/AnalyticsDashboard";
 import { UserEngagementMetrics } from "@/components/developer/analytics/UserEngagementMetrics";
 import { GeographicDistribution } from "@/components/developer/analytics/GeographicDistribution";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Analytics = () => {
   return (
@@ -27,7 +25,7 @@ const Analytics = () => {
           </TabsList>
 
           <TabsContent value="api" className="space-y-6">
-            <APIAnalyticsDashboard />
+            <AnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
