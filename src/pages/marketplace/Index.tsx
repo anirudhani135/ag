@@ -11,11 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFeatureTour } from "@/components/feature-tours/FeatureTourProvider";
 import { FeatureTourDisplay } from "@/components/feature-tours/FeatureTourDisplay";
 import { Button } from "@/components/ui/button";
+import { ShoppingBag, Zap, Star, SortDesc, Info } from "lucide-react";
 
 const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [selectedSort, setSelectedSort] = useState("popular");
   const { startTour } = useFeatureTour();
 
   // Start the welcome tour when component mounts
@@ -54,7 +56,7 @@ const Marketplace = () => {
 
   // Fetch agents with search and filters
   const { data: agents, isLoading } = useQuery({
-    queryKey: ['agents', searchQuery, selectedCategory, selectedFilters],
+    queryKey: ['agents', searchQuery, selectedCategory, selectedFilters, selectedSort],
     queryFn: async () => {
       try {
         // Check if the table exists first
@@ -66,7 +68,19 @@ const Marketplace = () => {
         // If the table doesn't exist or is empty, return sample data
         if (tableError) {
           console.log("Using sample agents data");
-          return sampleAgents;
+          
+          // Sort sample data based on selected sort
+          let sortedAgents = [...sampleAgents];
+          
+          if (selectedSort === "price-asc") {
+            sortedAgents.sort((a, b) => a.price - b.price);
+          } else if (selectedSort === "price-desc") {
+            sortedAgents.sort((a, b) => b.price - a.price);
+          } else if (selectedSort === "rating") {
+            sortedAgents.sort((a, b) => b.rating - a.rating);
+          }
+          
+          return sortedAgents;
         }
         
         let query = supabase
@@ -87,6 +101,29 @@ const Marketplace = () => {
 
         if (selectedFilters.includes('verified')) {
           query = query.eq('status', 'verified');
+        }
+
+        if (selectedFilters.includes('free')) {
+          query = query.eq('price', 0);
+        }
+
+        if (selectedFilters.includes('paid')) {
+          query = query.gt('price', 0);
+        }
+
+        // Add sorting based on selectedSort
+        switch (selectedSort) {
+          case 'price-asc':
+            query = query.order('price', { ascending: true });
+            break;
+          case 'price-desc':
+            query = query.order('price', { ascending: false });
+            break;
+          case 'rating':
+            query = query.order('rating', { ascending: false });
+            break;
+          default:
+            query = query.order('downloads', { ascending: false });
         }
 
         const { data, error } = await query;
@@ -110,6 +147,13 @@ const Marketplace = () => {
     { id: 'paid', label: 'Paid Agents' },
   ];
 
+  const sortOptions = [
+    { id: 'popular', label: 'Most Popular' },
+    { id: 'rating', label: 'Highest Rated' },
+    { id: 'price-asc', label: 'Price: Low to High' },
+    { id: 'price-desc', label: 'Price: High to Low' },
+  ];
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -117,18 +161,45 @@ const Marketplace = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6 marketplace-container">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">Marketplace</h2>
-            <p className="text-muted-foreground">Discover and use AI agents from our community</p>
+        <div className="bg-gradient-to-r from-primary/5 to-accent/10 p-6 rounded-lg mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center">
+              <ShoppingBag className="h-8 w-8 text-primary mr-3" />
+              <div>
+                <h2 className="text-2xl font-bold">AI Agent Marketplace</h2>
+                <p className="text-muted-foreground">Discover and deploy powerful AI agents for your business</p>
+              </div>
+            </div>
+            <Button 
+              variant="default" 
+              className="shadow-lg"
+              onClick={() => startTour("welcome-tour")}
+            >
+              <Info className="mr-2 h-4 w-4" />
+              How It Works
+            </Button>
           </div>
-          <div className="flex items-center gap-4">
-            <SearchBar onSearch={handleSearch} className="w-64" />
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 bg-background z-10 py-4">
+          <SearchBar onSearch={handleSearch} className="w-full md:w-64" />
+          <div className="flex flex-wrap items-center gap-2">
             <FilterSystem
               options={filterOptions}
               selectedFilters={selectedFilters}
               onFilterChange={setSelectedFilters}
+              sortOptions={sortOptions}
+              selectedSort={selectedSort}
+              onSortChange={setSelectedSort}
             />
+            <Button 
+              variant="outline" 
+              className="fixed bottom-8 right-8 shadow-lg z-20 bg-white"
+              size="lg"
+            >
+              <Zap className="mr-2 h-5 w-5 text-primary" />
+              <span className="font-semibold">Buy Credits</span>
+            </Button>
           </div>
         </div>
 
@@ -137,16 +208,6 @@ const Marketplace = () => {
           selectedCategory={selectedCategory}
           onSelect={setSelectedCategory}
         />
-
-        <div className="flex justify-end">
-          <Button
-            onClick={() => startTour("welcome-tour")}
-            variant="outline"
-            size="sm"
-          >
-            Start Tour
-          </Button>
-        </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

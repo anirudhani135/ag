@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Brain, MessageSquare, ChartBar, Users, ShoppingCart, Shield } from "lucide-react";
 
@@ -44,10 +45,10 @@ export const FeaturesGrid = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold mb-4 text-primary">
             Powerful Features
           </h2>
-          <p className="text-secondary max-w-2xl mx-auto">
+          <p className="text-primary/80 max-w-2xl mx-auto">
             Everything you need to build, deploy, and scale AI solutions
           </p>
         </motion.div>
@@ -61,11 +62,11 @@ export const FeaturesGrid = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
-              className="p-6 rounded-xl bg-white/50 backdrop-blur-sm border border-border hover:shadow-hover transition-all duration-300 group"
+              className="p-6 rounded-xl bg-white shadow-sm border border-border hover:shadow-lg transition-all duration-300 group"
             >
-              <feature.icon className="w-8 h-8 mb-4 text-accent group-hover:text-success transition-colors" />
-              <h3 className="text-xl font-semibold mb-2 text-primary">{feature.name}</h3>
-              <p className="text-secondary group-hover:text-primary/80 transition-colors">
+              <feature.icon className="w-10 h-10 mb-4 text-primary group-hover:text-accent transition-colors" />
+              <h3 className="text-xl font-semibold mb-3 text-primary">{feature.name}</h3>
+              <p className="text-primary/70 group-hover:text-primary transition-colors">
                 {feature.description}
               </p>
             </motion.div>

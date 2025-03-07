@@ -1,15 +1,15 @@
 
-import { useAuth } from "@/context/AuthContext";
+import { ReactNode } from "react";
 
 interface WithRoleProtectionProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles: ("developer" | "buyer" | "admin")[];
 }
 
-const WithRoleProtection = ({ children, allowedRoles }: WithRoleProtectionProps) => {
-  // Role checks are completely bypassed during development
-  // IMPORTANT: This should be properly implemented before production
-  console.log("Role protection bypassed for development", { allowedRoles });
+// This component completely bypasses role protection for development
+const WithRoleProtection = ({ children }: WithRoleProtectionProps) => {
+  // Role protection bypassed entirely
+  console.log("Role protection completely bypassed for development");
   
   return <>{children}</>;
 };

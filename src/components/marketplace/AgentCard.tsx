@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Info, Download, ExternalLink } from "lucide-react";
+import { Star, Info, ShoppingCart, ExternalLink } from "lucide-react";
 import { AgentDetailsModal } from "./AgentDetailsModal";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -93,17 +93,18 @@ export const AgentCard = ({
           )}
 
           <div className="mt-auto">
-            <div className="text-lg font-bold mb-3">
+            <div className={`text-lg font-bold mb-3 ${price === 0 ? "text-success" : "text-primary"}`}>
               {price === 0 ? "Free" : `$${price.toFixed(2)}`}
             </div>
 
             <div className="flex gap-2">
               <Button
-                variant="default"
+                variant={price === 0 ? "success" : "primary"}
                 size="sm"
-                className="flex-1"
+                className="flex-1 text-white"
                 onClick={handlePurchase}
               >
+                <ShoppingCart className="h-4 w-4 mr-1" />
                 {price === 0 ? "Get Agent" : "Purchase"}
               </Button>
               <Button

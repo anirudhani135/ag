@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+        default: "bg-primary text-white hover:bg-primary/90 shadow-sm", // Fixed text color to white
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+          "bg-destructive text-white hover:bg-destructive/90 shadow-sm", // Fixed text color
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
+          "bg-secondary text-white hover:bg-secondary/80 shadow-sm", // Fixed text color
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
-        // Added new variants for improved accessibility and visibility
+        // Added new variants with explicit text colors
         primary: "bg-primary text-white hover:bg-primary/90 shadow-sm",
         success: "bg-success text-white hover:bg-success/90 shadow-sm",
         warning: "bg-warning text-primary hover:bg-warning/90 shadow-sm",

@@ -5,10 +5,10 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+// This component is completely bypassed for development
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // Authentication checks are completely bypassed during development
-  // IMPORTANT: This should be properly implemented before production
-  console.log("Protected route accessed - authentication checks disabled for development");
+  // Authentication bypassed entirely
+  console.log("Protected route accessed - authentication completely bypassed for development");
   
   return <>{children}</>;
 };
