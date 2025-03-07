@@ -237,7 +237,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                     ) : (
                       <span className="text-red-500 flex items-center">
                         <ChevronDown className="h-3 w-3 mr-1" />
-                        {((metrics?.[1]?.revenue || 0) - metrics?.[0]?.revenue) / (metrics?.[1]?.revenue || 1) * 100).toFixed(1)}%
+                        {((metrics?.[1]?.revenue || 0) - (metrics?.[0]?.revenue || 0)) / (metrics?.[1]?.revenue || 1) * 100}.toFixed(1)}%
                       </span>
                     )}
                   </p>
