@@ -1,3 +1,4 @@
+
 import Navigation from "@/components/Navigation";
 import { HeroSection } from "@/components/home/HeroSection";
 import { FeaturesGrid } from "@/components/home/FeaturesGrid";
@@ -9,10 +10,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <HeroSection />
-      <FeaturesGrid />
-      <TestimonialsSection />
-      <CTASection />
+      <main>
+        <HeroSection />
+        <FeaturesGrid />
+        <TestimonialsSection />
+        <CTASection />
+      </main>
       <Footer />
     </div>
   );

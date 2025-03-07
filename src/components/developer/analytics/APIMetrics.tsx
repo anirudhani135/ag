@@ -23,8 +23,22 @@ export const APIMetrics = () => {
         .limit(1)
         .single();
       
-      if (error) throw error;
-      return data as APIMetricsData;
+      if (error) {
+        // If no records are found, return default values
+        return {
+          response_time: 0,
+          error_rate: 0,
+          status_code: 200,
+          requests_per_minute: 0
+        } as APIMetricsData;
+      }
+      
+      return {
+        ...data,
+        response_time: data.response_time || 0,
+        error_rate: data.error_rate || 0,
+        requests_per_minute: data.requests_per_minute || 0
+      } as APIMetricsData;
     }
   });
 

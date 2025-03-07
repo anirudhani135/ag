@@ -3,11 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import WithRoleProtection from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
+import { initSampleData } from "@/utils/dataInit";
 
 // Optimize the query client configuration
 const queryClient = new QueryClient({
@@ -61,6 +62,257 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const AppContent = () => {
+  useEffect(() => {
+    // Initialize sample data on app load
+    initSampleData().catch(console.error);
+  }, []);
+
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/verify" element={<VerifyEmail />} />
+
+        {/* User Dashboard Routes */}
+        <Route path="/user">
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <UserDashboard />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="credits"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <Credits />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <Settings />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="usage"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <UsageHistory />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="saved"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <SavedAgents />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <UserAnalytics />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="agents"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <UserAgents />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="notifications"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <UserNotifications />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="reviews"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <Reviews />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="support"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["buyer"]}>
+                  <Support />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* Developer Dashboard Routes */}
+        <Route path="/developer">
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperOverview />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="agents"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <AgentManagement />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="revenue"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <Revenue />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="api"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <ApiIntegrations />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperAnalytics />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="reviews"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperReviews />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="support"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperSupport />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperSettings />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="agents/create"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <AgentCreation />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="transactions"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperTransactions />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="monitoring"
+            element={
+              <ProtectedRoute>
+                <WithRoleProtection allowedRoles={["developer"]}>
+                  <DeveloperMonitoring />
+                </WithRoleProtection>
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        <Route
+          path="/marketplace"
+          element={
+            <ProtectedRoute>
+              <Marketplace />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirects */}
+        <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
+        <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
+      </Routes>
+    </Suspense>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -69,247 +321,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/register" element={<Register />} />
-                <Route path="/auth/reset-password" element={<ResetPassword />} />
-                <Route path="/auth/verify" element={<VerifyEmail />} />
-
-                {/* User Dashboard Routes */}
-                <Route path="/user">
-                  <Route
-                    path="dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <UserDashboard />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="credits"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <Credits />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="settings"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <Settings />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="usage"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <UsageHistory />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="saved"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <SavedAgents />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="analytics"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <UserAnalytics />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="agents"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <UserAgents />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="notifications"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <UserNotifications />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="reviews"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <Reviews />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="support"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["buyer"]}>
-                          <Support />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* Developer Dashboard Routes */}
-                <Route path="/developer">
-                  <Route
-                    path="dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperOverview />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="agents"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <AgentManagement />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="revenue"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <Revenue />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="api"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <ApiIntegrations />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="analytics"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperAnalytics />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="reviews"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperReviews />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="support"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperSupport />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="settings"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperSettings />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="agents/create"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <AgentCreation />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="transactions"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperTransactions />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="monitoring"
-                    element={
-                      <ProtectedRoute>
-                        <WithRoleProtection allowedRoles={["developer"]}>
-                          <DeveloperMonitoring />
-                        </WithRoleProtection>
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                <Route
-                  path="/marketplace"
-                  element={
-                    <ProtectedRoute>
-                      <Marketplace />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Redirects */}
-                <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
-                <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
-                <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
-              </Routes>
-            </Suspense>
+            <AppContent />
           </AuthProvider>
         </BrowserRouter>
       </FeatureTourProvider>

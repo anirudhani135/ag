@@ -20,9 +20,11 @@ export const RequestsChart = () => {
         .limit(24);
       
       if (error) throw error;
+      
+      // Handle potential null values
       return data.map(d => ({
-        time: new Date(d.timestamp).toLocaleTimeString(),
-        requests: d.requests_count
+        time: new Date(d.timestamp || new Date()).toLocaleTimeString(),
+        requests: d.requests_count || 0
       })) as RequestData[];
     }
   });
