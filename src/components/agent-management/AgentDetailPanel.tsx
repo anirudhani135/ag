@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,7 +67,6 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
       if (error) throw error;
       
       toast.success("Agent submitted for review");
-      // Refetch agent data
     } catch (error) {
       console.error("Error publishing agent:", error);
       toast.error("Failed to submit agent for review");
@@ -80,7 +78,6 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
   const handleDeploy = async () => {
     setIsDeploying(true);
     try {
-      // Create a new deployment record
       const { error } = await supabase
         .from('deployments')
         .insert({
@@ -92,14 +89,12 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
       
       if (error) throw error;
       
-      // Update agent deployment status
       await supabase
         .from('agents')
         .update({ deployment_status: 'active' })
         .eq('id', agentId);
       
       toast.success("Agent deployed successfully");
-      // Refetch agent data
     } catch (error) {
       console.error("Error deploying agent:", error);
       toast.error("Failed to deploy agent");
@@ -237,7 +232,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                     ) : (
                       <span className="text-red-500 flex items-center">
                         <ChevronDown className="h-3 w-3 mr-1" />
-                        {((metrics?.[1]?.revenue || 0) - (metrics?.[0]?.revenue || 0)) / (metrics?.[1]?.revenue || 1) * 100}.toFixed(1)}%
+                        {(((metrics?.[1]?.revenue || 0) - (metrics?.[0]?.revenue || 0)) / (metrics?.[1]?.revenue || 1) * 100).toFixed(1)}%
                       </span>
                     )}
                   </p>
