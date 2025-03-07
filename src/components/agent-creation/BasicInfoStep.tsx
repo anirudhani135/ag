@@ -18,11 +18,11 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
 interface BasicInfoStepProps {
-  formData: BasicInfoFormData;
+  data: BasicInfoFormData;
   onChange: (formData: BasicInfoFormData) => void;
 }
 
-const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
+const BasicInfoStep = ({ data, onChange }: BasicInfoStepProps) => {
   const [tagInput, setTagInput] = useState("");
   
   const { data: categories, isLoading } = useQuery({
@@ -39,18 +39,18 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
   });
 
   const handleChange = (field: keyof BasicInfoFormData, value: string) => {
-    onChange({ ...formData, [field]: value });
+    onChange({ ...data, [field]: value });
   };
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      onChange({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+    if (tagInput.trim() && !data.tags.includes(tagInput.trim())) {
+      onChange({ ...data, tags: [...data.tags, tagInput.trim()] });
       setTagInput("");
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    onChange({ ...formData, tags: formData.tags.filter(t => t !== tag) });
+    onChange({ ...data, tags: data.tags.filter(t => t !== tag) });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -69,7 +69,7 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
             <Input
               id="title"
               placeholder="Enter a descriptive title for your agent"
-              value={formData.title}
+              value={data.title}
               onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
@@ -80,7 +80,7 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
               id="description"
               placeholder="Describe what your agent does and how it can help users"
               rows={4}
-              value={formData.description}
+              value={data.description}
               onChange={(e) => handleChange('description', e.target.value)}
             />
           </div>
@@ -88,7 +88,7 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select
-              value={formData.category}
+              value={data.category}
               onValueChange={(value) => handleChange('category', value)}
             >
               <SelectTrigger id="category">
@@ -116,7 +116,7 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
               min="0"
               step="0.01"
               placeholder="0.00"
-              value={formData.price}
+              value={data.price}
               onChange={(e) => handleChange('price', e.target.value)}
             />
             <p className="text-sm text-muted-foreground">Set to 0 for free agents</p>
@@ -141,7 +141,7 @@ const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
               </button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
-              {formData.tags.map((tag) => (
+              {data.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                   {tag}
                   <X 

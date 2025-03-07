@@ -8,6 +8,16 @@ import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
 import { UserMetricsPanel } from "@/components/dashboard/UserMetricsPanel";
 import { NotificationsCenter } from "@/components/dashboard/NotificationsCenter"; 
 
+const performanceData = [
+  { date: "Jan", value: 200 },
+  { date: "Feb", value: 150 },
+  { date: "Mar", value: 320 },
+  { date: "Apr", value: 280 },
+  { date: "May", value: 420 },
+  { date: "Jun", value: 380 },
+  { date: "Jul", value: 490 }
+];
+
 const Dashboard = () => {
   return (
     <DashboardLayout>
@@ -19,14 +29,22 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <DashboardStatsGrid />
+        <DashboardStatsGrid 
+          creditBalance={2500}
+          activeAgents={3}
+          monthlyUsage={124}
+          averageRating={4.5}
+        />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
           <Card className="lg:col-span-4">
-            <PerformanceChart />
+            <PerformanceChart 
+              data={performanceData}
+              title="Performance Over Time"
+            />
           </Card>
           <Card className="lg:col-span-3">
-            <QuickActions />
+            <QuickActions type="user" />
           </Card>
         </div>
         

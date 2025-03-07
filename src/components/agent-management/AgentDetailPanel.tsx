@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,14 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Loader2, Settings, BarChart2, Users, DollarSign, Activity, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
+
+interface RuntimeConfig {
+  model?: string;
+  systemPrompt?: string;
+  enableLogging?: boolean;
+  enableMetrics?: boolean;
+  enableRateLimiting?: boolean;
+}
 
 interface AgentDetailPanelProps {
   agentId: string;
@@ -150,6 +159,16 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
     );
   }
 
+  // Parse runtime_config if it's a string
+  const runtimeConfig: RuntimeConfig = typeof agent.runtime_config === 'string'
+    ? JSON.parse(agent.runtime_config)
+    : (agent.runtime_config as RuntimeConfig || {});
+
+  // Parse features if it's a string
+  const features: string[] = typeof agent.features === 'string'
+    ? JSON.parse(agent.features)
+    : (Array.isArray(agent.features) ? agent.features : []);
+
   return (
     <Card className="h-full overflow-auto">
       <CardHeader>
@@ -210,7 +229,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                     {metrics?.[0]?.views || 0}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    +{metrics?.[0]?.views - (metrics?.[1]?.views || 0)} from last period
+                    +{(metrics?.[0]?.views || 0) - (metrics?.[1]?.views || 0)} from last period
                   </p>
                 </CardContent>
               </Card>
@@ -224,10 +243,10 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                     ${metrics?.[0]?.revenue?.toFixed(2) || '0.00'}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {metrics?.[0]?.revenue > (metrics?.[1]?.revenue || 0) ? (
+                    {(metrics?.[0]?.revenue || 0) > (metrics?.[1]?.revenue || 0) ? (
                       <span className="text-green-500 flex items-center">
                         <ChevronUp className="h-3 w-3 mr-1" />
-                        {((metrics?.[0]?.revenue - (metrics?.[1]?.revenue || 0)) / (metrics?.[1]?.revenue || 1) * 100).toFixed(1)}%
+                        {(((metrics?.[0]?.revenue || 0) - (metrics?.[1]?.revenue || 0)) / (metrics?.[1]?.revenue || 1) * 100).toFixed(1)}%
                       </span>
                     ) : (
                       <span className="text-red-500 flex items-center">
@@ -263,20 +282,20 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                   <div>
                     <dt className="text-sm font-medium">Model</dt>
                     <dd className="mt-1 text-sm">
-                      {agent.runtime_config?.model || 'Not specified'}
+                      {runtimeConfig.model || 'Not specified'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium">System Prompt</dt>
                     <dd className="mt-1 text-sm border p-3 rounded-md bg-muted/50 whitespace-pre-wrap max-h-40 overflow-auto">
-                      {agent.runtime_config?.systemPrompt || 'Not specified'}
+                      {runtimeConfig.systemPrompt || 'Not specified'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium">Features</dt>
                     <dd className="mt-1 flex flex-wrap gap-2">
-                      {agent.features?.length > 0 ? (
-                        agent.features.map((feature: string) => (
+                      {features.length > 0 ? (
+                        features.map((feature: string) => (
                           <Badge key={feature} variant="outline">{feature}</Badge>
                         ))
                       ) : (
@@ -310,6 +329,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                         name="Views"
                         stroke="#8884d8" 
                         strokeWidth={2} 
+                        dot={false}
                       />
                       <Line 
                         yAxisId="right"
@@ -424,19 +444,19 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                       <Label htmlFor="logging" className="flex items-center gap-2">
                         Enable Detailed Logging
                       </Label>
-                      <Switch id="logging" defaultChecked={agent.runtime_config?.enableLogging} />
+                      <Switch id="logging" defaultChecked={runtimeConfig.enableLogging} />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label htmlFor="metrics" className="flex items-center gap-2">
                         Enable Performance Metrics
                       </Label>
-                      <Switch id="metrics" defaultChecked={agent.runtime_config?.enableMetrics} />
+                      <Switch id="metrics" defaultChecked={runtimeConfig.enableMetrics} />
                     </div>
                     <div className="flex items-center justify-between">
                       <Label htmlFor="rate-limit" className="flex items-center gap-2">
                         Enable Rate Limiting
                       </Label>
-                      <Switch id="rate-limit" defaultChecked={agent.runtime_config?.enableRateLimiting} />
+                      <Switch id="rate-limit" defaultChecked={runtimeConfig.enableRateLimiting} />
                     </div>
                   </div>
                 </div>

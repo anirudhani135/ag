@@ -1,7 +1,8 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-interface PerformanceChartProps {
+export interface PerformanceChartProps {
   data: Array<{
     date: string;
     value: number;

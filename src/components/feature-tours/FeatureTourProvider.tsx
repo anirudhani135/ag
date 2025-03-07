@@ -11,8 +11,13 @@ export interface FeatureTourStep {
   placement?: "top" | "right" | "bottom" | "left";
 }
 
+interface FeatureTour {
+  steps: FeatureTourStep[];
+  title: string;
+}
+
 interface FeatureTourContextType {
-  currentTour: FeatureTourStep[] | null;
+  currentTour: FeatureTour | null;
   currentStep: number;
   startTour: (tourName: string) => void;
   nextStep: () => void;
@@ -24,7 +29,7 @@ interface FeatureTourContextType {
 const FeatureTourContext = createContext<FeatureTourContextType | undefined>(undefined);
 
 export const FeatureTourProvider = ({ children }: { children: ReactNode }) => {
-  const [currentTour, setCurrentTour] = useState<FeatureTourStep[] | null>(null);
+  const [currentTour, setCurrentTour] = useState<FeatureTour | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isTourActive, setIsTourActive] = useState(false);
   const location = useLocation();
@@ -84,7 +89,10 @@ export const FeatureTourProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setCurrentTour(validSteps);
+    setCurrentTour({
+      title: tour.title,
+      steps: validSteps
+    });
     setCurrentStep(0);
     setIsTourActive(true);
   };
@@ -92,7 +100,7 @@ export const FeatureTourProvider = ({ children }: { children: ReactNode }) => {
   const nextStep = () => {
     if (!currentTour) return;
     
-    if (currentStep < currentTour.length - 1) {
+    if (currentStep < currentTour.steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       endTour();

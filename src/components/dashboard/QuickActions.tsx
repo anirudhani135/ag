@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Coins, Plus, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-interface QuickActionsProps {
+export interface QuickActionsProps {
   type: "user" | "developer";
 }
 

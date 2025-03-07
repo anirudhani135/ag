@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { BasicInfoStep } from "@/components/agent-creation/BasicInfoStep";
+import BasicInfoStep from "@/components/agent-creation/BasicInfoStep";
 import { ConfigurationStep } from "@/components/agent-creation/ConfigurationStep";
 import { IntegrationStep } from "@/components/agent-creation/IntegrationStep";
 import { TestingStep } from "@/components/agent-creation/TestingStep";

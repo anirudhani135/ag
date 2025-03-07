@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { DateRangeSelector } from "@/components/developer/revenue/DateRangeSelector";
 import { EnhancedRevenueMetrics } from "@/components/developer/revenue/EnhancedRevenueMetrics";
-import { TransactionList } from "@/components/developer/revenue/TransactionList";
+import { TransactionsList } from "@/components/developer/revenue/TransactionList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download, BarChart2, LineChart, PieChart, Users, Calendar } from "lucide-react";
@@ -165,7 +165,7 @@ export const EnhancedRevenueDashboard = () => {
           </TabsContent>
 
           <TabsContent value="transactions">
-            <TransactionList startDate={dateRange.from} endDate={dateRange.to} />
+            <TransactionsList />
           </TabsContent>
 
           <TabsContent value="trends">

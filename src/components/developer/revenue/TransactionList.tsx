@@ -93,7 +93,10 @@ export const TransactionsList = () => {
               </SelectContent>
             </Select>
           </div>
-          <DateRangePicker date={dateRange} setDate={setDateRange} />
+          <DateRangePicker 
+            date={dateRange} 
+            onSelect={setDateRange} 
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -122,7 +125,7 @@ export const TransactionsList = () => {
                         {transaction.agents?.title || 'Unknown Agent'}
                       </TableCell>
                       <TableCell>{transaction.profiles?.email || 'Unknown User'}</TableCell>
-                      <TableCell>${parseFloat(transaction.amount).toFixed(2)}</TableCell>
+                      <TableCell>${transaction.amount.toFixed(2)}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
