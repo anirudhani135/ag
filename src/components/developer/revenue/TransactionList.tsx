@@ -95,7 +95,8 @@ export const TransactionsList = () => {
           </div>
           <DateRangePicker 
             date={dateRange} 
-            onSelect={setDateRange} 
+            onChange={setDateRange} 
+            className="w-auto"
           />
         </div>
       </CardHeader>

@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { useFeatureTour } from './FeatureTourProvider';
 
 export const FeatureTourStep = () => {
-  const { currentTour, currentStep, nextStep, previousStep, endTour } = useFeatureTour();
+  const { currentTour, currentStep, nextStep, prevStep, endTour } = useFeatureTour();
   const [stepPosition, setStepPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const FeatureTourStep = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={previousStep}
+              onClick={prevStep}
               disabled={currentStep === 0}
             >
               Previous
