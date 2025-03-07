@@ -1,144 +1,161 @@
 
 import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { BasicInfoFormData } from "@/types/agent-creation";
 import { Badge } from "@/components/ui/badge";
-import { Tag, X, Plus } from "lucide-react";
-
-interface BasicInfoFormData {
-  title: string;
-  description: string;
-  category: string;
-  price: string;
-  tags: string[];
-}
+import { X } from "lucide-react";
 
 interface BasicInfoStepProps {
-  data: BasicInfoFormData;
-  onChange: (data: BasicInfoFormData) => void;
+  formData: BasicInfoFormData;
+  onChange: (formData: BasicInfoFormData) => void;
 }
 
-export const BasicInfoStep = ({ data, onChange }: BasicInfoStepProps) => {
-  const [newTag, setNewTag] = useState("");
+const BasicInfoStep = ({ formData, onChange }: BasicInfoStepProps) => {
+  const [tagInput, setTagInput] = useState("");
+  
+  const { data: categories, isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && newTag.trim()) {
-      e.preventDefault();
-      const updatedTags = [...data.tags, newTag.trim()];
-      onChange({ ...data, tags: updatedTags });
-      setNewTag("");
+  const handleChange = (field: keyof BasicInfoFormData, value: string) => {
+    onChange({ ...formData, [field]: value });
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      onChange({ ...formData, tags: [...formData.tags, tagInput.trim()] });
+      setTagInput("");
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    const updatedTags = data.tags.filter((tag) => tag !== tagToRemove);
-    onChange({ ...data, tags: updatedTags });
+  const handleRemoveTag = (tag: string) => {
+    onChange({ ...formData, tags: formData.tags.filter(t => t !== tag) });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <Label htmlFor="title" className="text-sm font-medium">
-          Agent Title
-        </Label>
-        <Input
-          id="title"
-          value={data.title}
-          onChange={(e) => onChange({ ...data, title: e.target.value })}
-          placeholder="Enter a descriptive title"
-          className="h-12 text-base"
-        />
-      </div>
+    <Card className="w-full">
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Agent Title</Label>
+            <Input
+              id="title"
+              placeholder="Enter a descriptive title for your agent"
+              value={formData.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+            />
+          </div>
 
-      <div className="space-y-3">
-        <Label htmlFor="description" className="text-sm font-medium">
-          Description
-        </Label>
-        <Textarea
-          id="description"
-          value={data.description}
-          onChange={(e) => onChange({ ...data, description: e.target.value })}
-          placeholder="Describe your agent's functionality and capabilities"
-          className="min-h-[120px] text-base resize-none"
-          rows={4}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Describe what your agent does and how it can help users"
+              rows={4}
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+            />
+          </div>
 
-      <div className="space-y-3">
-        <Label htmlFor="category" className="text-sm font-medium">
-          Category
-        </Label>
-        <Select
-          value={data.category}
-          onValueChange={(value) => onChange({ ...data, category: value })}
-        >
-          <SelectTrigger className="h-12 text-base">
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="automation">Automation</SelectItem>
-            <SelectItem value="analysis">Analysis</SelectItem>
-            <SelectItem value="communication">Communication</SelectItem>
-            <SelectItem value="development">Development</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-3">
-        <Label htmlFor="price" className="text-sm font-medium">
-          Price
-        </Label>
-        <Input
-          id="price"
-          type="number"
-          min="0"
-          step="0.01"
-          value={data.price}
-          onChange={(e) => onChange({ ...data, price: e.target.value })}
-          placeholder="Set your agent's price"
-          className="h-12 text-base"
-        />
-      </div>
-
-      <div className="space-y-3">
-        <Label htmlFor="tags" className="text-sm font-medium flex items-center gap-2">
-          <Tag className="w-4 h-4" />
-          Tags
-        </Label>
-        <Input
-          id="tags"
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={handleAddTag}
-          placeholder="Add tags and press Enter"
-          className="h-12 text-base"
-        />
-        <div className="flex flex-wrap gap-2 mt-2">
-          {data.tags.map((tag) => (
-            <Badge 
-              key={tag} 
-              variant="secondary" 
-              className="px-3 py-1.5 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(value) => handleChange('category', value)}
             >
-              {tag}
-              <button
-                onClick={() => handleRemoveTag(tag)}
-                className="ml-2 hover:text-destructive focus:outline-none"
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoading ? (
+                  <SelectItem value="loading">Loading categories...</SelectItem>
+                ) : (
+                  categories?.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="price">Price (USD)</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={formData.price}
+              onChange={(e) => handleChange('price', e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">Set to 0 for free agents</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags">Features & Tags</Label>
+            <div className="flex gap-2">
+              <Input
+                id="tags"
+                placeholder="Add features or tags"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <button 
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                onClick={handleAddTag}
+                type="button"
               >
-                <X className="h-3 w-3" />
+                Add
               </button>
-            </Badge>
-          ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <X 
+                    className="h-3 w-3 cursor-pointer" 
+                    onClick={() => handleRemoveTag(tag)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
+
+export default BasicInfoStep;

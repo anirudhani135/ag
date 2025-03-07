@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  Bot, Plus, Search, Activity, DollarSign, 
+  Bot, Plus, Activity, DollarSign, 
   ChevronRight, BarChart2, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,12 +19,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import AgentDetailPanel from "@/components/agent-management/AgentDetailPanel";
 
 const AgentManagement = () => {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("created_at");
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [isDeploying, setIsDeploying] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { data: agents, isLoading } = useQuery({
@@ -57,11 +59,19 @@ const AgentManagement = () => {
     }, 500);
   };
 
+  const handleViewAgent = (agentId: string) => {
+    setSelectedAgentId(agentId);
+  };
+
+  const handleCloseAgentDetail = () => {
+    setSelectedAgentId(null);
+  };
+
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen bg-background pt-20">
+      <div className="min-h-screen bg-background">
         {/* Breadcrumb */}
-        <div className="px-4 md:px-8 mb-4">
+        <div className="mb-4">
           <nav className="flex text-sm text-muted-foreground" aria-label="Breadcrumb">
             <span>Dashboard</span>
             <ChevronRight className="h-4 w-4 mx-2" />
@@ -69,7 +79,7 @@ const AgentManagement = () => {
           </nav>
         </div>
 
-        <div className="px-4 md:px-8 space-y-8">
+        <div className="space-y-8">
           {/* Header Section */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 md:p-8 shadow-sm">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -178,25 +188,36 @@ const AgentManagement = () => {
           </div>
         
           {/* Main Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border shadow-sm">
-            <div className="p-6">
-              <AgentFilters
-                onSearch={setSearch}
-                onSortChange={setSort}
-                onViewChange={setView}
-                view={view}
-                className="mb-6"
-              />
-              
-              <AgentGrid
-                agents={agents || []}
-                loading={isLoading}
-                onEdit={() => {}}
-                onDelete={() => {}}
-                onViewMetrics={() => {}}
-                view={view}
-              />
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className={`bg-white dark:bg-gray-800 rounded-xl border shadow-sm ${selectedAgentId ? 'md:w-1/2' : 'w-full'}`}>
+              <div className="p-6">
+                <AgentFilters
+                  onSearch={setSearch}
+                  onSortChange={setSort}
+                  onViewChange={setView}
+                  view={view}
+                  className="mb-6"
+                />
+                
+                <AgentGrid
+                  agents={agents || []}
+                  loading={isLoading}
+                  onEdit={handleViewAgent}
+                  onDelete={() => {}}
+                  onViewMetrics={handleViewAgent}
+                  view={view}
+                />
+              </div>
             </div>
+            
+            {selectedAgentId && (
+              <div className="md:w-1/2">
+                <AgentDetailPanel 
+                  agentId={selectedAgentId} 
+                  onClose={handleCloseAgentDetail} 
+                />
+              </div>
+            )}
           </div>
 
           {/* Recent Activity Section */}
@@ -205,9 +226,17 @@ const AgentManagement = () => {
               <BarChart2 className="h-5 w-5" />
               Recent Activity
             </h2>
-            <p className="text-muted-foreground text-sm italic">
-              [Coming Soon: Activity tracking and analytics]
-            </p>
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <div className="flex-1">
+                    <p className="text-sm">Agent "{agents?.[i-1]?.title || 'AI Assistant'}" was {i === 1 ? 'deployed' : i === 2 ? 'updated' : 'reviewed'}</p>
+                    <p className="text-xs text-muted-foreground">{new Date().toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

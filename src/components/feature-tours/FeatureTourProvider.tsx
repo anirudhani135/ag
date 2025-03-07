@@ -1,44 +1,32 @@
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-interface FeatureTourStep {
+export interface FeatureTourStep {
   target: string;
   title: string;
   content: string;
-  placement?: 'top' | 'right' | 'bottom' | 'left';
-}
-
-interface FeatureTour {
-  id: string;
-  title: string;
-  steps: FeatureTourStep[];
+  placement?: "top" | "right" | "bottom" | "left";
 }
 
 interface FeatureTourContextType {
-  currentTour: FeatureTour | null;
-  startTour: (tourId: string) => void;
-  endTour: () => void;
-  nextStep: () => void;
-  previousStep: () => void;
+  currentTour: FeatureTourStep[] | null;
   currentStep: number;
+  startTour: (tourName: string) => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  endTour: () => void;
+  isTourActive: boolean;
 }
 
 const FeatureTourContext = createContext<FeatureTourContextType | undefined>(undefined);
 
-export const useFeatureTour = () => {
-  const context = useContext(FeatureTourContext);
-  if (!context) {
-    throw new Error('useFeatureTour must be used within a FeatureTourProvider');
-  }
-  return context;
-};
-
-export const FeatureTourProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentTour, setCurrentTour] = useState<FeatureTour | null>(null);
+export const FeatureTourProvider = ({ children }: { children: ReactNode }) => {
+  const [currentTour, setCurrentTour] = useState<FeatureTourStep[] | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isTourActive, setIsTourActive] = useState(false);
   const location = useLocation();
 
   const { data: tours } = useQuery({
@@ -46,89 +34,106 @@ export const FeatureTourProvider = ({ children }: { children: React.ReactNode })
     queryFn: async () => {
       const { data, error } = await supabase
         .from('feature_tours')
-        .select('*')
-        .order('created_at', { ascending: true });
+        .select('*');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching feature tours:", error);
+        throw error;
+      }
       
-      // Safely transform the steps data with proper validation
-      return data.map(tour => {
-        // Ensure steps is an array
-        const stepsData = Array.isArray(tour.steps) ? tour.steps : [];
-        
-        // Validate and transform each step
-        const validSteps: FeatureTourStep[] = stepsData
-          .filter((step: any) => 
-            typeof step === 'object' && 
-            typeof step.target === 'string' && 
-            typeof step.title === 'string' && 
-            typeof step.content === 'string'
-          )
-          .map((step: any) => ({
-            target: step.target,
-            title: step.title,
-            content: step.content,
-            placement: ['top', 'right', 'bottom', 'left'].includes(step.placement) 
-              ? step.placement as 'top' | 'right' | 'bottom' | 'left'
-              : 'bottom'
-          }));
-        
-        return {
-          id: tour.id,
-          title: tour.title,
-          steps: validSteps
-        } as FeatureTour;
-      });
-    }
+      return data || [];
+    },
+    staleTime: 60 * 1000, // 1 minute
   });
 
   useEffect(() => {
-    // Reset tour when route changes
-    setCurrentTour(null);
-    setCurrentStep(0);
+    // End tour if route changes
+    endTour();
   }, [location.pathname]);
 
-  const startTour = (tourId: string) => {
+  const startTour = (tourName: string) => {
     if (!tours) return;
+
+    const tour = tours.find(t => t.title === tourName);
+    if (!tour) {
+      console.error(`Tour "${tourName}" not found`);
+      return;
+    }
+
+    // Validate and transform tour steps
+    const validSteps: FeatureTourStep[] = Array.isArray(tour.steps) 
+      ? tour.steps
+        .filter((step: any) => 
+          step && 
+          typeof step.target === 'string' && 
+          typeof step.title === 'string' && 
+          typeof step.content === 'string'
+        )
+        .map((step: any) => ({
+          target: step.target,
+          title: step.title,
+          content: step.content,
+          placement: ['top', 'right', 'bottom', 'left'].includes(step.placement) 
+            ? step.placement 
+            : 'bottom'
+        }))
+      : [];
+
+    if (validSteps.length === 0) {
+      console.error(`Tour "${tourName}" has no valid steps`);
+      return;
+    }
+
+    setCurrentTour(validSteps);
+    setCurrentStep(0);
+    setIsTourActive(true);
+  };
+
+  const nextStep = () => {
+    if (!currentTour) return;
     
-    const tour = tours.find(t => t.id === tourId);
-    if (tour) {
-      setCurrentTour(tour);
-      setCurrentStep(0);
+    if (currentStep < currentTour.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      endTour();
+    }
+  };
+
+  const prevStep = () => {
+    if (!currentTour) return;
+    
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
   const endTour = () => {
     setCurrentTour(null);
     setCurrentStep(0);
-  };
-
-  const nextStep = () => {
-    if (currentTour && currentStep < currentTour.steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      endTour();
-    }
-  };
-
-  const previousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
+    setIsTourActive(false);
   };
 
   return (
     <FeatureTourContext.Provider
       value={{
         currentTour,
-        startTour,
-        endTour,
-        nextStep,
-        previousStep,
         currentStep,
+        startTour,
+        nextStep,
+        prevStep,
+        endTour,
+        isTourActive,
       }}
     >
       {children}
     </FeatureTourContext.Provider>
   );
+};
+
+export const useFeatureTour = () => {
+  const context = useContext(FeatureTourContext);
+  if (context === undefined) {
+    throw new Error("useFeatureTour must be used within a FeatureTourProvider");
+  }
+  return context;
 };
