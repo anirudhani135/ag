@@ -12,10 +12,10 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
 
   if (type === "developer") {
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 justify-start">
         <Button
           size="lg"
-          className="bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
           onClick={() => navigate('/developer/revenue')}
         >
           <DollarSign className="w-5 h-5 mr-2" />
@@ -23,7 +23,7 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
         </Button>
         <Button
           size="lg"
-          className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
           onClick={() => navigate('/developer/agents/new')}
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -34,10 +34,10 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
   }
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4 justify-start">
       <Button
         size="lg"
-        className="bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
         onClick={() => navigate('/dashboard/credits')}
       >
         <Coins className="w-5 h-5 mr-2" />
@@ -45,7 +45,7 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
       </Button>
       <Button
         size="lg"
-        className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
         onClick={() => navigate('/marketplace')}
       >
         <Plus className="w-5 h-5 mr-2" />

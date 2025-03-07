@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,8 +16,8 @@
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 231 100% 62%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
@@ -70,6 +69,18 @@
 
   .touch-target {
     @apply p-3 sm:p-2;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 shadow-md;
+  }
+  
+  .btn-success {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700 shadow-md;
+  }
+  
+  .btn-action {
+    @apply bg-blue-600 text-white hover:bg-blue-700 shadow-md rounded-md px-4 py-2 transition-colors;
   }
 }
 

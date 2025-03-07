@@ -36,15 +36,15 @@ export const FloatingCTA = ({ label, icon, onClick, className, type = "user" }: 
     <Button
       onClick={handleClick}
       className={cn(
-        "fixed bottom-4 right-4 z-50 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg",
-        "flex items-center gap-2 px-6 py-3 font-medium transition-all duration-200",
+        "fixed bottom-6 right-6 z-50 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg",
+        "flex items-center gap-2 px-6 py-4 font-medium transition-all duration-200",
         "hover:scale-105 hover:shadow-xl",
         className
       )}
       aria-label={type === "developer" ? "Withdraw Funds" : "Buy Credits"}
     >
       {icon}
-      <span>{label}</span>
+      <span className="font-medium">{label}</span>
     </Button>
   );
 };

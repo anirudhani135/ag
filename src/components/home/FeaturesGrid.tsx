@@ -37,7 +37,7 @@ const features = [
 
 export const FeaturesGrid = () => {
   return (
-    <section className="py-24 bg-background px-6">
+    <section className="py-24 bg-white px-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -48,7 +48,7 @@ export const FeaturesGrid = () => {
           <h2 className="text-4xl font-bold mb-4 text-primary">
             Powerful Features
           </h2>
-          <p className="text-primary/80 max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl mx-auto">
             Everything you need to build, deploy, and scale AI solutions
           </p>
         </motion.div>
@@ -62,11 +62,11 @@ export const FeaturesGrid = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
-              className="p-6 rounded-xl bg-white shadow-sm border border-border hover:shadow-lg transition-all duration-300 group"
+              className="p-6 rounded-xl bg-white shadow-md border border-border hover:shadow-lg transition-all duration-300 group"
             >
-              <feature.icon className="w-10 h-10 mb-4 text-primary group-hover:text-accent transition-colors" />
+              <feature.icon className="w-10 h-10 mb-4 text-blue-600 group-hover:text-blue-700 transition-colors" />
               <h3 className="text-xl font-semibold mb-3 text-primary">{feature.name}</h3>
-              <p className="text-primary/70 group-hover:text-primary transition-colors">
+              <p className="text-gray-600 group-hover:text-gray-800 transition-colors">
                 {feature.description}
               </p>
             </motion.div>

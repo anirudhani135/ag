@@ -37,20 +37,25 @@ export const CategoryNav = ({
   className,
 }: CategoryNavProps) => {
   return (
-    <ScrollArea className={cn("w-full whitespace-nowrap", className)}>
-      <div className="flex space-x-4 p-4">
+    <ScrollArea className={cn("w-full whitespace-nowrap border-b border-border pb-1", className)}>
+      <div className="flex space-x-2 p-2">
         {categories.map((category) => {
           const IconComponent = categoryIcons[category.name] || Brain;
           
           return (
             <Button
               key={category.id}
-              variant={selectedCategory === category.id ? "default" : "outline"}
-              className="transition-all min-w-[110px] px-3 py-2"
+              variant={selectedCategory === category.id ? "primary" : "outline"}
+              className={cn(
+                "transition-all min-w-[120px] px-4 py-2 shadow-sm",
+                selectedCategory === category.id 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-white text-primary hover:bg-blue-50"
+              )}
               onClick={() => onSelect(category.id)}
             >
               <IconComponent className="mr-2 h-4 w-4" />
-              <span className="truncate">{category.name}</span>
+              <span className="font-medium">{category.name}</span>
             </Button>
           );
         })}

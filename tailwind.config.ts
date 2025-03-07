@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -21,25 +22,25 @@ export default {
       colors: {
         primary: "#141413",
         secondary: "#828179",
-        accent: "#C7FB76",
-        success: "#34D399",
-        warning: "#FBBF24",
+        accent: "#3B82F6",  // Changed from green to blue
+        success: "#10B981",
+        warning: "#F59E0B",
         error: "#EF4444",
         info: "#3B82F6",
         background: "#FAFAF8",
         surface: "#FFFFFF",
         muted: "#C4C3BB",
-        "muted-foreground": "#A3A299",
+        "muted-foreground": "#6B7280",
         border: "#E6E4DD",
         input: "#F0EFEA",
         foreground: "#141413",
         "popover-foreground": "#141413",
         "card-foreground": "#141413",
-        "accent-foreground": "#141413",
+        "accent-foreground": "#FFFFFF",
         "destructive-foreground": "#FFFFFF",
       },
       backgroundImage: {
-        'primary-gradient': 'linear-gradient(135deg, #C7FB76 0%, #34D399 100%)',
+        'primary-gradient': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
         'background-gradient': 'linear-gradient(180deg, #FAFAF8 0%, #F0EFEA 100%)',
         'dark-gradient': 'linear-gradient(135deg, #141413 0%, #1E1E1C 100%)',
       },
