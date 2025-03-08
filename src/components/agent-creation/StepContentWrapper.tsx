@@ -5,6 +5,7 @@ import BasicInfoStep from "@/components/agent-creation/BasicInfoStep";
 import { ConfigurationStep } from "@/components/agent-creation/ConfigurationStep";
 import { IntegrationStep } from "@/components/agent-creation/IntegrationStep";
 import { TestingStep } from "@/components/agent-creation/TestingStep";
+import { DeploymentConfiguration } from "@/components/agent-creation/DeploymentConfiguration";
 import { 
   BasicInfoFormData, 
   ConfigFormData, 
@@ -35,6 +36,11 @@ export const StepContentWrapper = ({
   testCases,
   handleTestCasesSave
 }: StepContentWrapperProps) => {
+  const [deploymentId, setDeploymentId] = useState<string>("");
+  
+  const handleDeploymentComplete = (id: string) => {
+    setDeploymentId(id);
+  };
   
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -52,6 +58,11 @@ export const StepContentWrapper = ({
         return <IntegrationStep onSave={handleIntegrationSave} initialData={integrationData} />;
       case 3:
         return <TestingStep onSave={handleTestCasesSave} initialTestCases={testCases} />;
+      case 4:
+        return <DeploymentConfiguration 
+                 agentId="temp-agent-id-for-development" 
+                 onDeploymentComplete={handleDeploymentComplete} 
+               />;
       default:
         return null;
     }

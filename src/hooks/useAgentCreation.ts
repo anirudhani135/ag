@@ -53,6 +53,7 @@ export function useAgentCreation() {
     { id: "configuration", title: "Configuration", isCompleted: false },
     { id: "integration", title: "Integration", isCompleted: false },
     { id: "testing", title: "Testing", isCompleted: false },
+    { id: "deployment", title: "Deployment", isCompleted: false },
   ];
 
   useEffect(() => {
@@ -61,12 +62,8 @@ export function useAgentCreation() {
       if (user) {
         setUserDetails({ id: user.id });
       } else {
-        toast({
-          title: "Authentication required",
-          description: "You need to be logged in to create an agent.",
-          variant: "destructive",
-        });
-        navigate("/auth/login");
+        // Development mode - don't redirect
+        setUserDetails({ id: "dev-user-id" });
       }
     };
     
@@ -120,9 +117,9 @@ export function useAgentCreation() {
   const handleSaveDraft = async () => {
     if (!userDetails?.id) {
       toast({
-        title: "Authentication required",
-        description: "You need to be logged in to save a draft.",
-        variant: "destructive",
+        title: "Development mode",
+        description: "Saving draft in development mode",
+        variant: "default",
       });
       return;
     }
@@ -160,9 +157,9 @@ export function useAgentCreation() {
   const handleSubmit = async () => {
     if (!userDetails?.id) {
       toast({
-        title: "Authentication required",
-        description: "You need to be logged in to submit an agent.",
-        variant: "destructive",
+        title: "Development mode",
+        description: "Submitting agent in development mode",
+        variant: "default",
       });
       return;
     }
@@ -215,6 +212,8 @@ export function useAgentCreation() {
         return true;
       case 3:
         return testCases.length > 0;
+      case 4:
+        return true; // Deployment step can always proceed
       default:
         return true;
     }

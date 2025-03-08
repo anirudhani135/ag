@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Loader2, Settings, BarChart2, Users, DollarSign, Activity, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
 
 interface RuntimeConfig {
@@ -32,7 +32,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
   const [isPublishing, setIsPublishing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   
-  const { data: agent, isLoading } = useQuery({
+  const { data: agent, isLoading, error } = useQuery({
     queryKey: ['agent-details', agentId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -148,6 +148,17 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
     );
   }
 
+  if (error) {
+    return (
+      <Card className="h-full">
+        <CardContent className="pt-6">
+          <p className="text-red-500">Error loading agent details: {(error as Error).message}</p>
+          <Button onClick={onClose} className="mt-4">Close</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!agent) {
     return (
       <Card className="h-full">
@@ -172,12 +183,12 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
   return (
     <Card className="h-full overflow-auto">
       <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <CardTitle className="text-xl font-bold">{agent.title}</CardTitle>
             <CardDescription>{agent.description}</CardDescription>
             
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               {getStatusBadge(agent.status)}
               <Badge variant="outline">v{agent.version_number}</Badge>
               {agent.price > 0 ? (
@@ -191,7 +202,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
             </div>
           </div>
           
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" size="sm" onClick={onClose} className="self-end sm:self-start">
             Close
           </Button>
         </div>
@@ -199,7 +210,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
       
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid grid-cols-4">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full">
             <TabsTrigger value="overview" className="flex items-center gap-1">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -219,7 +230,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Views</CardTitle>
@@ -258,7 +269,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="sm:col-span-2 md:col-span-1">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Purchases</CardTitle>
                 </CardHeader>
@@ -314,14 +325,14 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                 <CardTitle>Performance Over Time</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
+                <div className="h-60 sm:h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={metrics || []}>
+                    <LineChart data={metrics || []} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis yAxisId="left" />
                       <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
+                      <RechartsTooltip />
                       <Line 
                         yAxisId="left"
                         type="monotone" 
@@ -350,13 +361,13 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                 <CardTitle>Conversion Metrics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
+                <div className="h-60 sm:h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={metrics || []}>
+                    <BarChart data={metrics || []} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis />
-                      <Tooltip />
+                      <RechartsTooltip />
                       <Bar dataKey="conversion_rate" name="Conversion Rate (%)" fill="#8884d8" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -376,7 +387,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
               <CardContent>
                 {agent.deployments && agent.deployments.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <p className="text-sm font-medium">Status</p>
                         <div className="flex items-center gap-2 mt-1">
@@ -390,7 +401,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="border rounded-md p-4">
                         <p className="text-sm font-medium">Response Time</p>
                         <p className="text-2xl font-bold mt-1">{agent.deployments[0].response_time.toFixed(2)} ms</p>
@@ -478,7 +489,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
               <CardHeader>
                 <CardTitle>Customer Reviews</CardTitle>
                 <CardDescription>
-                  {agent.reviews?.length || 0} reviews, {agent.rating.toFixed(1)} average rating
+                  {agent.reviews?.length || 0} reviews, {agent.rating?.toFixed(1) || '0.0'} average rating
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -530,7 +541,7 @@ export const AgentDetailPanel = ({ agentId, onClose }: AgentDetailPanelProps) =>
               <DialogTrigger asChild>
                 <Button variant="default">Submit for Review</Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-sm sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Submit Agent for Review</DialogTitle>
                   <DialogDescription>
