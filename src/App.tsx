@@ -79,231 +79,79 @@ const AppContent = () => {
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
         {/* User Dashboard Routes */}
-        <Route path="/user">
-          <Route
-            path="dashboard"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <UserDashboard />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="credits"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <Credits />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="settings"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <Settings />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="usage"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <UsageHistory />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="saved"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <SavedAgents />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="analytics"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <UserAnalytics />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="agents"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <UserAgents />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="notifications"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <UserNotifications />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="reviews"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <Reviews />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="support"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["buyer"]}>
-                  <Support />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
+        <Route path="/user" element={<ProtectedRoute />}>
+          <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<UserDashboard />} />
+          </Route>
+          <Route path="credits" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<Credits />} />
+          </Route>
+          <Route path="settings" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<Settings />} />
+          </Route>
+          <Route path="usage" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<UsageHistory />} />
+          </Route>
+          <Route path="saved" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<SavedAgents />} />
+          </Route>
+          <Route path="analytics" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<UserAnalytics />} />
+          </Route>
+          <Route path="agents" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<UserAgents />} />
+          </Route>
+          <Route path="notifications" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<UserNotifications />} />
+          </Route>
+          <Route path="reviews" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<Reviews />} />
+          </Route>
+          <Route path="support" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route index element={<Support />} />
+          </Route>
         </Route>
 
         {/* Developer Dashboard Routes */}
-        <Route path="/developer">
-          <Route
-            path="dashboard"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperOverview />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="agents"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <AgentManagement />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="revenue"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <Revenue />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="api"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <ApiIntegrations />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="analytics"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperAnalytics />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="reviews"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperReviews />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="support"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperSupport />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="settings"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperSettings />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="agents/create"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <AgentCreation />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="transactions"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperTransactions />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="monitoring"
-            element={
-              <ProtectedRoute>
-                <WithRoleProtection allowedRoles={["developer"]}>
-                  <DeveloperMonitoring />
-                </WithRoleProtection>
-              </ProtectedRoute>
-            }
-          />
+        <Route path="/developer" element={<ProtectedRoute />}>
+          <Route path="dashboard" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperOverview />} />
+          </Route>
+          <Route path="agents" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<AgentManagement />} />
+          </Route>
+          <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<Revenue />} />
+          </Route>
+          <Route path="api" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<ApiIntegrations />} />
+          </Route>
+          <Route path="analytics" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperAnalytics />} />
+          </Route>
+          <Route path="reviews" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperReviews />} />
+          </Route>
+          <Route path="support" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperSupport />} />
+          </Route>
+          <Route path="settings" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperSettings />} />
+          </Route>
+          <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<AgentCreation />} />
+          </Route>
+          <Route path="transactions" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperTransactions />} />
+          </Route>
+          <Route path="monitoring" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<DeveloperMonitoring />} />
+          </Route>
         </Route>
 
-        <Route
-          path="/marketplace"
-          element={
-            <ProtectedRoute>
-              <Marketplace />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/marketplace" element={<ProtectedRoute />}>
+          <Route index element={<Marketplace />} />
+        </Route>
 
         {/* Redirects */}
         <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
