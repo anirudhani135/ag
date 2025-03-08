@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Coins, Plus, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface QuickActionsProps {
   type: "user" | "developer";
@@ -9,6 +10,15 @@ export interface QuickActionsProps {
 
 export const QuickActions = ({ type }: QuickActionsProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAction = (path: string, message: string) => {
+    navigate(path);
+    toast({
+      title: "Navigation",
+      description: message,
+    });
+  };
 
   if (type === "developer") {
     return (
@@ -16,15 +26,15 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
         <Button
           size="lg"
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
-          onClick={() => navigate('/developer/revenue')}
+          onClick={() => handleAction('/developer/revenue', 'Accessing revenue withdrawal page')}
         >
           <DollarSign className="w-5 h-5 mr-2" />
           Withdraw Funds
         </Button>
         <Button
           size="lg"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
-          onClick={() => navigate('/developer/agents/new')}
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
+          onClick={() => handleAction('/developer/agents/create', 'Creating a new agent')}
         >
           <Plus className="w-5 h-5 mr-2" />
           Create Agent
@@ -38,15 +48,15 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
       <Button
         size="lg"
         className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
-        onClick={() => navigate('/dashboard/credits')}
+        onClick={() => handleAction('/user/credits', 'Accessing credit purchase page')}
       >
         <Coins className="w-5 h-5 mr-2" />
         Buy Credits
       </Button>
       <Button
         size="lg"
-        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
-        onClick={() => navigate('/marketplace')}
+        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200"
+        onClick={() => handleAction('/marketplace', 'Browsing available agents')}
       >
         <Plus className="w-5 h-5 mr-2" />
         Browse Agents

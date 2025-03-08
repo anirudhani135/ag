@@ -18,7 +18,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-md",
         primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-md",
-        success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md",
+        success: "bg-blue-600 text-white hover:bg-blue-700 shadow-md", // Changed from emerald to blue for consistency
         warning: "bg-amber-500 text-white hover:bg-amber-600 shadow-md",
         info: "bg-sky-500 text-white hover:bg-sky-600 shadow-md",
       },

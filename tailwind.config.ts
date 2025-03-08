@@ -22,8 +22,8 @@ export default {
       colors: {
         primary: "#141413",
         secondary: "#828179",
-        accent: "#3B82F6",  // Changed from green to blue
-        success: "#10B981",
+        accent: "#3B82F6",  // Consistent blue accent color
+        success: "#3B82F6",  // Changed from green to blue for consistency
         warning: "#F59E0B",
         error: "#EF4444",
         info: "#3B82F6",
