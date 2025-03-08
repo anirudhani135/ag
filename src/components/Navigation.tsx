@@ -19,13 +19,14 @@ const Navigation = () => {
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost" 
-            className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors font-medium"
             onClick={() => navigate('/auth/login')}
           >
             Sign In
           </Button>
           <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md transition-all duration-300"
+            variant="primary"
+            className="shadow-md hover:shadow-lg transition-all duration-300"
             onClick={() => navigate('/auth/register')}
           >
             Get Started

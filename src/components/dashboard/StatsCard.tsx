@@ -2,6 +2,13 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface StatsCardProps {
   title: string;
@@ -9,6 +16,9 @@ interface StatsCardProps {
   icon: LucideIcon;
   description?: React.ReactNode;
   className?: string;
+  isLoading?: boolean;
+  isEmpty?: boolean;
+  tooltip?: string;
 }
 
 export const StatsCard = ({
@@ -17,10 +27,14 @@ export const StatsCard = ({
   icon: Icon,
   description,
   className,
+  isLoading = false,
+  isEmpty = false,
+  tooltip,
 }: StatsCardProps) => {
-  return (
+  const content = (
     <Card className={cn(
       "transition-all hover:shadow-lg p-6",
+      isEmpty && "opacity-80",
       className
     )}>
       <div className="flex items-center justify-between">
@@ -32,13 +46,37 @@ export const StatsCard = ({
         </div>
       </div>
       <div className="mt-2">
-        <p className="text-2xl font-bold">{value}</p>
-        {description && (
+        {isLoading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <p className="text-2xl font-bold">{isEmpty ? "-" : value}</p>
+        )}
+        {description && !isLoading && (
           <p className="mt-1 text-sm text-muted-foreground">
             {description}
           </p>
         )}
+        {isLoading && description && (
+          <Skeleton className="h-4 w-32 mt-1" />
+        )}
       </div>
     </Card>
   );
+
+  if (tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {content}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return content;
 };
