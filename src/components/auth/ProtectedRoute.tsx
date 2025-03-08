@@ -1,16 +1,22 @@
 
-import { ReactNode } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { DashboardLayout } from "../dashboard/DashboardLayout";
 
-interface ProtectedRouteProps {
-  children: ReactNode;
-}
+export const ProtectedRoute = () => {
+  // During development, bypass authentication check
+  const isDevelopment = true; // Set to true during development, false in production
+  const { user } = useAuth();
 
-// This component is completely bypassed for development
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // Authentication bypassed entirely
-  console.log("Protected route accessed - authentication completely bypassed for development");
-  
-  return <>{children}</>;
+  // If authenticated or in development mode, render the outlet
+  if (user || isDevelopment) {
+    return (
+      <DashboardLayout>
+        <Outlet />
+      </DashboardLayout>
+    );
+  }
+
+  // If not authenticated and not in development mode, redirect to login
+  return <Navigate to="/auth/login" />;
 };
-
-export default ProtectedRoute;
