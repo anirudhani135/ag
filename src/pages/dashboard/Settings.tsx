@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -18,11 +17,9 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Simulating form submission
   const handleSaveSettings = (section: string) => {
     setIsLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
       toast({
@@ -71,7 +68,6 @@ const Settings = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Profile Settings */}
           <TabsContent value="profile" className="space-y-6">
             <Card>
               <CardHeader>
@@ -125,7 +121,7 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Profile')}
                   disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -146,7 +142,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Notifications Settings */}
           <TabsContent value="notifications" className="space-y-6">
             <Card>
               <CardHeader>
@@ -208,7 +203,7 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Notification')}
                   disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -229,7 +224,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Payment Settings */}
           <TabsContent value="payment" className="space-y-6">
             <Card>
               <CardHeader>
@@ -295,7 +289,7 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Payment')}
                   disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -316,7 +310,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Security Settings */}
           <TabsContent value="security" className="space-y-6">
             <Card>
               <CardHeader>
@@ -380,7 +373,7 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Security')}
                   disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -401,7 +394,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Connected Accounts */}
           <TabsContent value="connections" className="space-y-6">
             <Card>
               <CardHeader>
@@ -453,7 +445,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* API Access */}
           <TabsContent value="api" className="space-y-6">
             <Card>
               <CardHeader>

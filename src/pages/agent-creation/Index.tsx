@@ -29,44 +29,42 @@ const AgentCreationPage = () => {
   const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-primary/5">
-      <div className="container mx-auto px-4 py-8 md:py-12 pt-20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-primary/5 px-4 py-8">
+      <div className="container mx-auto max-w-4xl">
         <AgentCreationHeader />
 
-        <div className="max-w-4xl mx-auto">
-          <WizardLayout
-            currentStep={currentStep}
-            steps={steps}
+        <WizardLayout
+          currentStep={currentStep}
+          steps={steps}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSaveDraft={handleSaveDraft}
+          canProceed={canProceed()}
+        >
+          <div className="mt-8">
+            <StepContentWrapper
+              currentStep={currentStep}
+              basicInfo={basicInfo}
+              setBasicInfo={setBasicInfo}
+              configData={configData}
+              handleConfigurationSave={handleConfigurationSave}
+              integrationData={integrationData}
+              handleIntegrationSave={handleIntegrationSave}
+              testCases={testCases}
+              handleTestCasesSave={handleTestCasesSave}
+            />
+          </div>
+
+          <NavigationActions
+            onSaveDraft={handleSaveDraft}
             onNext={handleNext}
             onPrevious={handlePrevious}
-            onSaveDraft={handleSaveDraft}
             canProceed={canProceed()}
-          >
-            <div className="mt-8">
-              <StepContentWrapper
-                currentStep={currentStep}
-                basicInfo={basicInfo}
-                setBasicInfo={setBasicInfo}
-                configData={configData}
-                handleConfigurationSave={handleConfigurationSave}
-                integrationData={integrationData}
-                handleIntegrationSave={handleIntegrationSave}
-                testCases={testCases}
-                handleTestCasesSave={handleTestCasesSave}
-              />
-            </div>
-
-            <NavigationActions
-              onSaveDraft={handleSaveDraft}
-              onNext={handleNext}
-              onPrevious={handlePrevious}
-              canProceed={canProceed()}
-              isSaving={isSaving}
-              isSubmitting={isSubmitting}
-              isLastStep={isLastStep}
-            />
-          </WizardLayout>
-        </div>
+            isSaving={isSaving}
+            isSubmitting={isSubmitting}
+            isLastStep={isLastStep}
+          />
+        </WizardLayout>
       </div>
     </div>
   );

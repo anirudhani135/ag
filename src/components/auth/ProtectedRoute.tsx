@@ -5,7 +5,7 @@ import { DashboardLayout } from "../dashboard/DashboardLayout";
 
 export const ProtectedRoute = () => {
   // During development, bypass authentication check
-  const isDevelopment = true; // Set to true during development, false in production
+  const isDevelopment = true; // Always true during development, set to false in production
   const { user } = useAuth();
 
   // If authenticated or in development mode, render the outlet

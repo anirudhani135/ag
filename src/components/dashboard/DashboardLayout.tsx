@@ -74,13 +74,14 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto pt-20 pb-6 px-6 transition-all duration-300", // Added pt-20 to create space between navbar and content
-            sidebarOpen && !isMobile ? "md:ml-64" : "ml-0"
+            "flex-1 overflow-auto transition-all duration-300",
+            sidebarOpen && !isMobile ? "md:ml-64" : "ml-0",
+            "pt-6 pb-6 px-6" // Consistent padding all around
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
-          <div className="container mx-auto max-w-7xl">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>

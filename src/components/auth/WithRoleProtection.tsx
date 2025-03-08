@@ -7,8 +7,8 @@ type WithRoleProtectionProps = {
 }
 
 export const WithRoleProtection = ({ allowedRoles }: WithRoleProtectionProps) => {
-  // During development, bypass role check
-  const isDevelopment = true; // Set to true during development, false in production
+  // During development, always bypass role check
+  const isDevelopment = true; // Always true during development, set to false in production
   const { userRole } = useAuth();
 
   // If user has allowed role or in development mode, render children

@@ -153,6 +153,9 @@ const AppContent = () => {
           <Route index element={<Marketplace />} />
         </Route>
 
+        {/* Direct access to agent creation for development */}
+        <Route path="/agent-creation" element={<AgentCreation />} />
+
         {/* Redirects */}
         <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
         <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
