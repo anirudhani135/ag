@@ -7,7 +7,7 @@ interface WithRoleProtectionProps {
 }
 
 export const WithRoleProtection = ({ allowedRoles }: WithRoleProtectionProps) => {
-  // During development, bypass role check
+  // During development, always bypass role check
   const isDevelopment = true; // DEVELOPMENT MODE: Set to false in production
   const { user, userRole } = useAuth();
 

@@ -3,7 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export const ProtectedRoute = () => {
-  // During development, bypass authentication check - set to true for development
+  // During development, always bypass authentication check
   const isDevelopment = true; // DEVELOPMENT MODE: Set to false in production
   const { user } = useAuth();
 
