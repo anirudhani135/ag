@@ -51,7 +51,7 @@ export const UserReviews = () => {
 
   return (
     <DashboardLayout type="user">
-      <div className="min-h-screen space-y-6 p-8 pt-16 pb-16 bg-background">
+      <div className="min-h-screen space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Reviews</h2>
@@ -75,7 +75,7 @@ export const UserReviews = () => {
             </Select>
             <Button 
               onClick={handleNewReview}
-              className="bg-primary hover:bg-primary/90 text-white"
+              variant="action"
             >
               <Plus className="mr-2 h-4 w-4" />
               New Review

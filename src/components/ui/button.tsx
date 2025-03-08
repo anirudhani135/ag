@@ -21,6 +21,8 @@ const buttonVariants = cva(
         success: "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md shadow-sm hover:scale-[1.02]", 
         warning: "bg-amber-500 text-white hover:bg-amber-600 hover:shadow-md shadow-sm",
         info: "bg-sky-500 text-white hover:bg-sky-600 hover:shadow-md shadow-sm",
+        action: "bg-primary text-white hover:bg-primary/90 hover:shadow-md shadow-sm",
+        save: "bg-primary text-white hover:bg-primary/90 hover:shadow-md shadow-sm hover:scale-[1.02]",
       },
       size: {
         default: "h-10 px-4 py-2",

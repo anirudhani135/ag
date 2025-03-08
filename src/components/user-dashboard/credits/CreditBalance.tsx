@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const CreditBalance = () => {
@@ -30,13 +30,13 @@ export const CreditBalance = () => {
           Available Credits
         </CardTitle>
         <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+          <Coins className="h-4 w-4 mr-2" />
           Add Credits
         </Button>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
-          {profile?.credit_balance || 0}
+          {profile?.credit_balance || 0} credits
         </div>
         <p className="text-xs text-muted-foreground">
           Credits can be used to access premium features

@@ -121,7 +121,8 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Profile')}
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  variant="save" 
+                  className="flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -203,7 +204,8 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Notification')}
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  variant="save"
+                  className="flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -289,7 +291,8 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Payment')}
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  variant="save"
+                  className="flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -373,7 +376,8 @@ const Settings = () => {
                 <Button 
                   onClick={() => handleSaveSettings('Security')}
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  variant="save"
+                  className="flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>

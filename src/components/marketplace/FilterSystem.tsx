@@ -48,26 +48,26 @@ export const FilterSystem = ({
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 bg-white p-3 rounded-md shadow-sm mb-4">
       {sortOptions.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2 bg-white border-gray-300">
               <SortDesc className="h-4 w-4" />
               Sort
               {selectedSort && (
-                <span className="ml-1 text-xs opacity-70">
+                <span className="ml-1 text-xs font-medium text-gray-700">
                   {sortOptions.find(o => o.id === selectedSort)?.label || ''}
                 </span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-56 bg-white shadow-lg border border-gray-200">
             <DropdownMenuLabel>Sort By</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={selectedSort} onValueChange={onSortChange}>
               {sortOptions.map((option) => (
-                <DropdownMenuRadioItem key={option.id} value={option.id}>
+                <DropdownMenuRadioItem key={option.id} value={option.id} className="cursor-pointer">
                   {option.label}
                 </DropdownMenuRadioItem>
               ))}
@@ -78,7 +78,7 @@ export const FilterSystem = ({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2 bg-white border-gray-300">
             <Filter className="h-4 w-4" />
             Filters
             {selectedFilters.length > 0 && (
@@ -88,7 +88,7 @@ export const FilterSystem = ({
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
+        <DropdownMenuContent className="w-56 bg-white shadow-lg border border-gray-200">
           <DropdownMenuLabel>Filter By</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
@@ -97,6 +97,7 @@ export const FilterSystem = ({
                 key={option.id}
                 checked={selectedFilters.includes(option.id)}
                 onCheckedChange={() => toggleFilter(option.id)}
+                className="cursor-pointer"
               >
                 {option.label}
               </DropdownMenuCheckboxItem>

@@ -76,7 +76,7 @@ export const DashboardLayout = ({ children, type = "user" }: DashboardLayoutProp
           className={cn(
             "flex-1 overflow-auto transition-all duration-300",
             sidebarOpen && !isMobile ? "md:ml-64" : "ml-0",
-            "pt-6 pb-6 px-6" // Consistent padding all around
+            "pt-16 px-4 md:px-6 lg:px-8 pb-8" // Improved padding, especially top padding to prevent overlap with navbar
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}

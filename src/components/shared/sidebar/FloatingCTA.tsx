@@ -46,11 +46,16 @@ export const FloatingCTA = ({
     }
   };
 
+  // Don't render for users, only for developers
+  if (type === "user") {
+    return null;
+  }
+
   const buttonContent = (
     <Button
       onClick={handleClick}
       className={cn(
-        "fixed bottom-6 right-6 z-50 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg",
+        "fixed bottom-6 right-6 z-50 rounded-full bg-primary text-white shadow-lg",
         "flex items-center gap-2 px-6 py-4 font-medium transition-all duration-300",
         "hover:scale-105 hover:shadow-xl",
         className

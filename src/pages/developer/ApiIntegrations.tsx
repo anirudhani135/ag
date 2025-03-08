@@ -89,7 +89,7 @@ const ApiIntegrations = () => {
 
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6 p-4 md:p-8 pt-20 pb-16">
+      <div className="space-y-6">
         <ApiIntegrationsHeader />
         <ApiIntegrationsContent
           activeTab={activeTab}

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,6 +40,12 @@
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 
+  /* Hide scrollbar but allow scrolling */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  
   /* Optimize animations for reduced motion */
   @media (prefers-reduced-motion: reduce) {
     * {
@@ -80,7 +87,7 @@
   }
   
   .btn-action {
-    @apply bg-blue-600 text-white hover:bg-blue-700 shadow-md rounded-md px-4 py-2 transition-colors;
+    @apply bg-primary text-white hover:bg-primary/90 shadow-md rounded-md px-4 py-2 transition-colors;
   }
 }
 
