@@ -1,7 +1,6 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { DashboardLayout } from "../dashboard/DashboardLayout";
 
 export const ProtectedRoute = () => {
   // During development, bypass authentication check - set to true for development
