@@ -26,7 +26,7 @@ const Register = () => {
       description: "Accessing developer dashboard in development mode.",
       variant: "default",
     });
-    navigate("/developer/overview");
+    navigate("/developer/dashboard");
   };
 
   return (
@@ -48,7 +48,7 @@ const Register = () => {
       <div className="mt-4">
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full bg-white text-black border-gray-200 hover:bg-gray-50"
           onClick={handleDeveloperRegister}
         >
           Register as Developer (Dev Mode)

@@ -30,7 +30,7 @@ export const NavigationActions = ({
       <Button
         variant="outline"
         onClick={onPrevious}
-        className="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm"
+        className="w-full sm:w-auto bg-white text-black hover:bg-gray-50 border-gray-200"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
@@ -44,14 +44,14 @@ export const NavigationActions = ({
                 variant="outline"
                 onClick={onSaveDraft}
                 disabled={isSaving}
-                className="w-full sm:w-auto bg-white hover:bg-primary/5 text-primary border-primary/20 shadow-sm relative"
+                className="w-full sm:w-auto bg-white text-black hover:bg-gray-50 border-gray-200 relative"
                 aria-label="Save draft of your agent"
               >
                 {isSaving ? (
                   <>
                     <span className="opacity-0">Save Draft</span>
                     <svg 
-                      className="animate-spin h-5 w-5 text-primary absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" 
+                      className="animate-spin h-5 w-5 text-black absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" 
                       xmlns="http://www.w3.org/2000/svg" 
                       fill="none" 
                       viewBox="0 0 24 24"
@@ -92,8 +92,8 @@ export const NavigationActions = ({
               <Button
                 onClick={onNext}
                 disabled={!canProceed || isSubmitting}
-                className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 px-8 h-11
-                  shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full sm:w-auto bg-black text-white hover:bg-black/90 px-8 h-11
+                  shadow-sm hover:shadow-md transition-all duration-200"
                 aria-label={isLastStep ? "Submit your agent" : "Continue to the next step"}
               >
                 {isLastStep ? (

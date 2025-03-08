@@ -55,9 +55,9 @@ export const FloatingCTA = ({
     <Button
       onClick={handleClick}
       className={cn(
-        "fixed bottom-6 right-6 z-50 rounded-full bg-primary text-white shadow-lg",
+        "fixed bottom-6 right-6 z-50 rounded-full text-white shadow-lg",
         "flex items-center gap-2 px-6 py-4 font-medium transition-all duration-300",
-        "hover:scale-105 hover:shadow-xl",
+        "bg-black hover:bg-black/90 hover:scale-105 hover:shadow-xl",
         className
       )}
       aria-label={type === "developer" ? "Withdraw Funds" : "Buy Credits"}

@@ -25,8 +25,7 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
       <div className="flex flex-wrap gap-4 justify-start">
         <Button
           size="lg"
-          variant="action"
-          className="shadow-md hover:shadow-lg transition-all duration-300"
+          className="bg-white text-black border border-gray-200 shadow-sm hover:bg-gray-50 transition-all duration-300"
           onClick={() => handleAction('/developer/revenue', 'Accessing revenue withdrawal page')}
         >
           <DollarSign className="w-5 h-5 mr-2" />
@@ -34,8 +33,7 @@ export const QuickActions = ({ type }: QuickActionsProps) => {
         </Button>
         <Button
           size="lg"
-          variant="action"
-          className="shadow-md hover:shadow-lg transition-all duration-300"
+          className="bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-all duration-300"
           onClick={() => handleAction('/developer/agents/create', 'Creating a new agent')}
         >
           <Plus className="w-5 h-5 mr-2" />

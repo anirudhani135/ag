@@ -29,7 +29,11 @@ export const CreditBalance = () => {
         <CardTitle className="text-sm font-medium">
           Available Credits
         </CardTitle>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="bg-white text-black border border-gray-200 hover:bg-gray-50"
+        >
           <Coins className="h-4 w-4 mr-2" />
           Add Credits
         </Button>

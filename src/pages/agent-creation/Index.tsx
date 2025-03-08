@@ -31,8 +31,8 @@ const AgentCreationPage = () => {
 
   return (
     <DashboardLayout type="developer">
-      <div className="min-h-screen px-4">
-        <div className="container mx-auto max-w-4xl">
+      <div className="max-w-full px-4 md:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl">
           <AgentCreationHeader />
 
           <WizardLayout

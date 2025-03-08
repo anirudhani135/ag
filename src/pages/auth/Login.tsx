@@ -16,7 +16,7 @@ const Login = () => {
       description: "Bypassing authentication for development. Welcome!",
       variant: "default",
     });
-    navigate("/dashboard/overview");
+    navigate("/user/dashboard");
   };
 
   const handleDeveloperLogin = () => {
@@ -26,7 +26,17 @@ const Login = () => {
       description: "Accessing developer dashboard in development mode.",
       variant: "default",
     });
-    navigate("/developer/overview");
+    navigate("/developer/dashboard");
+  };
+
+  const handleAgentCreationAccess = () => {
+    // For development purposes, allow direct access to agent creation
+    toast({
+      title: "Agent Creation Access",
+      description: "Accessing agent creation page in development mode.",
+      variant: "default",
+    });
+    navigate("/developer/agents/create");
   };
 
   return (
@@ -45,13 +55,21 @@ const Login = () => {
         onSubmit={handleLogin}
       />
 
-      <div className="mt-4">
+      <div className="mt-4 space-y-2">
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full bg-white text-black border-gray-200 hover:bg-gray-50"
           onClick={handleDeveloperLogin}
         >
           Developer Dashboard (Dev Mode)
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="w-full bg-black text-white hover:bg-black/90"
+          onClick={handleAgentCreationAccess}
+        >
+          Agent Creation (Dev Mode)
         </Button>
       </div>
     </AuthLayout>
