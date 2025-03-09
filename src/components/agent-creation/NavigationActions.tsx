@@ -92,7 +92,7 @@ export const NavigationActions = ({
               <Button
                 onClick={onNext}
                 disabled={!canProceed || isSubmitting}
-                className="w-full sm:w-auto bg-black text-white hover:bg-black/90 px-8 h-11
+                className="w-full sm:w-auto bg-blue-500 text-white hover:bg-blue-600 px-8 h-11
                   shadow-sm hover:shadow-md transition-all duration-200"
                 aria-label={isLastStep ? "Submit your agent" : "Continue to the next step"}
               >

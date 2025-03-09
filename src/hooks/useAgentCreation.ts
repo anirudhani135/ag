@@ -48,8 +48,9 @@ export function useAgentCreation() {
     { id: crypto.randomUUID(), name: "Test Case 1", input: "Hello, how are you?", expectedOutput: "" }
   ]);
 
+  // Standardized step flow with clear labels
   const steps = [
-    { id: "basic-info", title: "Basic Info", isCompleted: false },
+    { id: "basic-info", title: "Agent Details", isCompleted: false },
     { id: "configuration", title: "Configuration", isCompleted: false },
     { id: "integration", title: "Integration", isCompleted: false },
     { id: "testing", title: "Testing", isCompleted: false },
@@ -58,17 +59,23 @@ export function useAgentCreation() {
 
   useEffect(() => {
     const fetchUserDetails = async () => {
+      // During development, we can bypass the actual authentication check
+      const devMode = true;
+      if (devMode) {
+        setUserDetails({ id: "dev-user-id" });
+        return;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserDetails({ id: user.id });
       } else {
-        // Development mode - don't redirect
-        setUserDetails({ id: "dev-user-id" });
+        navigate("/auth/login");
       }
     };
     
     fetchUserDetails();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
@@ -80,7 +87,7 @@ export function useAgentCreation() {
       } else {
         setCurrentStep(currentStep + 1);
         toast({
-          title: `Step ${currentStep + 1} completed`,
+          title: `${steps[currentStep].title} completed`,
           description: `Moving to ${steps[currentStep + 1].title}`,
         });
       }

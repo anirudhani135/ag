@@ -46,27 +46,49 @@ export const StepContentWrapper = ({
     switch (currentStep) {
       case 0:
         return (
-          <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0">
-            <div className="p-6 md:p-8 space-y-6">
+          <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0 w-full">
+            <div className="p-4 md:p-6 space-y-4">
               <BasicInfoStep data={basicInfo} onChange={setBasicInfo} />
             </div>
           </Card>
         );
       case 1:
-        return <ConfigurationStep onSave={handleConfigurationSave} initialData={configData} />;
+        return (
+          <div className="w-full space-y-4">
+            <ConfigurationStep onSave={handleConfigurationSave} initialData={configData} />
+          </div>
+        );
       case 2:
-        return <IntegrationStep onSave={handleIntegrationSave} initialData={integrationData} />;
+        return (
+          <div className="w-full space-y-4">
+            <IntegrationStep onSave={handleIntegrationSave} initialData={integrationData} />
+          </div>
+        );
       case 3:
-        return <TestingStep onSave={handleTestCasesSave} initialTestCases={testCases} />;
+        return (
+          <div className="w-full space-y-4">
+            <TestingStep onSave={handleTestCasesSave} initialTestCases={testCases} />
+          </div>
+        );
       case 4:
-        return <DeploymentConfiguration 
-                 agentId="temp-agent-id-for-development" 
-                 onDeploymentComplete={handleDeploymentComplete} 
-               />;
+        return (
+          <div className="w-full space-y-4">
+            <DeploymentConfiguration 
+              agentId="temp-agent-id-for-development" 
+              onDeploymentComplete={handleDeploymentComplete} 
+            />
+          </div>
+        );
       default:
         return null;
     }
   };
 
-  return renderCurrentStep();
+  return (
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-4xl">
+        {renderCurrentStep()}
+      </div>
+    </div>
+  );
 };
