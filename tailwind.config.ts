@@ -50,6 +50,9 @@ export default {
       animation: {
         'float': 'float 6s ease-in-out infinite',
         'scale': 'scale 0.2s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out forwards',
+        'slide-in': 'slideIn 0.3s ease-out forwards',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         float: {
@@ -59,6 +62,14 @@ export default {
         scale: {
           '0%': { transform: 'scale(1)' },
           '100%': { transform: 'scale(1.05)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(-10px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' }
         },
       },
     },

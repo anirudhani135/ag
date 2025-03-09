@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlayIcon, Plus, Save, Trash2, CheckCircle, XCircle, MessageSquare } from "lucide-react";
+import { PlayIcon, Plus, Save, Trash2, CheckCircle, XCircle, MessageSquare, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import { TestCase } from "@/types/agent-creation";
 
 interface TestingStepProps {
@@ -25,6 +27,8 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
   const [interactiveHistory, setInteractiveHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [isRunningAllTests, setIsRunningAllTests] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const addNewTestCase = () => {
@@ -36,11 +40,16 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
     };
     setTestCases([...testCases, newTestCase]);
     setSelectedTestCase(newTestCase.id);
+    
+    toast({
+      title: "Test case added",
+      description: `New test case "${newTestCase.name}" has been created.`,
+    });
   };
 
-  const updateTestCase = (id: string, updates: Partial<TestCase>) => {
+  const updateTestCase = useCallback((id: string, updates: Partial<TestCase>) => {
     setTestCases(testCases.map(tc => tc.id === id ? { ...tc, ...updates } : tc));
-  };
+  }, [testCases]);
 
   const deleteTestCase = (id: string) => {
     if (testCases.length <= 1) {
@@ -58,6 +67,12 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
     if (selectedTestCase === id) {
       setSelectedTestCase(updatedTestCases[0].id);
     }
+    
+    toast({
+      title: "Test case deleted",
+      description: "The test case has been removed.",
+      variant: "default",
+    });
   };
 
   const runTestCase = (id: string) => {
@@ -89,21 +104,25 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
 
   const runAllTests = () => {
     setIsRunningAllTests(true);
+    setProgress(0);
     
     // Simulate running all tests sequentially
     let count = 0;
+    const totalTests = testCases.length;
+    
     const timer = setInterval(() => {
-      if (count >= testCases.length) {
+      if (count >= totalTests) {
         clearInterval(timer);
         setIsRunningAllTests(false);
+        setProgress(100);
         
-        const results = testCases.filter(tc => tc.status === "failure").length;
+        const failedTests = testCases.filter(tc => tc.status === "failure").length;
         toast({
-          title: results === 0 ? "All tests passed" : `${results} tests failed`,
-          description: results === 0 
+          title: failedTests === 0 ? "All tests passed" : `${failedTests} tests failed`,
+          description: failedTests === 0 
             ? "All test cases executed successfully." 
-            : `${testCases.length - results}/${testCases.length} tests passed.`,
-          variant: results === 0 ? "default" : "destructive",
+            : `${totalTests - failedTests}/${totalTests} tests passed.`,
+          variant: failedTests === 0 ? "default" : "destructive",
         });
         return;
       }
@@ -119,15 +138,22 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
       });
       
       count++;
+      setProgress(Math.round((count / totalTests) * 100));
     }, 500);
   };
 
   const handleSave = () => {
-    onSave(testCases);
-    toast({
-      title: "Test cases saved",
-      description: `${testCases.length} test cases have been saved.`,
-    });
+    setIsSaving(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      onSave(testCases);
+      setIsSaving(false);
+      toast({
+        title: "Test cases saved",
+        description: `${testCases.length} test cases have been saved.`,
+      });
+    }, 800);
   };
 
   const sendInteractiveMessage = () => {
@@ -156,6 +182,8 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
       sendInteractiveMessage();
     }
   };
+
+  const selectedTestCaseData = testCases.find(tc => tc.id === selectedTestCase);
 
   return (
     <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0">
@@ -188,20 +216,20 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                     variant="outline"
                     size="sm"
                     onClick={addNewTestCase}
-                    className="h-8 px-2"
+                    className="h-8 px-2 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="h-[300px] border rounded-md p-2">
                   <div className="space-y-2">
                     {testCases.map((tc) => (
                       <div
                         key={tc.id}
-                        className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                        className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
                           tc.id === selectedTestCase
-                            ? "bg-primary/10 text-primary"
-                            : "hover:bg-gray-100"
+                            ? "bg-blue-50 text-blue-600 border border-blue-200"
+                            : "hover:bg-gray-50"
                         }`}
                         onClick={() => setSelectedTestCase(tc.id)}
                       >
@@ -221,7 +249,7 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                             e.stopPropagation();
                             deleteTestCase(tc.id);
                           }}
-                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100 hover:bg-red-50 hover:text-red-600 transition-colors"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -233,44 +261,67 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                   <Button
                     onClick={runAllTests}
                     disabled={isRunningAllTests}
-                    className="w-full"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
                   >
-                    {isRunningAllTests ? "Running..." : "Run All Tests"}
+                    {isRunningAllTests ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Running Tests...
+                      </>
+                    ) : (
+                      "Run All Tests"
+                    )}
                   </Button>
+                  {isRunningAllTests && (
+                    <div className="space-y-1">
+                      <Progress value={progress} className="h-2" />
+                      <p className="text-xs text-center text-muted-foreground">{progress}% complete</p>
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleSave}
-                    className="w-full"
+                    disabled={isSaving}
+                    className="w-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save All Tests
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save All Tests
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
               
               <div className="space-y-4 md:col-span-3">
-                {testCases.find(tc => tc.id === selectedTestCase) && (
+                {selectedTestCaseData && (
                   <>
                     <div className="space-y-3">
                       <Label htmlFor="testName">Test Name</Label>
                       <Input
                         id="testName"
-                        value={testCases.find(tc => tc.id === selectedTestCase)?.name || ""}
+                        value={selectedTestCaseData.name}
                         onChange={(e) =>
                           updateTestCase(selectedTestCase, { name: e.target.value })
                         }
-                        className="w-full"
+                        className="w-full focus:ring-2 focus:ring-blue-500 transition-shadow"
                       />
                     </div>
                     <div className="space-y-3">
                       <Label htmlFor="testInput">Input</Label>
                       <Textarea
                         id="testInput"
-                        value={testCases.find(tc => tc.id === selectedTestCase)?.input || ""}
+                        value={selectedTestCaseData.input}
                         onChange={(e) =>
                           updateTestCase(selectedTestCase, { input: e.target.value })
                         }
-                        className="min-h-[80px]"
+                        className="min-h-[80px] focus:ring-2 focus:ring-blue-500 transition-shadow"
                         placeholder="Enter test input..."
                       />
                     </div>
@@ -278,28 +329,28 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                       <Label htmlFor="expectedOutput">Expected Output (Optional)</Label>
                       <Textarea
                         id="expectedOutput"
-                        value={testCases.find(tc => tc.id === selectedTestCase)?.expectedOutput || ""}
+                        value={selectedTestCaseData.expectedOutput}
                         onChange={(e) =>
                           updateTestCase(selectedTestCase, { expectedOutput: e.target.value })
                         }
-                        className="min-h-[80px]"
+                        className="min-h-[80px] focus:ring-2 focus:ring-blue-500 transition-shadow"
                         placeholder="Enter expected output (leave blank for any output)..."
                       />
                       <p className="text-xs text-muted-foreground">
                         Leave blank to accept any response, or enter text that should be included in the response.
                       </p>
                     </div>
-                    {testCases.find(tc => tc.id === selectedTestCase)?.actualOutput && (
+                    {selectedTestCaseData.actualOutput && (
                       <div className="space-y-3">
                         <Label htmlFor="actualOutput">Actual Output</Label>
                         <div
                           className={`p-3 rounded-md text-sm ${
-                            testCases.find(tc => tc.id === selectedTestCase)?.status === "success"
+                            selectedTestCaseData.status === "success"
                               ? "bg-green-50 border border-green-100"
                               : "bg-red-50 border border-red-100"
                           }`}
                         >
-                          {testCases.find(tc => tc.id === selectedTestCase)?.actualOutput}
+                          {selectedTestCaseData.actualOutput}
                         </div>
                       </div>
                     )}
@@ -307,10 +358,19 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                       <Button
                         onClick={() => runTestCase(selectedTestCase)}
                         disabled={isRunningTest}
-                        className="w-full md:w-auto"
+                        className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white transition-colors"
                       >
-                        <PlayIcon className="h-4 w-4 mr-2" />
-                        {isRunningTest ? "Running Test..." : "Run Test"}
+                        {isRunningTest ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Running Test...
+                          </>
+                        ) : (
+                          <>
+                            <PlayIcon className="h-4 w-4 mr-2" />
+                            Run Test
+                          </>
+                        )}
                       </Button>
                     </div>
                   </>
@@ -341,9 +401,9 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                         <div
                           className={`max-w-[80%] px-4 py-2 rounded-lg ${
                             message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100"
+                          } transition-all duration-200 animate-fade-in`}
                         >
                           {message.content}
                         </div>
@@ -358,9 +418,12 @@ export const TestingStep = ({ onSave, initialTestCases = [] }: TestingStepProps)
                   onChange={(e) => setInteractiveInput(e.target.value)}
                   onKeyDown={handleInteractiveKeyDown}
                   placeholder="Type a message..."
-                  className="min-h-[60px]"
+                  className="min-h-[60px] focus:ring-2 focus:ring-blue-500 transition-shadow"
                 />
-                <Button onClick={sendInteractiveMessage} className="h-full px-4">
+                <Button 
+                  onClick={sendInteractiveMessage} 
+                  className="h-full px-4 bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                >
                   Send
                 </Button>
               </div>
