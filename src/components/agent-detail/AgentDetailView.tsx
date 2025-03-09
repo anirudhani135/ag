@@ -1,992 +1,950 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { CheckCircle, XCircle, AlertCircle, PlayIcon, Save, ExternalLink, BookOpen, Code, Globe, Settings, Activity, Star } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
-import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { TestCase } from '@/types/agent-creation';
 
-export const AgentDetailView = () => {
-  const { id } = useParams<{ id: string }>();
-  const { toast } = useToast();
-  const [agentData, setAgentData] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [isLoading, setIsLoading] = useState(true);
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [selectedTestCase, setSelectedTestCase] = useState<string | null>(null);
-  const [reviewText, setReviewText] = useState('');
-  const [rating, setRating] = useState(0);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [isRunningTest, setIsRunningTest] = useState(false);
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [deploymentProgress, setDeploymentProgress] = useState(0);
-  const [deploymentStatus, setDeploymentStatus] = useState<string | null>(null);
-  const [deploymentLogs, setDeploymentLogs] = useState<string[]>([]);
-  const [averageRating, setAverageRating] = useState(0);
-  const [reviewCount, setReviewCount] = useState(0);
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { Separator } from "@/components/ui/separator";
+import { ProgressCircle } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Play,
+  Edit,
+  Save,
+  Terminal,
+  AlertTriangle,
+  CheckCircle,
+  PlusCircle,
+  Settings,
+  FileJson,
+  ChevronDown,
+  Package,
+  Activity,
+  Calendar,
+  BarChart3,
+  Zap,
+  Code,
+  Clipboard,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
+import { TestCase } from "@/types/agent-creation";
+import { Json } from "@/integrations/supabase/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ensureValidTestCaseStatus, convertJsonToTestCases } from "@/fixes/AgentDetailViewFixer";
+
+// Import some charts for the metrics view
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts";
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+const AgentDetailView = () => {
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [agent, setAgent] = useState<any>(null);
   const [versions, setVersions] = useState<any[]>([]);
-  const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isRunningTest, setIsRunningTest] = useState(false);
+  const [editedAgent, setEditedAgent] = useState<any>(null);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
       fetchAgentDetails();
+      fetchVersionHistory();
       fetchTestCases();
-      fetchReviews();
-      fetchVersions();
+      fetchLogs();
     }
   }, [id]);
 
   const fetchAgentDetails = async () => {
+    setLoading(true);
     try {
-      setIsLoading(true);
       const { data, error } = await supabase
-        .from('agents')
-        .select('*')
-        .eq('id', id)
+        .from("agents")
+        .select("*")
+        .eq("id", id)
         .single();
 
       if (error) throw error;
-      setAgentData(data);
-      setIsLoading(false);
+      
+      setAgent(data);
+      setEditedAgent(data);
     } catch (error) {
-      console.error('Error fetching agent details:', error);
+      console.error("Error fetching agent details:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load agent details',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch agent details.",
+        variant: "destructive",
       });
-      setIsLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchVersionHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("agent_versions")
+        .select("*")
+        .eq("agent_id", id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setVersions(data || []);
+    } catch (error) {
+      console.error("Error fetching version history:", error);
     }
   };
 
   const fetchTestCases = async () => {
     try {
       const { data, error } = await supabase
-        .from('agents')
-        .select('test_results')
-        .eq('id', id)
+        .from("agents")
+        .select("test_cases")
+        .eq("id", id)
         .single();
 
       if (error) throw error;
-
-      if (data.test_results && Array.isArray(data.test_results)) {
-        const transformedTestCases: TestCase[] = data.test_results.map((testCase: any) => {
-          return {
-            id: testCase.id || crypto.randomUUID(),
-            name: testCase.name || `Test Case ${Math.random().toString(36).substring(7)}`,
-            input: testCase.input || '',
-            expectedOutput: testCase.expectedOutput || '',
-            actualOutput: testCase.actualOutput || '',
-            status: mapStatusToValidValue(testCase.status || '')
-          };
-        });
-
-        setTestCases(transformedTestCases);
-        
-        if (transformedTestCases.length > 0) {
-          setSelectedTestCase(transformedTestCases[0].id);
-        }
+      
+      if (data?.test_cases) {
+        const parsedTestCases = convertJsonToTestCases(data.test_cases);
+        setTestCases(parsedTestCases);
       }
     } catch (error) {
-      console.error('Error fetching test cases:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load test cases',
-        variant: 'destructive',
-      });
+      console.error("Error fetching test cases:", error);
     }
   };
 
-  const mapStatusToValidValue = (status: string): TestCase['status'] => {
-    if (status === 'success' || status === 'passed') return 'success';
-    if (status === 'failure' || status === 'failed') return 'failure';
-    if (status === 'running') return 'pending';
-    return 'pending';
-  };
-
-  const fetchReviews = async () => {
+  const fetchLogs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('agent_id', id);
-
-      if (error) throw error;
-      setReviews(data);
-
-      if (data.length > 0) {
-        const sum = data.reduce((acc: number, review: any) => {
-          const reviewRating = typeof review.rating === 'string' 
-            ? parseFloat(review.rating) 
-            : review.rating;
-            
-          return acc + (isNaN(reviewRating) ? 0 : reviewRating);
-        }, 0);
-        setAverageRating(sum / data.length);
-        setReviewCount(data.length);
-      }
+      // Simulated logs for now - in a real app, fetch from database
+      setLogs([
+        "2023-07-15 12:30:45 - Agent deployed successfully",
+        "2023-07-15 12:35:12 - First user interaction received",
+        "2023-07-15 13:45:22 - API rate limit warning (90% of allocation)",
+        "2023-07-16 08:12:33 - System prompt updated",
+        "2023-07-16 10:23:51 - Integration with knowledge base completed"
+      ]);
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error("Error fetching logs:", error);
     }
   };
 
-  const fetchVersions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('agent_versions')
-        .select('*')
-        .eq('agent_id', id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setVersions(data || []);
-
-      if (data && data.length > 0) {
-        setCurrentVersion(data[0].version_number);
-      }
-    } catch (error) {
-      console.error('Error fetching versions:', error);
-    }
+  const handleEdit = () => {
+    setIsEditing(true);
   };
 
-  const addTestCase = () => {
-    const newTestCase: TestCase = {
-      id: crypto.randomUUID(),
-      name: `Test Case ${testCases.length + 1}`,
-      input: '',
-      expectedOutput: '',
-      status: 'pending'
-    };
-
-    setTestCases([...testCases, newTestCase]);
-    setSelectedTestCase(newTestCase.id);
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedAgent(agent);
   };
 
-  const updateTestCase = (id: string, updates: Partial<TestCase>) => {
-    const updatedTestCases = testCases.map(tc => 
-      tc.id === id ? { ...tc, ...updates } : tc
-    );
-    setTestCases(updatedTestCases);
-  };
-
-  const deleteTestCase = (id: string) => {
-    if (testCases.length <= 1) {
-      toast({
-        title: 'Cannot delete',
-        description: 'You must have at least one test case',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const updatedTestCases = testCases.filter(tc => tc.id !== id);
-    setTestCases(updatedTestCases);
-
-    if (selectedTestCase === id) {
-      setSelectedTestCase(updatedTestCases[0]?.id || null);
-    }
-  };
-
-  const runTestCase = (id: string) => {
-    setIsRunningTest(true);
-    const testCase = testCases.find(tc => tc.id === id);
-
-    if (!testCase) return;
-
-    setTimeout(() => {
-      const mockOutput = `I'm a simulated response to "${testCase.input}". This would be the agent's actual response in production.`;
-      const success = !testCase.expectedOutput || testCase.expectedOutput.trim() === '' ||
-        mockOutput.includes(testCase.expectedOutput);
-
-      updateTestCase(id, {
-        actualOutput: mockOutput,
-        status: success ? 'success' : 'failure'
-      });
-
-      setIsRunningTest(false);
-
-      toast({
-        title: success ? 'Test passed' : 'Test failed',
-        description: success ? 'The test case executed successfully.' : 'The test output didn\'t match expectations.',
-        variant: success ? 'default' : 'destructive',
-      });
-    }, 1500);
-  };
-
-  const saveTestCases = async () => {
-    try {
-      const jsonTestCases = testCases.map(tc => ({
-        id: tc.id,
-        name: tc.name,
-        input: tc.input,
-        expectedOutput: tc.expectedOutput || '',
-        actualOutput: tc.actualOutput || '',
-        status: tc.status || 'pending'
-      }));
-
-      const { error } = await supabase
-        .from('agents')
-        .update({ test_results: jsonTestCases })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Test cases saved',
-        description: 'Your test cases have been saved successfully',
-      });
-    } catch (error) {
-      console.error('Error saving test cases:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save test cases',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const deployAgent = () => {
-    setIsDeploying(true);
-    setDeploymentProgress(0);
-    setDeploymentStatus('deploying');
-    setDeploymentLogs([
-      'Initializing deployment process...',
-      'Packaging agent configuration...'
-    ]);
-
-    const interval = setInterval(() => {
-      setDeploymentProgress(prev => {
-        const newProgress = prev + 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setDeploymentStatus('active');
-          setDeploymentLogs(prevLogs => [
-            ...prevLogs,
-            'Finalizing deployment...',
-            'Agent successfully deployed!'
-          ]);
-          setIsDeploying(false);
-          
-          updateAgentStatus('active');
-          
-          return 100;
-        }
-
-        if (newProgress === 30) {
-          setDeploymentLogs(prevLogs => [
-            ...prevLogs,
-            'Validating configuration...',
-            'Preparing runtime environment...'
-          ]);
-        } else if (newProgress === 60) {
-          setDeploymentLogs(prevLogs => [
-            ...prevLogs,
-            'Deploying agent model...',
-            'Setting up API endpoints...'
-          ]);
-        } else if (newProgress === 90) {
-          setDeploymentLogs(prevLogs => [
-            ...prevLogs,
-            'Running health checks...',
-            'Provisioning resources...'
-          ]);
-        }
-
-        return newProgress;
-      });
-    }, 800);
-  };
-
-  const updateAgentStatus = async (status: string) => {
+  const handleSave = async () => {
     try {
       const { error } = await supabase
-        .from('agents')
-        .update({ status })
-        .eq('id', id);
+        .from("agents")
+        .update({
+          title: editedAgent.title,
+          description: editedAgent.description,
+          price: editedAgent.price,
+          category: editedAgent.category
+        })
+        .eq("id", id);
 
       if (error) throw error;
-    } catch (error) {
-      console.error('Error updating agent status:', error);
-    }
-  };
-
-  const createNewVersion = async () => {
-    try {
-      const { data: agentData, error: agentError } = await supabase
-        .from('agents')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (agentError) throw agentError;
-
-      const latestVersion = versions.length > 0 ? versions[0].version_number : '0.0.0';
-      const versionParts = latestVersion.split('.');
-      const newVersion = `${versionParts[0]}.${versionParts[1]}.${parseInt(versionParts[2]) + 1}`;
-
-      const { error } = await supabase
-        .from('agent_versions')
+      
+      setAgent(editedAgent);
+      setIsEditing(false);
+      
+      // Also save changes as a new version
+      const { error: versionError } = await supabase
+        .from("agent_versions")
         .insert({
           agent_id: id,
-          version_number: newVersion,
-          configuration: agentData.runtime_config,
-          test_results: agentData.test_results,
-          status: 'draft'
+          version_number: `${versions.length + 1}.0.0`,
+          changes: "Updated agent details",
+          created_by: "current-user" // In a real app, get from auth context
         });
-
-      if (error) throw error;
-
+        
+      if (versionError) throw versionError;
+      
+      fetchVersionHistory(); // Refresh the version list
+      
       toast({
-        title: 'New version created',
-        description: `Version ${newVersion} has been created`,
+        title: "Success",
+        description: "Agent details updated successfully.",
       });
-
-      fetchVersions();
     } catch (error) {
-      console.error('Error creating new version:', error);
+      console.error("Error updating agent:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create new version',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update agent details.",
+        variant: "destructive",
       });
     }
   };
 
-  const switchVersion = (version: string) => {
-    setCurrentVersion(version);
-    toast({
-      title: 'Version switched',
-      description: `Switched to version ${version}`,
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditedAgent({
+      ...editedAgent,
+      [name]: name === "price" ? parseFloat(value) : value,
     });
   };
 
-  const handleReviewSubmit = async () => {
-    if (!rating || !reviewText.trim()) {
+  const handleRunTest = (testCase: TestCase) => {
+    setIsRunningTest(true);
+    
+    // Find the test case index
+    const testIndex = testCases.findIndex(tc => tc.id === testCase.id);
+    
+    if (testIndex === -1) return;
+    
+    // Update test status to running
+    const updatedTestCases = [...testCases];
+    updatedTestCases[testIndex] = {
+      ...updatedTestCases[testIndex],
+      status: "running"
+    };
+    setTestCases(updatedTestCases);
+    
+    // Simulate API call to test agent
+    setTimeout(() => {
+      const mockResponse = "This is a simulated response from the agent based on the test input.";
+      const success = Math.random() > 0.3; // 70% chance of success for simulation
+      
+      const finalTestCases = [...updatedTestCases];
+      finalTestCases[testIndex] = {
+        ...finalTestCases[testIndex],
+        actualOutput: mockResponse,
+        status: success ? "passed" : "failed"
+      };
+      
+      setTestCases(finalTestCases);
+      
+      // Save updated test cases to the database
+      saveTestCases(finalTestCases);
+      
+      setIsRunningTest(false);
+      
       toast({
-        title: 'Validation Error',
-        description: 'Please provide both a rating and review text',
-        variant: 'destructive',
+        title: success ? "Test passed" : "Test failed",
+        description: success ? "The test completed successfully." : "The test did not meet the expected output criteria.",
+        variant: success ? "default" : "destructive",
       });
-      return;
-    }
+    }, 2000);
+  };
 
+  const saveTestCases = async (updatedTestCases: TestCase[]) => {
     try {
-      const user = await supabase.auth.getUser();
       const { error } = await supabase
-        .from('reviews')
-        .insert({
-          user_id: user.data.user?.id || 'anonymous',
-          agent_id: id,
-          rating: rating,
-          comment: reviewText
-        });
+        .from("agents")
+        .update({
+          test_cases: updatedTestCases
+        })
+        .eq("id", id);
 
       if (error) throw error;
-
-      toast({
-        title: 'Review submitted',
-        description: 'Your review has been successfully submitted',
-      });
-
-      setReviewText('');
-      setRating(0);
-      fetchReviews();
     } catch (error) {
-      console.error('Error submitting review:', error);
+      console.error("Error saving test cases:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to submit review',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save test results.",
+        variant: "destructive",
       });
     }
   };
 
-  if (isLoading) {
+  const handleRunAllTests = () => {
+    if (testCases.length === 0) {
+      toast({
+        title: "No tests to run",
+        description: "There are no test cases available.",
+      });
+      return;
+    }
+    
+    setIsRunningTest(true);
+    
+    // Mark all tests as running
+    const runningTestCases = testCases.map(tc => ({
+      ...tc,
+      status: "running" as const
+    }));
+    
+    setTestCases(runningTestCases);
+    
+    // Simulate running tests one by one
+    let currentIndex = 0;
+    const runNextTest = () => {
+      if (currentIndex >= testCases.length) {
+        setIsRunningTest(false);
+        return;
+      }
+      
+      setTimeout(() => {
+        const mockResponse = "This is a simulated response from the agent based on the test input.";
+        const success = Math.random() > 0.3; // 70% chance of success for simulation
+        
+        const updatedTestCases = [...testCases];
+        updatedTestCases[currentIndex] = {
+          ...updatedTestCases[currentIndex],
+          actualOutput: mockResponse,
+          status: success ? "passed" : "failed"
+        };
+        
+        setTestCases(updatedTestCases);
+        currentIndex++;
+        runNextTest();
+      }, 1000);
+    };
+    
+    runNextTest();
+  };
+
+  const handleAddTestCase = () => {
+    const newTestCase: TestCase = {
+      id: crypto.randomUUID(),
+      name: `Test Case ${testCases.length + 1}`,
+      input: "",
+      expectedOutput: "",
+      status: "pending"
+    };
+    
+    const updatedTestCases = [...testCases, newTestCase];
+    setTestCases(updatedTestCases);
+    saveTestCases(updatedTestCases);
+  };
+
+  const getStatusIcon = (status: string) => {
+    if (status === "passed" || status === "success") {
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    } else if (status === "failed" || status === "failure") {
+      return <XCircle className="h-5 w-5 text-red-500" />;
+    } else if (status === "running") {
+      return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
+    } else {
+      return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+    }
+  };
+
+  const getDeploymentStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-500";
+      case "deploying":
+        return "bg-blue-500";
+      case "failed":
+        return "bg-red-500";
+      case "inactive":
+        return "bg-gray-500";
+      default:
+        return "bg-yellow-500";
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[600px]">
-        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
+      <div className="flex justify-center items-center min-h-screen">
+        <RefreshCw className="h-10 w-10 text-primary animate-spin" />
       </div>
     );
   }
 
-  if (!agentData) {
+  if (!agent) {
     return (
-      <div className="text-center p-8">
-        <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Agent Not Found</h2>
-        <p className="text-muted-foreground">The requested agent could not be found.</p>
+      <div className="flex justify-center items-center min-h-screen">
+        <Alert variant="destructive" className="max-w-lg">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            Agent not found or you don't have permission to view it.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
-
-  const currentTestCase = selectedTestCase
-    ? testCases.find(tc => tc.id === selectedTestCase)
-    : null;
 
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-2/3 space-y-6">
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-secondary/10 pb-2">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <CardTitle className="text-2xl">{agentData.title}</CardTitle>
-                  <CardDescription className="mt-1">{agentData.description}</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={agentData.status === 'active' ? 'success' : 'default'}>
-                    {agentData.status === 'active' ? 'Active' : 'Draft'}
-                  </Badge>
-                  <Badge variant="secondary">v{currentVersion || '1.0.0'}</Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-4">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="configuration">Configuration</TabsTrigger>
-                  <TabsTrigger value="testing">Testing</TabsTrigger>
-                  <TabsTrigger value="deployment">Deployment</TabsTrigger>
-                  <TabsTrigger value="versions">Versions</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Agent Details</h3>
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-sm text-muted-foreground">Category</Label>
-                          <p>{agentData.category_id || 'General'}</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-muted-foreground">Price</Label>
-                          <p>${parseFloat(agentData.price).toFixed(2)} USD</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-muted-foreground">Created By</Label>
-                          <p>{agentData.developer_id ? 'Developer' : 'Unknown'}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Features</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {Array.isArray(agentData.features) && agentData.features.map((tag: string, i: number) => (
-                          <Badge key={i} variant="outline">{tag}</Badge>
-                        ))}
-                        {(!agentData.features || !agentData.features.length) && (
-                          <p className="text-muted-foreground text-sm">No features specified</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Technical Requirements</h3>
-                    {agentData.technical_requirements ? (
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="rounded-lg bg-secondary/10 p-3">
-                            <p className="font-medium">API Access</p>
-                            <p className="text-sm text-muted-foreground">
-                              {typeof agentData.technical_requirements === 'object' && 
-                               agentData.technical_requirements.integration && 
-                               agentData.technical_requirements.integration.authType !== 'none' 
-                                ? 'Required' 
-                                : 'Not Required'}
-                            </p>
-                          </div>
-                          <div className="rounded-lg bg-secondary/10 p-3">
-                            <p className="font-medium">External Services</p>
-                            <p className="text-sm text-muted-foreground">
-                              {typeof agentData.technical_requirements === 'object' && 
-                               agentData.technical_requirements.integration && 
-                               agentData.technical_requirements.integration.externalServices?.length 
-                                ? `${agentData.technical_requirements.integration.externalServices.length} services` 
-                                : 'None'}
-                            </p>
-                          </div>
-                          <div className="rounded-lg bg-secondary/10 p-3">
-                            <p className="font-medium">Rate Limit</p>
-                            <p className="text-sm text-muted-foreground">
-                              {typeof agentData.technical_requirements === 'object' && 
-                               agentData.technical_requirements.integration && 
-                               agentData.technical_requirements.integration.enableRateLimit 
-                                ? `${agentData.technical_requirements.integration.rateLimitPerMinute} requests/min` 
-                                : 'Unlimited'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No technical requirements specified</p>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="configuration" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="model">Model</Label>
-                        <Input 
-                          id="model" 
-                          value={agentData.runtime_config?.model || 'gpt-4o'} 
-                          readOnly
-                          className="bg-muted"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="temperature">Temperature</Label>
-                        <Input 
-                          id="temperature" 
-                          type="number" 
-                          value={agentData.runtime_config?.temperature || 0.7} 
-                          readOnly
-                          className="bg-muted"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="maxTokens">Max Tokens</Label>
-                        <Input 
-                          id="maxTokens" 
-                          type="number" 
-                          value={agentData.runtime_config?.maxTokens || 4096} 
-                          readOnly
-                          className="bg-muted"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="systemPrompt">System Prompt</Label>
-                        <Textarea 
-                          id="systemPrompt"
-                          className="min-h-[150px] bg-muted"
-                          value={agentData.runtime_config?.systemPrompt || 'You are a helpful AI assistant.'}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4 mt-4">
-                    <h3 className="text-lg font-medium">Advanced Settings</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex items-center justify-between rounded-lg border p-3">
-                        <div>
-                          <p className="font-medium">Logging</p>
-                          <p className="text-sm text-muted-foreground">Request & response logs</p>
-                        </div>
-                        <Badge variant={agentData.runtime_config?.enableLogging ? "success" : "outline"}>
-                          {agentData.runtime_config?.enableLogging ? "Enabled" : "Disabled"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg border p-3">
-                        <div>
-                          <p className="font-medium">Metrics</p>
-                          <p className="text-sm text-muted-foreground">Performance tracking</p>
-                        </div>
-                        <Badge variant={agentData.runtime_config?.enableMetrics ? "success" : "outline"}>
-                          {agentData.runtime_config?.enableMetrics ? "Enabled" : "Disabled"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg border p-3">
-                        <div>
-                          <p className="font-medium">Rate Limiting</p>
-                          <p className="text-sm text-muted-foreground">Calls per minute: {agentData.runtime_config?.requestsPerMinute || "Unlimited"}</p>
-                        </div>
-                        <Badge variant={agentData.runtime_config?.enableRateLimiting ? "success" : "outline"}>
-                          {agentData.runtime_config?.enableRateLimiting ? "Enabled" : "Disabled"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="testing" className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Test Cases</h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={addTestCase}>
-                        Add Test Case
-                      </Button>
-                      <Button variant="default" size="sm" onClick={saveTestCases}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Tests
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="space-y-4 md:col-span-1">
-                      <ScrollArea className="h-[300px]">
-                        <div className="space-y-2">
-                          {testCases.map((tc) => (
-                            <div
-                              key={tc.id}
-                              className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                                tc.id === selectedTestCase
-                                  ? "bg-primary/10 text-primary"
-                                  : "hover:bg-gray-100"
-                              }`}
-                              onClick={() => setSelectedTestCase(tc.id)}
-                            >
-                              <div className="flex items-center truncate">
-                                {tc.status === 'success' || tc.status === 'passed' && (
-                                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                )}
-                                {tc.status === 'failure' || tc.status === 'failed' && (
-                                  <XCircle className="h-4 w-4 text-red-500 mr-2" />
-                                )}
-                                {tc.status === 'pending' || tc.status === 'running' && (
-                                  <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
-                                )}
-                                <span className="truncate max-w-[120px]">{tc.name}</span>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteTestCase(tc.id);
-                                }}
-                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                              >
-                                <XCircle className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                    
-                    <div className="space-y-4 md:col-span-3">
-                      {currentTestCase && (
-                        <>
-                          <div className="space-y-3">
-                            <Label htmlFor="testName">Test Name</Label>
-                            <Input
-                              id="testName"
-                              value={currentTestCase.name}
-                              onChange={(e) =>
-                                updateTestCase(currentTestCase.id, { name: e.target.value })
-                              }
-                              className="w-full"
-                            />
-                          </div>
-                          <div className="space-y-3">
-                            <Label htmlFor="testInput">Input</Label>
-                            <Textarea
-                              id="testInput"
-                              value={currentTestCase.input}
-                              onChange={(e) =>
-                                updateTestCase(currentTestCase.id, { input: e.target.value })
-                              }
-                              className="min-h-[80px]"
-                              placeholder="Enter test input..."
-                            />
-                          </div>
-                          <div className="space-y-3">
-                            <Label htmlFor="expectedOutput">Expected Output (Optional)</Label>
-                            <Textarea
-                              id="expectedOutput"
-                              value={currentTestCase.expectedOutput || ''}
-                              onChange={(e) =>
-                                updateTestCase(currentTestCase.id, { expectedOutput: e.target.value })
-                              }
-                              className="min-h-[80px]"
-                              placeholder="Enter expected output (leave blank for any output)..."
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              Leave blank to accept any response, or enter text that should be included in the response.
-                            </p>
-                          </div>
-                          {currentTestCase.actualOutput && (
-                            <div className="space-y-3">
-                              <Label htmlFor="actualOutput">Actual Output</Label>
-                              <div
-                                className={`p-3 rounded-md text-sm ${
-                                  currentTestCase.status === 'success' || currentTestCase.status === 'passed'
-                                    ? "bg-green-50 border border-green-100"
-                                    : "bg-red-50 border border-red-100"
-                                }`}
-                              >
-                                {currentTestCase.actualOutput}
-                              </div>
-                            </div>
-                          )}
-                          <div className="pt-2">
-                            <Button
-                              onClick={() => runTestCase(currentTestCase.id)}
-                              disabled={isRunningTest}
-                              className="w-full md:w-auto"
-                            >
-                              <PlayIcon className="h-4 w-4 mr-2" />
-                              {isRunningTest ? "Running Test..." : "Run Test"}
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="deployment" className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-lg font-medium">Deployment Status</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Current status: <Badge variant={agentData.status === 'active' ? 'success' : 'outline'}>
-                            {agentData.status === 'active' ? 'Active' : (deploymentStatus || 'Not Deployed')}
-                          </Badge>
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={deployAgent} 
-                        disabled={isDeploying || agentData.status === 'active'} 
-                        variant={agentData.status === 'active' ? 'outline' : 'default'}
-                      >
-                        {agentData.status === 'active' ? 'Already Deployed' : (isDeploying ? 'Deploying...' : 'Deploy Agent')}
-                      </Button>
-                    </div>
-
-                    {(isDeploying || deploymentStatus) && (
-                      <div className="space-y-4 mt-4 border rounded-lg p-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <Label>Deployment Progress</Label>
-                            <Badge variant="outline">{deploymentProgress}%</Badge>
-                          </div>
-                          <Progress value={deploymentProgress} className="h-2" />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Deployment Logs</Label>
-                          <div className="bg-secondary/10 p-3 rounded-md text-sm font-mono h-[200px] overflow-auto">
-                            {deploymentLogs.map((log, index) => (
-                              <div key={index} className="py-1">
-                                <span className="text-muted-foreground">[{new Date().toISOString().substring(11, 19)}]</span> {log}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-4 mt-4">
-                      <h3 className="text-lg font-medium">Access Information</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="border rounded-lg p-4 space-y-3">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-medium flex items-center">
-                              <Globe className="h-4 w-4 mr-2" /> API Endpoint
-                            </h4>
-                            <Badge variant="outline">REST API</Badge>
-                          </div>
-                          <div className="bg-secondary/10 p-2 rounded flex items-center justify-between">
-                            <code className="text-sm truncate">https://api.example.com/v1/agents/{id}</code>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="lucide lucide-copy"
-                              >
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                              </svg>
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="border rounded-lg p-4 space-y-3">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-medium flex items-center">
-                              <BookOpen className="h-4 w-4 mr-2" /> Documentation
-                            </h4>
-                            <Badge variant="outline">Developer Guide</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Access detailed documentation for integration and usage examples.
-                          </p>
-                          <Button variant="outline" size="sm" className="w-full">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View Documentation
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="versions" className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Version History</h3>
-                    <Button onClick={createNewVersion}>Create New Version</Button>
-                  </div>
-
-                  <div className="border rounded-lg divide-y">
-                    {versions.length > 0 ? (
-                      versions.map((version, index) => (
-                        <div key={index} className="p-4 flex items-center justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center">
-                              <h4 className="font-medium">Version {version.version_number}</h4>
-                              {version.version_number === currentVersion && (
-                                <Badge variant="outline" className="ml-2">Current</Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              Created on {new Date(version.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              disabled={version.version_number === currentVersion}
-                              onClick={() => switchVersion(version.version_number)}
-                            >
-                              {version.version_number === currentVersion ? 'Active' : 'Switch to this version'}
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-6 text-center text-muted-foreground">
-                        <p>No version history found.</p>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">{agent.title}</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge 
+              className={`px-2 py-1 ${getDeploymentStatusColor(agent.deployment_status)}`}
+            >
+              {agent.deployment_status || "Inactive"}
+            </Badge>
+            <Badge variant="outline" className="px-2 py-1">
+              {agent.category}
+            </Badge>
+            <Badge variant="secondary" className="px-2 py-1">
+              ${agent.price.toFixed(2)}
+            </Badge>
+          </div>
         </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the agent
+                  and all associated data including deployment, versions, and test cases.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-red-500 hover:bg-red-600">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                Actions
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Agent Options</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Play className="mr-2 h-4 w-4" /> Test Agent
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Edit className="mr-2 h-4 w-4" /> Edit Configuration
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Terminal className="mr-2 h-4 w-4" /> View Logs
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Package className="mr-2 h-4 w-4" /> Export Agent
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
 
-        <div className="w-full lg:w-1/3 space-y-6">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-5 sm:w-[600px]">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="testing">Testing</TabsTrigger>
+          <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsTrigger value="versions">Versions</TabsTrigger>
+          <TabsTrigger value="logs">Logs</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Agent Stats</CardTitle>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Package className="mr-2 h-5 w-5" />
+                Agent Details
+                {!isEditing && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleEdit}
+                    className="ml-auto"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant={agentData.status === 'active' ? 'success' : 'outline'}>
-                    {agentData.status === 'active' ? 'Active' : 'Draft'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Rating</span>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
-                    <span>{averageRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground text-sm ml-1">({reviewCount})</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Version</span>
-                  <span>{currentVersion || '1.0.0'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Test Cases</span>
-                  <span>{testCases.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Price</span>
-                  <span>${parseFloat(agentData.price).toFixed(2)} USD</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <PlayIcon className="h-4 w-4 mr-2" /> Try Demo
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Code className="h-4 w-4 mr-2" /> View API docs
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="h-4 w-4 mr-2" /> Configure settings
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Activity className="h-4 w-4 mr-2" /> View analytics
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Reviews</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {reviews.length > 0 ? (
+              {isEditing ? (
                 <div className="space-y-4">
-                  {reviews.slice(0, 3).map((review, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium">
-                            {review.user_id.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div className="ml-2">
-                            <p className="text-sm font-medium">User {review.user_id.substring(0, 6)}</p>
-                            <div className="flex items-center text-yellow-400">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm">{review.comment}</p>
-                      <Separator />
-                    </div>
-                  ))}
-                  {reviews.length > 3 && (
-                    <Button variant="link" className="w-full">View all {reviews.length} reviews</Button>
-                  )}
+                  <div>
+                    <label className="text-sm font-medium">Title</label>
+                    <Input
+                      name="title"
+                      value={editedAgent.title}
+                      onChange={handleInputChange}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea
+                      name="description"
+                      value={editedAgent.description}
+                      onChange={handleInputChange}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Price</label>
+                    <Input
+                      name="price"
+                      type="number"
+                      value={editedAgent.price}
+                      onChange={handleInputChange}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Category</label>
+                    <Input
+                      name="category"
+                      value={editedAgent.category}
+                      onChange={handleInputChange}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave}>
+                      <Save className="h-4 w-4 mr-1" />
+                      Save Changes
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  <p>No reviews yet.</p>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                    <p className="mt-1">{agent.description}</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Category</h3>
+                      <p className="mt-1">{agent.category}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                      <p className="mt-1">${agent.price.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Created</h3>
+                      <p className="mt-1">{new Date(agent.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Last Updated</h3>
+                      <p className="mt-1">{new Date(agent.updated_at || agent.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
 
-              <
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="mr-2 h-5 w-5" />
+                  Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Model</h3>
+                    <p className="mt-1">{agent.config?.model || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Temperature</h3>
+                    <p className="mt-1">{agent.config?.temperature || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Max Tokens</h3>
+                    <p className="mt-1">{agent.config?.maxTokens || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">System Prompt</h3>
+                    <div className="mt-1 p-3 bg-gray-50 rounded-md text-sm">
+                      <code className="whitespace-pre-wrap">{agent.config?.systemPrompt || "Not specified"}</code>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileJson className="mr-2 h-5 w-5" />
+                  Integration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">API Endpoint</h3>
+                    <div className="mt-1 flex items-center">
+                      <code className="bg-gray-50 p-1 rounded text-sm mr-2">
+                        {agent.api_endpoint || "Not deployed"}
+                      </code>
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        navigator.clipboard.writeText(agent.api_endpoint || "");
+                        toast({ title: "Copied to clipboard" });
+                      }}>
+                        <Clipboard className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">API Key Required</h3>
+                    <p className="mt-1">{agent.integration_config?.api_key_required ? "Yes" : "No"}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Webhooks</h3>
+                    <p className="mt-1">{agent.integration_config?.webhooks?.length || 0} configured</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">External Services</h3>
+                    <p className="mt-1">{agent.integration_config?.external_services?.length || 0} connected</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Testing Tab */}
+        <TabsContent value="testing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Activity className="mr-2 h-5 w-5" />
+                  Test Cases
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleRunAllTests} disabled={isRunningTest}>
+                    {isRunningTest ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Running...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="mr-2 h-4 w-4" />
+                        Run All Tests
+                      </>
+                    )}
+                  </Button>
+                  <Button onClick={handleAddTestCase}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Test Case
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {testCases.length === 0 ? (
+                <div className="text-center py-6">
+                  <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-2" />
+                  <p className="text-gray-500">No test cases found.</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Add test cases to verify your agent's functionality.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]">Status</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Input</TableHead>
+                        <TableHead>Expected Output</TableHead>
+                        <TableHead>Actual Output</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {testCases.map((testCase) => (
+                        <TableRow key={testCase.id}>
+                          <TableCell>
+                            {getStatusIcon(testCase.status || 'pending')}
+                          </TableCell>
+                          <TableCell>{testCase.name}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {testCase.input}
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {testCase.expectedOutput || "(Any response)"}
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {testCase.actualOutput || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleRunTest(testCase)}
+                              disabled={isRunningTest || testCase.status === "running"}
+                            >
+                              {testCase.status === "running" ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Metrics Tab */}
+        <TabsContent value="metrics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {agent.performance_metrics?.total_requests || 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  +12% from last week
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Average Response Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {agent.performance_metrics?.avg_response_time || 0}ms
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  -5% from last week
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {agent.performance_metrics?.success_rate || 0}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  +3% from last week
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Request Volume
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart
+                    data={[
+                      { name: 'Mon', value: 120 },
+                      { name: 'Tue', value: 160 },
+                      { name: 'Wed', value: 180 },
+                      { name: 'Thu', value: 170 },
+                      { name: 'Fri', value: 190 },
+                      { name: 'Sat', value: 110 },
+                      { name: 'Sun', value: 90 },
+                    ]}
+                    margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Response Time Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: '<100ms', value: 30 },
+                        { name: '100-200ms', value: 40 },
+                        { name: '200-300ms', value: 20 },
+                        { name: '300-500ms', value: 8 },
+                        { name: '>500ms', value: 2 },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label
+                    >
+                      {[
+                        { name: '<100ms', value: 30 },
+                        { name: '100-200ms', value: 40 },
+                        { name: '200-300ms', value: 20 },
+                        { name: '300-500ms', value: 8 },
+                        { name: '>500ms', value: 2 },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Versions Tab */}
+        <TabsContent value="versions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5" />
+                Version History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {versions.length === 0 ? (
+                <div className="text-center py-6">
+                  <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-2" />
+                  <p className="text-gray-500">No version history found.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {versions.map((version, index) => (
+                    <div key={version.id} className="flex">
+                      <div className="mr-4 flex flex-col items-center">
+                        <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                          {index + 1}
+                        </div>
+                        {index < versions.length - 1 && <div className="w-0.5 bg-gray-200 h-full mt-1"></div>}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center mb-1">
+                          <h3 className="font-medium mr-2">Version {version.version_number}</h3>
+                          <Badge variant="outline">
+                            {new Date(version.created_at).toLocaleDateString()}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-2">{version.changes}</p>
+                        <div className="flex text-xs text-gray-400">
+                          <span>Created by {version.created_by}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Logs Tab */}
+        <TabsContent value="logs" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Code className="mr-2 h-5 w-5" />
+                Deployment and Activity Logs
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="space-y-2 pr-4">
+                  {logs.map((log, index) => (
+                    <div 
+                      key={index}
+                      className="p-2 bg-muted rounded-md text-sm font-mono"
+                    >
+                      {log}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AgentDetailView;
