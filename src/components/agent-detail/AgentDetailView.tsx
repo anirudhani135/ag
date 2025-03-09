@@ -71,7 +71,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { Json } from "@/integrations/supabase/types";
 import { BasicInfoFormData, ConfigFormData, TestCase } from "@/types/agent-creation";
-// Import the ProgressCircle from our new file instead of the non-existent import
 import { ProgressCircle } from "@/components/ui/progress-circle";
 
 interface Agent {
@@ -195,7 +194,6 @@ const AgentDetailView = () => {
     if (!agentId) return;
 
     try {
-      // Test cases should be fetched from agent_versions, not directly from agents
       const { data: versionData, error: versionError } = await supabase
         .from('agent_versions')
         .select('*')
@@ -209,8 +207,8 @@ const AgentDetailView = () => {
       }
 
       if (versionData && versionData.length > 0 && versionData[0].test_cases) {
-        // Properly type the test cases from the version data
-        setTestCases(versionData[0].test_cases as TestCase[]);
+        const testCasesData = versionData[0].test_cases as unknown;
+        setTestCases(testCasesData as TestCase[]);
       }
     } catch (error) {
       console.error('Error in fetchTestCases:', error);
@@ -237,7 +235,6 @@ const AgentDetailView = () => {
   const handleUpdateAgent = async () => {
     if (!agentId) return;
 
-    // Remove test_cases from the agent update
     const agentUpdate = {
       title: formData.title,
       description: formData.description,
