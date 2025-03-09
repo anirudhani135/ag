@@ -27,7 +27,7 @@ export interface TestCase {
   input: string;
   expectedOutput?: string;
   actualOutput?: string;
-  status?: "success" | "failure" | "pending";
+  status?: "success" | "failure" | "pending" | "passed" | "failed" | "running";
 }
 
 export interface WizardStep {

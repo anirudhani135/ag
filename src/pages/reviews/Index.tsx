@@ -1,39 +1,40 @@
 
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card } from "@/components/ui/card";
-import { ReviewForm } from "@/components/reviews/ReviewForm";
-import { ReviewList } from "@/components/reviews/ReviewList";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState } from 'react';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import ReviewForm from '@/components/reviews/ReviewForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 
-const Reviews = () => {
-  const { agentId } = useParams();
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-
+const ReviewsPage = () => {
+  const [agentId, setAgentId] = useState('sample-agent-id');
+  const { toast } = useToast();
+  
+  const handleReviewSubmitted = () => {
+    toast({
+      title: "Review submitted",
+      description: "Your review has been submitted successfully",
+    });
+  };
+  
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Reviews & Feedback</h2>
-          <p className="text-muted-foreground">Share your experience and read others' reviews</p>
-        </div>
-
-        {agentId && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
-            <ReviewForm
-              agentId={agentId}
-              onSuccess={() => {
-                setIsSubmittingReview(false);
-              }}
+    <DashboardLayout type="user">
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Submit a Review</h1>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Agent Review</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReviewForm 
+              agentId={agentId} 
+              onReviewSubmitted={handleReviewSubmitted} 
             />
-          </Card>
-        )}
-
-        <ReviewList agentId={agentId} />
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
 };
 
-export default Reviews;
+export default ReviewsPage;
