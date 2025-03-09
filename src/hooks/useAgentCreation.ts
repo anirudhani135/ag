@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +16,7 @@ export function useAgentCreation() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userDetails, setUserDetails] = useState<{ id: string } | null>(null);
+  const [createdAgentId, setCreatedAgentId] = useState<string | null>(null);
   
   const [basicInfo, setBasicInfo] = useState<BasicInfoFormData>({
     title: "",
@@ -82,8 +82,9 @@ export function useAgentCreation() {
       const updatedSteps = [...steps];
       updatedSteps[currentStep] = { ...updatedSteps[currentStep], isCompleted: true };
       
-      if (currentStep === steps.length - 1) {
-        await handleSubmit();
+      if (currentStep === steps.length - 2) {
+        // If moving to the last step (deployment), we need to save/submit the agent first
+        await handleSaveDraft(true);
       } else {
         setCurrentStep(currentStep + 1);
         toast({
@@ -121,13 +122,20 @@ export function useAgentCreation() {
     };
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (moveToDeployment = false) => {
     if (!userDetails?.id) {
       toast({
         title: "Development mode",
         description: "Saving draft in development mode",
         variant: "default",
       });
+      
+      // In development mode, just generate a fake ID for testing
+      if (moveToDeployment) {
+        setCreatedAgentId("dev-agent-id-" + Math.random().toString(36).substring(7));
+        setCurrentStep(currentStep + 1);
+      }
+      
       return;
     }
 
@@ -136,18 +144,34 @@ export function useAgentCreation() {
     try {
       const agentData = prepareAgentData('draft');
 
-      const { data, error } = await supabase
-        .from('agents')
-        .insert(agentData)
-        .select('id')
-        .single();
+      // If we already created an agent, update it
+      if (createdAgentId) {
+        const { error } = await supabase
+          .from('agents')
+          .update(agentData)
+          .eq('id', createdAgentId);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Otherwise create a new agent
+        const { data, error } = await supabase
+          .from('agents')
+          .insert(agentData)
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        setCreatedAgentId(data.id);
+      }
 
       toast({
         title: "Draft saved",
         description: "Your agent configuration has been saved as a draft.",
       });
+      
+      if (moveToDeployment) {
+        setCurrentStep(currentStep + 1);
+      }
       
     } catch (error) {
       console.error("Error saving draft:", error);
@@ -168,6 +192,10 @@ export function useAgentCreation() {
         description: "Submitting agent in development mode",
         variant: "default",
       });
+      
+      // In development mode, just generate a fake ID for testing
+      setCreatedAgentId("dev-agent-id-" + Math.random().toString(36).substring(7));
+      setCurrentStep(steps.length - 1); // Move to deployment step
       return;
     }
 
@@ -176,20 +204,34 @@ export function useAgentCreation() {
     try {
       const agentData = prepareAgentData('pending_review');
 
-      const { data, error } = await supabase
-        .from('agents')
-        .insert(agentData)
-        .select('id')
-        .single();
+      // If we already created an agent, update it
+      if (createdAgentId) {
+        const { error } = await supabase
+          .from('agents')
+          .update(agentData)
+          .eq('id', createdAgentId);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Otherwise create a new agent
+        const { data, error } = await supabase
+          .from('agents')
+          .insert(agentData)
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        setCreatedAgentId(data.id);
+      }
 
       toast({
         title: "Agent submitted",
         description: "Your agent has been submitted for review.",
       });
       
-      navigate("/developer/agents");
+      // Move to deployment step
+      setCurrentStep(steps.length - 1);
+      
     } catch (error) {
       console.error("Error submitting agent:", error);
       toast({
@@ -263,6 +305,7 @@ export function useAgentCreation() {
     canProceed,
     handleConfigurationSave,
     handleIntegrationSave,
-    handleTestCasesSave
+    handleTestCasesSave,
+    createdAgentId
   };
 }

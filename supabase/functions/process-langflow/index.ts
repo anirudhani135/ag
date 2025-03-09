@@ -33,6 +33,14 @@ serve(async (req) => {
 
     const { agentId, config } = await req.json()
 
+    // Validate required fields
+    if (!agentId || !config) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
     // Validate the Langflow configuration
     if (!validateLangflowConfig(config)) {
       return new Response(
@@ -41,15 +49,27 @@ serve(async (req) => {
       )
     }
 
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+      throw userError;
+    }
+
+    // Get current agent version number
+    const versionNumber = await generateVersionNumber(supabase, agentId);
+    console.log(`Generated version number: ${versionNumber}`);
+
     // Create a new version for the agent
     const { data: versionData, error: versionError } = await supabase
       .from('agent_versions')
       .insert({
         agent_id: agentId,
-        version_number: await generateVersionNumber(supabase, agentId),
+        version_number: versionNumber,
         runtime_config: config,
         status: 'pending',
-        created_by: (await supabase.auth.getUser()).data.user?.id
+        created_by: user?.id
       })
       .select()
       .single()
@@ -58,6 +78,8 @@ serve(async (req) => {
       console.error('Error creating version:', versionError)
       throw versionError
     }
+
+    console.log(`Created agent version with ID: ${versionData.id}`);
 
     // Update agent configuration
     const { error: configError } = await supabase
@@ -83,8 +105,10 @@ serve(async (req) => {
         metadata: {
           nodes_count: config.nodes.length,
           edges_count: config.edges.length,
+          version_number: versionNumber,
           timestamp: new Date().toISOString()
-        }
+        },
+        message: `Started processing Langflow configuration with ${config.nodes.length} nodes and ${config.edges.length} edges`
       })
 
     if (logError) {
@@ -95,14 +119,15 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'Configuration processed successfully',
-        versionId: versionData.id
+        versionId: versionData.id,
+        versionNumber
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Error processing Langflow configuration:', error)
     return new Response(
-      JSON.stringify({ error: 'Failed to process configuration' }),
+      JSON.stringify({ error: 'Failed to process configuration', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
@@ -146,18 +171,25 @@ function validateLangflowConfig(config: LangflowConfig): boolean {
 }
 
 async function generateVersionNumber(supabase: any, agentId: string): Promise<string> {
-  const { data: versions } = await supabase
-    .from('agent_versions')
-    .select('version_number')
-    .eq('agent_id', agentId)
-    .order('created_at', { ascending: false })
-    .limit(1)
+  try {
+    const { data: versions, error } = await supabase
+      .from('agent_versions')
+      .select('version_number')
+      .eq('agent_id', agentId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+    
+    if (error) throw error;
 
-  if (!versions || versions.length === 0) {
-    return '1.0.0'
+    if (!versions || versions.length === 0) {
+      return '1.0.0'
+    }
+
+    const lastVersion = versions[0].version_number
+    const [major, minor, patch] = lastVersion.split('.').map(Number)
+    return `${major}.${minor}.${patch + 1}`
+  } catch (error) {
+    console.error('Error generating version number:', error);
+    return '1.0.0'; // Default if we can't get previous version
   }
-
-  const lastVersion = versions[0].version_number
-  const [major, minor, patch] = lastVersion.split('.').map(Number)
-  return `${major}.${minor}.${patch + 1}`
 }
