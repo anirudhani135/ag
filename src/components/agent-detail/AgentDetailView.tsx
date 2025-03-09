@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,7 @@ import { CheckCircle, XCircle, AlertCircle, PlayIcon, Save, ExternalLink, BookOp
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import ReviewForm from '@/components/reviews/ReviewForm';
+import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { TestCase } from '@/types/agent-creation';
 
 export const AgentDetailView = () => {
@@ -81,16 +80,13 @@ export const AgentDetailView = () => {
       if (error) throw error;
 
       if (data.test_results && Array.isArray(data.test_results)) {
-        // Transform test_results to match TestCase type
         const transformedTestCases: TestCase[] = data.test_results.map((testCase: any) => {
-          // Ensure all required fields are present
           return {
             id: testCase.id || crypto.randomUUID(),
             name: testCase.name || `Test Case ${Math.random().toString(36).substring(7)}`,
             input: testCase.input || '',
             expectedOutput: testCase.expectedOutput || '',
             actualOutput: testCase.actualOutput || '',
-            // Map status to valid TestCase status values
             status: mapStatusToValidValue(testCase.status || '')
           };
         });
@@ -111,12 +107,11 @@ export const AgentDetailView = () => {
     }
   };
 
-  // Function to map any status string to a valid TestCase status
   const mapStatusToValidValue = (status: string): TestCase['status'] => {
     if (status === 'success' || status === 'passed') return 'success';
     if (status === 'failure' || status === 'failed') return 'failure';
     if (status === 'running') return 'pending';
-    return 'pending'; // Default fallback
+    return 'pending';
   };
 
   const fetchReviews = async () => {
@@ -129,10 +124,8 @@ export const AgentDetailView = () => {
       if (error) throw error;
       setReviews(data);
 
-      // Calculate average rating
       if (data.length > 0) {
         const sum = data.reduce((acc: number, review: any) => {
-          // Handle potential non-numeric ratings
           const reviewRating = typeof review.rating === 'string' 
             ? parseFloat(review.rating) 
             : review.rating;
@@ -159,7 +152,7 @@ export const AgentDetailView = () => {
       setVersions(data || []);
 
       if (data && data.length > 0) {
-        setCurrentVersion(data[0].version);
+        setCurrentVersion(data[0].version_number);
       }
     } catch (error) {
       console.error('Error fetching versions:', error);
@@ -210,7 +203,6 @@ export const AgentDetailView = () => {
 
     if (!testCase) return;
 
-    // Simulate test execution
     setTimeout(() => {
       const mockOutput = `I'm a simulated response to "${testCase.input}". This would be the agent's actual response in production.`;
       const success = !testCase.expectedOutput || testCase.expectedOutput.trim() === '' ||
@@ -233,7 +225,6 @@ export const AgentDetailView = () => {
 
   const saveTestCases = async () => {
     try {
-      // Convert TestCase[] to Json compatible format
       const jsonTestCases = testCases.map(tc => ({
         id: tc.id,
         name: tc.name,
@@ -273,7 +264,6 @@ export const AgentDetailView = () => {
       'Packaging agent configuration...'
     ]);
 
-    // Simulate deployment process
     const interval = setInterval(() => {
       setDeploymentProgress(prev => {
         const newProgress = prev + 10;
@@ -287,13 +277,11 @@ export const AgentDetailView = () => {
           ]);
           setIsDeploying(false);
           
-          // Update agent status in database
           updateAgentStatus('active');
           
           return 100;
         }
 
-        // Add deployment logs based on progress
         if (newProgress === 30) {
           setDeploymentLogs(prevLogs => [
             ...prevLogs,
@@ -334,7 +322,6 @@ export const AgentDetailView = () => {
 
   const createNewVersion = async () => {
     try {
-      // Get current agent data
       const { data: agentData, error: agentError } = await supabase
         .from('agents')
         .select('*')
@@ -343,17 +330,15 @@ export const AgentDetailView = () => {
 
       if (agentError) throw agentError;
 
-      // Generate new version number
-      const latestVersion = versions.length > 0 ? versions[0].version : '0.0.0';
+      const latestVersion = versions.length > 0 ? versions[0].version_number : '0.0.0';
       const versionParts = latestVersion.split('.');
       const newVersion = `${versionParts[0]}.${versionParts[1]}.${parseInt(versionParts[2]) + 1}`;
 
-      // Create new version record
       const { error } = await supabase
         .from('agent_versions')
         .insert({
           agent_id: id,
-          version: newVersion,
+          version_number: newVersion,
           configuration: agentData.runtime_config,
           test_results: agentData.test_results,
           status: 'draft'
@@ -400,7 +385,7 @@ export const AgentDetailView = () => {
       const { error } = await supabase
         .from('reviews')
         .insert({
-          user_id: user.data.user?.id || 'anonymous', // Fallback for development
+          user_id: user.data.user?.id || 'anonymous',
           agent_id: id,
           rating: rating,
           comment: reviewText
@@ -444,7 +429,6 @@ export const AgentDetailView = () => {
     );
   }
 
-  // Get the current test case
   const currentTestCase = selectedTestCase
     ? testCases.find(tc => tc.id === selectedTestCase)
     : null;
@@ -452,7 +436,6 @@ export const AgentDetailView = () => {
   return (
     <div className="container mx-auto p-4 md:p-6 max-w-7xl">
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Main Content Area */}
         <div className="w-full lg:w-2/3 space-y-6">
           <Card className="overflow-hidden">
             <CardHeader className="bg-secondary/10 pb-2">
@@ -470,7 +453,6 @@ export const AgentDetailView = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-4">
-              {/* Tab Navigation */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-4">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -480,7 +462,6 @@ export const AgentDetailView = () => {
                   <TabsTrigger value="versions">Versions</TabsTrigger>
                 </TabsList>
 
-                {/* Overview Tab */}
                 <TabsContent value="overview" className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -557,7 +538,6 @@ export const AgentDetailView = () => {
                   </div>
                 </TabsContent>
 
-                {/* Configuration Tab */}
                 <TabsContent value="configuration" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
@@ -637,7 +617,6 @@ export const AgentDetailView = () => {
                   </div>
                 </TabsContent>
 
-                {/* Testing Tab */}
                 <TabsContent value="testing" className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-medium">Test Cases</h3>
@@ -766,7 +745,6 @@ export const AgentDetailView = () => {
                   </div>
                 </TabsContent>
 
-                {/* Deployment Tab */}
                 <TabsContent value="deployment" className="space-y-6">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
@@ -862,7 +840,6 @@ export const AgentDetailView = () => {
                   </div>
                 </TabsContent>
 
-                {/* Versions Tab */}
                 <TabsContent value="versions" className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-medium">Version History</h3>
@@ -875,8 +852,8 @@ export const AgentDetailView = () => {
                         <div key={index} className="p-4 flex items-center justify-between">
                           <div className="space-y-1">
                             <div className="flex items-center">
-                              <h4 className="font-medium">Version {version.version}</h4>
-                              {version.version === currentVersion && (
+                              <h4 className="font-medium">Version {version.version_number}</h4>
+                              {version.version_number === currentVersion && (
                                 <Badge variant="outline" className="ml-2">Current</Badge>
                               )}
                             </div>
@@ -888,10 +865,10 @@ export const AgentDetailView = () => {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              disabled={version.version === currentVersion}
-                              onClick={() => switchVersion(version.version)}
+                              disabled={version.version_number === currentVersion}
+                              onClick={() => switchVersion(version.version_number)}
                             >
-                              {version.version === currentVersion ? 'Active' : 'Switch to this version'}
+                              {version.version_number === currentVersion ? 'Active' : 'Switch to this version'}
                             </Button>
                           </div>
                         </div>
@@ -908,9 +885,7 @@ export const AgentDetailView = () => {
           </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="w-full lg:w-1/3 space-y-6">
-          {/* Agent Stats */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Agent Stats</CardTitle>
@@ -947,7 +922,6 @@ export const AgentDetailView = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -970,7 +944,6 @@ export const AgentDetailView = () => {
             </CardContent>
           </Card>
 
-          {/* Reviews */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Reviews</CardTitle>
@@ -1015,47 +988,5 @@ export const AgentDetailView = () => {
                 </div>
               )}
 
-              {/* Review Form */}
-              <div className="mt-4 space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="rating">Your Rating</Label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setRating(value)}
-                        className="focus:outline-none"
-                      >
-                        <Star
-                          className={`h-6 w-6 ${
-                            value <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="review">Your Review</Label>
-                  <Textarea
-                    id="review"
-                    placeholder="Write your review..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                <Button className="w-full" onClick={handleReviewSubmit}>
-                  Submit Review
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-};
+              <
 
-export default AgentDetailView;

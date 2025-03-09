@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import ReviewForm from '@/components/reviews/ReviewForm';
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 

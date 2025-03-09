@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,15 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlayIcon, Plus, Save, Trash2, CheckCircle, XCircle, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface TestCase {
-  id: string;
-  name: string;
-  input: string;
-  expectedOutput?: string;
-  actualOutput?: string;
-  status?: "success" | "failure" | "pending";
-}
+import { TestCase } from "@/types/agent-creation";
 
 interface TestingStepProps {
   onSave: (testCases: TestCase[]) => void;
