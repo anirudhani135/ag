@@ -20,6 +20,43 @@ interface DeploymentConfigProps {
   onDeploymentComplete: (deploymentId: string) => void;
 }
 
+// Define proper types for the metrics and resource usage
+interface DeploymentMetrics {
+  progress?: number;
+  error?: string;
+  deployment_type?: string;
+  current_stage?: string;
+  last_update?: string;
+  completion_time?: string;
+  status?: string;
+}
+
+interface ResourceUsage {
+  cpu?: string;
+  memory?: string;
+  timeout?: number;
+  scaling?: {
+    minReplicas?: number;
+    maxReplicas?: number;
+  };
+}
+
+interface DeploymentData {
+  id: string;
+  agent_id: string;
+  version_id: string;
+  deployed_at: string;
+  status: string;
+  environment?: string;
+  metrics: DeploymentMetrics | null;
+  resource_usage: ResourceUsage | null;
+  error_rate: number;
+  response_time: number;
+  health_status: string;
+  incident_count: number;
+  alert_status: string;
+}
+
 export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: DeploymentConfigProps) => {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentType, setDeploymentType] = useState<"langflow" | "native">("langflow");
@@ -50,7 +87,7 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data || null;
+      return data as DeploymentData | null;
     },
     retry: 1
   });
@@ -81,12 +118,16 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
           clearInterval(interval);
         } else if (data.status === 'failed') {
           setDeploymentStatus('error');
-          setErrorMessage(data.metrics?.error || 'Deployment failed');
+          setErrorMessage(data.metrics && typeof data.metrics === 'object' && 'error' in data.metrics 
+            ? String(data.metrics.error) 
+            : 'Deployment failed');
           clearInterval(interval);
         } else if (data.status === 'deploying') {
           // Update progress based on metrics
-          const currentProgress = data.metrics?.progress || deploymentProgress;
-          setDeploymentProgress(Math.min(95, currentProgress));
+          const progress = data.metrics && typeof data.metrics === 'object' && 'progress' in data.metrics 
+            ? Number(data.metrics.progress) 
+            : deploymentProgress;
+          setDeploymentProgress(Math.min(95, progress));
         }
       } catch (error) {
         console.error("Error checking deployment status:", error);
@@ -99,29 +140,55 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
   // Initialize from existing deployment if available
   useEffect(() => {
     if (existingDeployment) {
-      setEnvironment(existingDeployment.environment as "production" | "staging");
-      setDeploymentType(existingDeployment.metrics?.deployment_type || "native");
+      // Safely access environment property
+      if (existingDeployment.environment) {
+        setEnvironment(existingDeployment.environment as "production" | "staging");
+      }
       
-      if (existingDeployment.resource_usage) {
+      // Safely access metrics.deployment_type
+      if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'deployment_type' in existingDeployment.metrics) {
+        setDeploymentType(existingDeployment.metrics.deployment_type as "langflow" | "native" || "native");
+      }
+      
+      // Safely access resource_usage properties
+      if (existingDeployment.resource_usage && typeof existingDeployment.resource_usage === 'object') {
+        const resourceUsage = existingDeployment.resource_usage;
+        
         setResourceConfig({
-          cpu: existingDeployment.resource_usage.cpu || "0.5",
-          memory: existingDeployment.resource_usage.memory || "512",
-          timeout: existingDeployment.resource_usage.timeout || 30,
-          minReplicas: existingDeployment.resource_usage.scaling?.minReplicas || 1,
-          maxReplicas: existingDeployment.resource_usage.scaling?.maxReplicas || 3,
+          cpu: 'cpu' in resourceUsage ? String(resourceUsage.cpu) : "0.5",
+          memory: 'memory' in resourceUsage ? String(resourceUsage.memory) : "512",
+          timeout: 'timeout' in resourceUsage ? Number(resourceUsage.timeout) : 30,
+          minReplicas: resourceUsage.scaling && typeof resourceUsage.scaling === 'object' && 'minReplicas' in resourceUsage.scaling 
+            ? Number(resourceUsage.scaling.minReplicas) 
+            : 1,
+          maxReplicas: resourceUsage.scaling && typeof resourceUsage.scaling === 'object' && 'maxReplicas' in resourceUsage.scaling 
+            ? Number(resourceUsage.scaling.maxReplicas) 
+            : 3,
         });
       }
       
       if (existingDeployment.status === 'deploying') {
         setDeploymentId(existingDeployment.id);
         setDeploymentStatus('processing');
-        setDeploymentProgress(existingDeployment.metrics?.progress || 30);
+        
+        // Safely get progress from metrics
+        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'progress' in existingDeployment.metrics) {
+          setDeploymentProgress(Number(existingDeployment.metrics.progress) || 30);
+        } else {
+          setDeploymentProgress(30);
+        }
       } else if (existingDeployment.status === 'running') {
         setDeploymentStatus('success');
         setDeploymentProgress(100);
       } else if (existingDeployment.status === 'failed') {
         setDeploymentStatus('error');
-        setErrorMessage(existingDeployment.metrics?.error || 'Previous deployment failed');
+        
+        // Safely get error from metrics
+        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'error' in existingDeployment.metrics) {
+          setErrorMessage(String(existingDeployment.metrics.error) || 'Previous deployment failed');
+        } else {
+          setErrorMessage('Previous deployment failed');
+        }
       }
     }
   }, [existingDeployment]);
