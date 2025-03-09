@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import AgentDetailView from "@/components/agent-detail/AgentDetailView";
+import { AgentDetailView } from "@/components/agent-detail/AgentDetailView";
 
 const AgentDetailPage = () => {
   const { id } = useParams<{ id: string }>();
