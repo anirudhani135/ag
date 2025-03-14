@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Clock, Server, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -6,6 +5,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricExplanationTooltip } from "./MetricExplanationTooltip";
 import { Badge } from "@/components/ui/badge";
+
+interface ApiMetric {
+  endpoint: string;
+  error_details: any;
+  error_rate: number;
+  id: string;
+  ip_address: string;
+  request_method: string;
+  requests_count: number;
+  requests_per_minute: number;
+  response_time: number;
+  status_code: number;
+  timestamp: string;
+  user_agent: string;
+}
+
+interface DisplayMetrics {
+  success_rate: number;
+  avg_response_time: number;
+  throughput: number;
+  error_rate: number;
+}
 
 export const APIMetrics = () => {
   const { data, isLoading } = useQuery({
@@ -18,12 +39,26 @@ export const APIMetrics = () => {
         .limit(1);
       
       if (error) throw error;
-      return data?.[0] || {
+      
+      if (data && data.length > 0) {
+        const metric = data[0] as ApiMetric;
+        
+        const displayMetrics: DisplayMetrics = {
+          success_rate: 100 - metric.error_rate,
+          avg_response_time: metric.response_time,
+          throughput: metric.requests_per_minute * 60,
+          error_rate: metric.error_rate
+        };
+        
+        return displayMetrics;
+      }
+      
+      return {
         success_rate: 98.7,
         avg_response_time: 245,
         throughput: 1250,
         error_rate: 1.3
-      };
+      } as DisplayMetrics;
     },
   });
 

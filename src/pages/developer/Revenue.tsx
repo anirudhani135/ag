@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EnhancedRevenueDashboard } from "@/components/developer/revenue/EnhancedRevenueDashboard";
 import { RevenueInsightsPanel } from "@/components/developer/revenue/RevenueInsightsPanel";
 import { Button } from "@/components/ui/button";
-import { InfoCircle, Download, HelpCircle } from "lucide-react";
+import { Info, Download, HelpCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -40,7 +40,7 @@ const Revenue = () => {
           
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1">
-              <InfoCircle className="h-4 w-4" />
+              <Info className="h-4 w-4" />
               <span>How to Increase Revenue</span>
             </Button>
             <Button variant="outline" size="sm" className="gap-1">
