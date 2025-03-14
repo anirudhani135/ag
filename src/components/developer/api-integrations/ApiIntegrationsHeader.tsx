@@ -5,6 +5,7 @@ import {
   HoverCardContent,
   HoverCardTrigger
 } from '@/components/ui/hover-card';
+import { SecurityGuidancePanel } from './SecurityGuidancePanel';
 
 export const ApiIntegrationsHeader = () => {
   return (
@@ -35,6 +36,8 @@ export const ApiIntegrationsHeader = () => {
           </div>
         </div>
       </div>
+      
+      <SecurityGuidancePanel />
     </div>
   );
 };
