@@ -30,6 +30,13 @@ interface TeamMember {
   status: string;
 }
 
+interface NotificationPreferences {
+  emailNotifications: boolean;
+  agentUpdates: boolean;
+  revenueAlerts: boolean;
+  marketingUpdates: boolean;
+}
+
 const DeveloperSettings = () => {
   const { toast } = useToast();
   const {
@@ -61,7 +68,7 @@ const DeveloperSettings = () => {
     cvv: "•••"
   });
 
-  const [notificationPreferences, setNotificationPreferences] = useState({
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
     emailNotifications: true,
     agentUpdates: true,
     revenueAlerts: true,
@@ -176,27 +183,27 @@ const DeveloperSettings = () => {
   });
 
   if (notificationPrefs && !isLoadingNotificationPrefs) {
-    if ((notificationPrefs.preferences && typeof notificationPrefs.preferences === 'object') || 
-        (notificationPrefs.email_notifications !== undefined)) {
+    const notificationTypes = notificationPrefs.notification_types;
+    
+    if (
+      notificationPreferences.emailNotifications !== notificationPrefs.email_notifications ||
+      (notificationTypes && typeof notificationTypes === 'object')
+    ) {
+      const prefsFromTypes = notificationTypes && typeof notificationTypes === 'object' ? {
+        agentUpdates: notificationTypes.agent_updates || true,
+        revenueAlerts: notificationTypes.revenue_alerts || true,
+        marketingUpdates: notificationTypes.marketing_updates || false
+      } : {
+        agentUpdates: true,
+        revenueAlerts: true,
+        marketingUpdates: false
+      };
       
-      const prefsObj = notificationPrefs.preferences ? 
-        (typeof notificationPrefs.preferences === 'object' ? notificationPrefs.preferences : {}) : 
-        {
-          emailNotifications: notificationPrefs.email_notifications || false,
-          agentUpdates: true,
-          revenueAlerts: true,
-          marketingUpdates: false
-        };
-      
-      if (notificationPreferences.emailNotifications !== (prefsObj.emailNotifications ?? notificationPrefs.email_notifications)) {
-        setNotificationPreferences(prev => ({
-          ...prev,
-          emailNotifications: prefsObj.emailNotifications ?? notificationPrefs.email_notifications ?? prev.emailNotifications,
-          agentUpdates: prefsObj.agentUpdates ?? prev.agentUpdates,
-          revenueAlerts: prefsObj.revenueAlerts ?? prev.revenueAlerts,
-          marketingUpdates: prefsObj.marketingUpdates ?? prev.marketingUpdates
-        }));
-      }
+      setNotificationPreferences(prev => ({
+        ...prev,
+        emailNotifications: notificationPrefs.email_notifications || prev.emailNotifications,
+        ...prefsFromTypes
+      }));
     }
   }
 
@@ -591,7 +598,7 @@ const DeveloperSettings = () => {
                     </div>
                   ) : apiKeys && apiKeys.length > 0 ? (
                     <div className="space-y-2">
-                      {apiKeys.map((key: ApiKey) => (
+                      {(apiKeys as ApiKey[]).map((key: ApiKey) => (
                         <div key={key.id} className="p-4 border rounded-md">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">{key.description}</span>

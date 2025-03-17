@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type SettingsSection = 'profile' | 'payment' | 'notifications' | 'api' | 'team' | 'security';
 
-// Define interfaces for our mock data
+// Define interfaces for our data structures
 interface ApiKey {
   id: string;
   description: string;
@@ -16,6 +17,13 @@ interface SecuritySetting {
   user_id: string;
   two_factor_enabled: boolean;
   session_timeout: string;
+}
+
+interface NotificationPreferences {
+  emailNotifications: boolean;
+  agentUpdates: boolean;
+  revenueAlerts: boolean;
+  marketingUpdates: boolean;
 }
 
 export function useSettings() {
@@ -85,17 +93,25 @@ export function useSettings() {
   };
 
   // Notification preferences
-  const updateNotificationPreferences = async (preferences: Record<string, boolean>) => {
+  const updateNotificationPreferences = async (preferences: NotificationPreferences) => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Create notification_types object for database storage
+      const notification_types = {
+        agent_updates: preferences.agentUpdates,
+        revenue_alerts: preferences.revenueAlerts,
+        marketing_updates: preferences.marketingUpdates
+      };
+
       const { error } = await supabase
         .from('notification_preferences')
         .upsert({
           user_id: user.id,
-          preferences,
+          email_notifications: preferences.emailNotifications,
+          notification_types,
           updated_at: new Date().toISOString()
         });
 
@@ -118,7 +134,7 @@ export function useSettings() {
     }
   };
 
-  // API keys - using local storage for demo instead of database table
+  // API keys - using local storage for demo instead of database
   const generateApiKey = async (description: string) => {
     setIsLoading(true);
     try {
@@ -184,8 +200,7 @@ export function useSettings() {
         .from('team_members')
         .insert({
           team_id: user.id, // Using user ID as team ID for simplicity
-          user_id: user.id, // This would be different in a real app
-          email, // Storing email as an additional field
+          user_id: email, // Storing email as user_id for simplicity
           role,
           permissions: { canEdit: role === 'admin' || role === 'developer' },
           added_at: new Date().toISOString()
