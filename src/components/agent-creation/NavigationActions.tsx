@@ -12,6 +12,8 @@ interface NavigationActionsProps {
   isSaving: boolean;
   isSubmitting: boolean;
   isLastStep: boolean;
+  deploymentStarted?: boolean;
+  deploymentComplete?: boolean;
 }
 
 export const NavigationActions = ({
@@ -21,7 +23,9 @@ export const NavigationActions = ({
   canProceed,
   isSaving,
   isSubmitting,
-  isLastStep
+  isLastStep,
+  deploymentStarted = false,
+  deploymentComplete = false
 }: NavigationActionsProps) => {
   const navigate = useNavigate();
 
@@ -97,7 +101,8 @@ export const NavigationActions = ({
                 aria-label={isLastStep ? "Submit your agent" : "Continue to the next step"}
               >
                 {isLastStep ? (
-                  isSubmitting ? "Submitting..." : "Submit Agent"
+                  isSubmitting ? "Submitting..." : 
+                  deploymentStarted ? (deploymentComplete ? "Completed" : "Deploying...") : "Deploy Agent"
                 ) : (
                   <>
                     Continue
@@ -107,7 +112,7 @@ export const NavigationActions = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{isLastStep ? "Submit your agent" : "Continue to the next step"}</p>
+              <p>{isLastStep ? (deploymentStarted ? "Deploying your agent" : "Deploy your agent") : "Continue to the next step"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

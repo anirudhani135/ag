@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,6 +166,8 @@ export function useSettings() {
 
   // Get API keys from local storage
   const getApiKeys = async (): Promise<ApiKey[]> => {
+    // We'll simulate a delay to mimic a network request
+    await new Promise(resolve => setTimeout(resolve, 300));
     const existingKeysString = localStorage.getItem('api_keys') || '[]';
     return JSON.parse(existingKeysString) as ApiKey[];
   };
@@ -253,6 +254,9 @@ export function useSettings() {
 
   // Get security settings from local storage
   const getSecuritySettings = async (): Promise<SecuritySetting | null> => {
+    // We'll simulate a delay to mimic a network request
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define interfaces for typed data
 interface ApiKey {
   id: string;
   description: string;
@@ -48,7 +46,6 @@ const DeveloperSettings = () => {
     getSecuritySettings
   } = useSettings();
 
-  // Form state
   const [profileData, setProfileData] = useState({
     name: "Alex Johnson",
     email: "alex@example.com",
@@ -88,7 +85,6 @@ const DeveloperSettings = () => {
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
-  // Fetch user data
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
@@ -106,9 +102,7 @@ const DeveloperSettings = () => {
     }
   });
 
-  // Use effect to update form when user data loads
   if (userData && !isLoadingUser) {
-    // This pattern is safer than using useEffect for updating state based on query results
     if (profileData.name !== userData.name && userData.name) {
       setProfileData(prev => ({
         ...prev,
@@ -121,13 +115,11 @@ const DeveloperSettings = () => {
     }
   }
 
-  // Fetch API keys - now using our local storage implementation
   const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  // Fetch team members
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
@@ -142,23 +134,20 @@ const DeveloperSettings = () => {
 
       if (error) throw error;
       
-      // Transform data to match our expected interface
       return data.map((member: any) => ({
         id: member.id,
-        email: member.user_id, // In a real app, you'd look up the email
+        email: member.user_id,
         role: member.role,
         status: 'active'
       })) as TeamMember[];
     }
   });
 
-  // Fetch security settings - now using our local storage implementation
   const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
     queryKey: ['security-settings'],
     queryFn: getSecuritySettings
   });
 
-  // Use effect to update form when security settings load
   if (securitySettings && !isLoadingSecuritySettings) {
     if (securityData.twoFactorEnabled !== securitySettings.two_factor_enabled) {
       setSecurityData(prev => ({
@@ -169,7 +158,6 @@ const DeveloperSettings = () => {
     }
   }
 
-  // Fetch notification preferences
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
@@ -182,22 +170,33 @@ const DeveloperSettings = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found" which is OK
+      if (error && error.code !== 'PGRST116') throw error;
       return data;
     }
   });
 
-  // Use effect to update form when notification preferences load
-  if (notificationPrefs && !isLoadingNotificationPrefs && notificationPrefs.preferences) {
-    const prefsObj = typeof notificationPrefs.preferences === 'object' 
-      ? notificationPrefs.preferences 
-      : {};
+  if (notificationPrefs && !isLoadingNotificationPrefs) {
+    if ((notificationPrefs.preferences && typeof notificationPrefs.preferences === 'object') || 
+        (notificationPrefs.email_notifications !== undefined)) {
       
-    if (notificationPreferences.emailNotifications !== prefsObj.emailNotifications) {
-      setNotificationPreferences(prev => ({
-        ...prev,
-        ...prefsObj
-      }));
+      const prefsObj = notificationPrefs.preferences ? 
+        (typeof notificationPrefs.preferences === 'object' ? notificationPrefs.preferences : {}) : 
+        {
+          emailNotifications: notificationPrefs.email_notifications || false,
+          agentUpdates: true,
+          revenueAlerts: true,
+          marketingUpdates: false
+        };
+      
+      if (notificationPreferences.emailNotifications !== (prefsObj.emailNotifications ?? notificationPrefs.email_notifications)) {
+        setNotificationPreferences(prev => ({
+          ...prev,
+          emailNotifications: prefsObj.emailNotifications ?? notificationPrefs.email_notifications ?? prev.emailNotifications,
+          agentUpdates: prefsObj.agentUpdates ?? prev.agentUpdates,
+          revenueAlerts: prefsObj.revenueAlerts ?? prev.revenueAlerts,
+          marketingUpdates: prefsObj.marketingUpdates ?? prev.marketingUpdates
+        }));
+      }
     }
   }
 
@@ -824,3 +823,4 @@ const DeveloperSettings = () => {
 };
 
 export default DeveloperSettings;
+
