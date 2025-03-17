@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { AgentCreationHeader } from "@/components/agent-creation/AgentCreationHeader";
 import { StepContentWrapper } from "@/components/agent-creation/StepContentWrapper";
@@ -9,6 +9,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DeploymentConfiguration } from "@/components/agent-creation/DeploymentConfiguration";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AgentCreationPage = () => {
   const {
@@ -33,9 +34,20 @@ const AgentCreationPage = () => {
   } = useAgentCreation();
 
   const [deploymentComplete, setDeploymentComplete] = useState(false);
+  const [deploymentStarted, setDeploymentStarted] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const navigate = useNavigate();
 
   const isLastStep = currentStep === steps.length - 1;
+
+  // Simulate initial page loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDeploymentComplete = (deploymentId: string) => {
     setDeploymentComplete(true);
@@ -43,9 +55,38 @@ const AgentCreationPage = () => {
     
     // Navigate to the agent details page when deployment is complete
     if (createdAgentId) {
-      navigate(`/agent-detail?id=${createdAgentId}`);
+      setTimeout(() => {
+        navigate(`/agent-detail?id=${createdAgentId}`);
+      }, 1500);
     }
   };
+
+  const handleStartDeployment = () => {
+    setDeploymentStarted(true);
+  };
+
+  if (isPageLoading) {
+    return (
+      <DashboardLayout type="developer">
+        <div className="w-full px-4 md:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl space-y-6">
+            <Skeleton className="h-10 w-64 mb-8" />
+            <Skeleton className="h-4 w-full max-w-xl mb-12" />
+            <div className="flex justify-between mb-8">
+              {steps.map((_, i) => (
+                <Skeleton key={i} className="h-2 w-16" />
+              ))}
+            </div>
+            <Skeleton className="h-64 w-full mb-8" />
+            <div className="flex justify-end gap-2 mt-6">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="developer">
@@ -66,6 +107,7 @@ const AgentCreationPage = () => {
                 <DeploymentConfiguration 
                   agentId={createdAgentId} 
                   onDeploymentComplete={handleDeploymentComplete}
+                  onDeploymentStart={handleStartDeployment}
                 />
               ) : (
                 <StepContentWrapper
@@ -84,12 +126,14 @@ const AgentCreationPage = () => {
 
             <NavigationActions
               onSaveDraft={handleSaveDraft}
-              onNext={handleNext}
+              onNext={isLastStep && !deploymentStarted ? handleStartDeployment : handleNext}
               onPrevious={handlePrevious}
-              canProceed={isLastStep ? deploymentComplete : canProceed()}
+              canProceed={isLastStep ? (!deploymentStarted || deploymentComplete) : canProceed()}
               isSaving={isSaving}
               isSubmitting={isSubmitting}
               isLastStep={isLastStep}
+              deploymentStarted={deploymentStarted}
+              deploymentComplete={deploymentComplete}
             />
           </WizardLayout>
         </div>

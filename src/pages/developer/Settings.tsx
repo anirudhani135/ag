@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -9,56 +10,274 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { User, CreditCard, Bell, Key, Shield, Plus, Copy, HelpCircle, Users, Globe, Database } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { User, CreditCard, Bell, Key, Shield, Plus, Save, HelpCircle, Users, Globe, Database } from "lucide-react";
+import { useSettings } from "@/hooks/useSettings";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
 const DeveloperSettings = () => {
+  const { toast } = useToast();
   const {
-    toast
-  } = useToast();
-  const [activeTab, setActiveTab] = useState("profile");
+    activeTab,
+    setActiveTab,
+    isLoading,
+    updateProfile,
+    updatePaymentMethod,
+    updateNotificationPreferences,
+    generateApiKey,
+    addTeamMember,
+    updateSecuritySettings
+  } = useSettings();
+
+  // Form state
+  const [profileData, setProfileData] = useState({
+    name: "Alex Johnson",
+    email: "alex@example.com",
+    company: "TechInnovate",
+    website: "https://techinnovate.com",
+    bio: "AI developer specializing in conversational agents and natural language processing."
+  });
+
+  const [paymentData, setPaymentData] = useState({
+    cardName: "Alex Johnson",
+    cardNumber: "•••• •••• •••• 4242",
+    expiryDate: "12/25",
+    cvv: "•••"
+  });
+
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    emailNotifications: true,
+    agentUpdates: true,
+    revenueAlerts: true,
+    marketingUpdates: false
+  });
+
+  const [newTeamMemberData, setNewTeamMemberData] = useState({
+    email: "",
+    role: "developer"
+  });
+
+  const [securityData, setSecurityData] = useState({
+    twoFactorEnabled: false,
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    sessionTimeout: "60"
+  });
+
+  const [newApiKeyDescription, setNewApiKeyDescription] = useState("");
+  const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
+
+  // Fetch user data
+  const { data: userData, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data) {
+        setProfileData(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          email: data.email || prev.email,
+          company: data.company || prev.company,
+          website: data.website || prev.website,
+          bio: data.bio || prev.bio
+        }));
+      }
+    }
+  });
+
+  // Fetch API keys
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
+    queryKey: ['api-keys'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch team members
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
+    queryKey: ['team-members'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('team_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch security settings
+  const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
+    queryKey: ['security-settings'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from('security_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found" which is OK
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data) {
+        setSecurityData(prev => ({
+          ...prev,
+          twoFactorEnabled: data.two_factor_enabled || false,
+          sessionTimeout: data.session_timeout || "60"
+        }));
+      }
+    }
+  });
+
+  // Fetch notification preferences
+  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
+    queryKey: ['notification-preferences'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found" which is OK
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data && data.preferences) {
+        setNotificationPreferences(prev => ({
+          ...prev,
+          ...data.preferences
+        }));
+      }
+    }
+  });
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setProfileData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handlePaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setPaymentData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleNotificationChange = (key: string, checked: boolean) => {
+    setNotificationPreferences(prev => ({ ...prev, [key]: checked }));
+  };
+
+  const handleTeamMemberChange = (key: string, value: string) => {
+    setNewTeamMemberData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setSecurityData(prev => ({ ...prev, [id]: value }));
+  };
+
   const handleSaveProfile = () => {
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been saved successfully.",
-      variant: "default"
-    });
+    updateProfile(profileData);
   };
+
   const handleSavePayment = () => {
-    toast({
-      title: "Payment information updated",
-      description: "Your payment details have been saved successfully.",
-      variant: "default"
-    });
+    updatePaymentMethod(paymentData);
   };
+
   const handleSaveNotifications = () => {
-    toast({
-      title: "Notification preferences updated",
-      description: "Your notification preferences have been saved successfully.",
-      variant: "default"
-    });
+    updateNotificationPreferences(notificationPreferences);
   };
-  const handleGenerateApiKey = () => {
-    toast({
-      title: "New API key generated",
-      description: "Your new API key has been generated. Keep it secure!",
-      variant: "default"
-    });
+
+  const handleGenerateApiKey = async () => {
+    if (!newApiKeyDescription) {
+      toast({
+        title: "Description required",
+        description: "Please provide a description for the API key.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const apiKey = await generateApiKey(newApiKeyDescription);
+    if (apiKey) {
+      setGeneratedApiKey(apiKey);
+      setNewApiKeyDescription("");
+    }
   };
+
   const handleSaveTeamMember = () => {
-    toast({
-      title: "Team member added",
-      description: "The new team member has been added successfully.",
-      variant: "default"
-    });
+    if (!newTeamMemberData.email) {
+      toast({
+        title: "Email required",
+        description: "Please provide an email address for the team member.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addTeamMember(newTeamMemberData.email, newTeamMemberData.role);
+    setNewTeamMemberData({ email: "", role: "developer" });
   };
+
   const handleSaveSecuritySettings = () => {
-    toast({
-      title: "Security settings updated",
-      description: "Your security settings have been updated successfully.",
-      variant: "default"
-    });
+    if (securityData.newPassword !== securityData.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "New password and confirmation password must match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    updateSecuritySettings(securityData);
+    setSecurityData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
   };
-  return <DashboardLayout type="developer">
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKeyId(id);
+    setTimeout(() => setCopiedKeyId(null), 2000);
+  };
+
+  return (
+    <DashboardLayout type="developer">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
@@ -67,7 +286,7 @@ const DeveloperSettings = () => {
           </p>
         </div>
 
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-6">
           <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2 h-auto p-1">
             <TabsTrigger value="profile" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-50">
               <User className="h-4 w-4 mr-2" />
@@ -104,31 +323,69 @@ const DeveloperSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" defaultValue="Alex Johnson" />
+                {isLoadingUser ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-20 w-full" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" defaultValue="alex@example.com" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Company</Label>
-                    <Input id="company" defaultValue="TechInnovate" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input id="website" defaultValue="https://techinnovate.com" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" defaultValue="AI developer specializing in conversational agents and natural language processing." rows={4} />
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input 
+                          id="name" 
+                          value={profileData.name} 
+                          onChange={handleProfileChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email" 
+                          value={profileData.email} 
+                          onChange={handleProfileChange}
+                          disabled
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="company">Company</Label>
+                        <Input 
+                          id="company" 
+                          value={profileData.company} 
+                          onChange={handleProfileChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="website">Website</Label>
+                        <Input 
+                          id="website" 
+                          value={profileData.website} 
+                          onChange={handleProfileChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea 
+                        id="bio" 
+                        value={profileData.bio} 
+                        onChange={handleProfileChange}
+                        rows={4} 
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSaveProfile}>Save Changes</Button>
+                <Button 
+                  onClick={handleSaveProfile} 
+                  disabled={isLoading || isLoadingUser}
+                >
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -145,24 +402,45 @@ const DeveloperSettings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="cardName">Name on Card</Label>
-                    <Input id="cardName" defaultValue="Alex Johnson" />
+                    <Input 
+                      id="cardName" 
+                      value={paymentData.cardName} 
+                      onChange={handlePaymentChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input id="cardNumber" defaultValue="•••• •••• •••• 4242" />
+                    <Input 
+                      id="cardNumber" 
+                      value={paymentData.cardNumber} 
+                      onChange={handlePaymentChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="expiryDate">Expiry Date</Label>
-                    <Input id="expiryDate" defaultValue="12/25" />
+                    <Input 
+                      id="expiryDate" 
+                      value={paymentData.expiryDate} 
+                      onChange={handlePaymentChange}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cvv">CVV</Label>
-                    <Input id="cvv" defaultValue="•••" />
+                    <Input 
+                      id="cvv" 
+                      value={paymentData.cvv} 
+                      onChange={handlePaymentChange}
+                    />
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSavePayment}>Save Payment Method</Button>
+                <Button 
+                  onClick={handleSavePayment}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Saving..." : "Save Payment Method"}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -176,45 +454,73 @@ const DeveloperSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive email notifications for important updates
-                    </p>
+                {isLoadingNotificationPrefs ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Agent Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified when your agents receive updates or reviews
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Revenue Alerts</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications for significant revenue changes
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Marketing Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive marketing and promotional information
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Email Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive email notifications for important updates
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={notificationPreferences.emailNotifications} 
+                        onCheckedChange={(checked) => handleNotificationChange('emailNotifications', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Agent Updates</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified when your agents receive updates or reviews
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={notificationPreferences.agentUpdates} 
+                        onCheckedChange={(checked) => handleNotificationChange('agentUpdates', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Revenue Alerts</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive notifications for significant revenue changes
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={notificationPreferences.revenueAlerts} 
+                        onCheckedChange={(checked) => handleNotificationChange('revenueAlerts', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Marketing Updates</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive marketing and promotional information
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={notificationPreferences.marketingUpdates} 
+                        onCheckedChange={(checked) => handleNotificationChange('marketingUpdates', checked)}
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSaveNotifications}>Save Preferences</Button>
+                <Button 
+                  onClick={handleSaveNotifications}
+                  disabled={isLoading || isLoadingNotificationPrefs}
+                >
+                  {isLoading ? "Saving..." : "Save Preferences"}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -228,17 +534,80 @@ const DeveloperSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {generatedApiKey && (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md mb-4">
+                    <h4 className="font-semibold text-yellow-800 mb-2">New API Key Created</h4>
+                    <p className="text-sm text-yellow-800 mb-2">
+                      Please copy your API key now. For security reasons, it won't be shown again.
+                    </p>
+                    <div className="flex items-center">
+                      <Input value={generatedApiKey} readOnly className="font-mono text-sm bg-white" />
+                      <Button 
+                        variant="outline" 
+                        className="ml-2"
+                        onClick={() => copyToClipboard(generatedApiKey, 'new-key')}
+                      >
+                        {copiedKeyId === 'new-key' ? 'Copied!' : 'Copy'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
-                  <Label>Current API Key</Label>
-                  <div className="flex items-center">
-                    <Input value="sk_live_7h4j5k6l7j8k9l0j1k2l3k4j5k6l7j8k" readOnly className="font-mono text-sm" />
-                    <Button variant="outline" className="ml-2">
-                      Copy
+                  <Label>Generate New API Key</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="API Key Description" 
+                      value={newApiKeyDescription}
+                      onChange={(e) => setNewApiKeyDescription(e.target.value)}
+                      className="flex-1" 
+                    />
+                    <Button 
+                      variant="secondary"
+                      onClick={handleGenerateApiKey}
+                      disabled={isLoading || !newApiKeyDescription}
+                    >
+                      Generate
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    This key grants full access to your account. Keep it secure!
-                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Your API Keys</Label>
+                  {isLoadingApiKeys ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                    </div>
+                  ) : apiKeys && apiKeys.length > 0 ? (
+                    <div className="space-y-2">
+                      {apiKeys.map((key) => (
+                        <div key={key.id} className="p-4 border rounded-md">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium">{key.description}</span>
+                            <Badge variant="outline">{new Date(key.created_at).toLocaleDateString()}</Badge>
+                          </div>
+                          <div className="flex items-center">
+                            <code className="bg-muted p-1 rounded text-xs flex-1 truncate">
+                              {key.key.substring(0, 8)}...{key.key.substring(key.key.length - 4)}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(key.key, key.id)}
+                              className="ml-2"
+                            >
+                              {copiedKeyId === key.id ? 'Copied!' : 'Copy'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 border rounded-md text-muted-foreground">
+                      No API keys found. Generate your first API key to get started.
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -249,27 +618,14 @@ const DeveloperSettings = () => {
                       <Badge variant="outline">1,243 / 10,000</Badge>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary" style={{
-                      width: "12.4%"
-                    }}></div>
+                      <div className="h-full bg-primary" style={{ width: "12.4%" }}></div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
                       12.4% of your monthly API calls used
                     </p>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Webhooks</Label>
-                  <div className="flex gap-2">
-                    <Input placeholder="https://your-app.com/webhooks" className="flex-1" />
-                    <Button variant="outline">Set URL</Button>
-                  </div>
-                </div>
               </CardContent>
-              <CardFooter>
-                <Button onClick={handleGenerateApiKey}>Generate New API Key</Button>
-              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -282,54 +638,77 @@ const DeveloperSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="border rounded-md p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Alex Johnson (You)</p>
-                        <p className="text-sm text-muted-foreground">alex@example.com</p>
-                      </div>
-                      <Badge className="rounded-md bg-slate-300">Owner</Badge>
-                    </div>
+                {isLoadingTeamMembers ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-20 w-full" />
                   </div>
-                  
-                  <div className="border rounded-md p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Sarah Adams</p>
-                        <p className="text-sm text-muted-foreground">sarah@example.com</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{profileData.name} (You)</p>
+                          <p className="text-sm text-muted-foreground">{profileData.email}</p>
+                        </div>
+                        <Badge className="rounded-md bg-slate-300">Owner</Badge>
                       </div>
-                      <Badge variant="outline">Developer</Badge>
                     </div>
-                  </div>
+                    
+                    {teamMembers && teamMembers.map((member) => (
+                      <div key={member.id} className="border rounded-md p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{member.email}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {member.status === 'invited' ? 'Invitation sent' : 'Active'}
+                            </p>
+                          </div>
+                          <Badge variant="outline">{member.role}</Badge>
+                        </div>
+                      </div>
+                    ))}
 
-                  <div className="space-y-2">
-                    <Label>Add Team Member</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div className="md:col-span-1">
-                        <Input placeholder="Email Address" />
-                      </div>
-                      <div className="md:col-span-1">
-                        <Select defaultValue="developer">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="developer">Developer</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="viewer">Viewer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="md:col-span-1">
-                        <Button className="w-full" onClick={handleSaveTeamMember}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add
-                        </Button>
+                    <div className="space-y-2">
+                      <Label>Add Team Member</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="md:col-span-1">
+                          <Input 
+                            placeholder="Email Address" 
+                            value={newTeamMemberData.email}
+                            onChange={(e) => handleTeamMemberChange('email', e.target.value)}
+                          />
+                        </div>
+                        <div className="md:col-span-1">
+                          <Select 
+                            value={newTeamMemberData.role}
+                            onValueChange={(value) => handleTeamMemberChange('role', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="developer">Developer</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-1">
+                          <Button 
+                            className="w-full" 
+                            onClick={handleSaveTeamMember}
+                            disabled={isLoading || !newTeamMemberData.email}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            {isLoading ? "Adding..." : "Add"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -343,53 +722,94 @@ const DeveloperSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Two-Factor Authentication</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Add an extra layer of security to your account
-                    </p>
+                {isLoadingSecuritySettings ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                  <Switch />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Change Password</Label>
-                  <div className="grid grid-cols-1 gap-2">
-                    <Input type="password" placeholder="Current Password" />
-                    <Input type="password" placeholder="New Password" />
-                    <Input type="password" placeholder="Confirm New Password" />
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Session Timeout</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically log out after period of inactivity
-                    </p>
-                  </div>
-                  <Select defaultValue="60">
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select timeout" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="60">1 hour</SelectItem>
-                      <SelectItem value="240">4 hours</SelectItem>
-                      <SelectItem value="720">12 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Two-Factor Authentication</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Add an extra layer of security to your account
+                        </p>
+                      </div>
+                      <Switch 
+                        checked={securityData.twoFactorEnabled}
+                        onCheckedChange={(checked) => setSecurityData(prev => ({ ...prev, twoFactorEnabled: checked }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Change Password</Label>
+                      <div className="grid grid-cols-1 gap-2">
+                        <Input 
+                          type="password" 
+                          placeholder="Current Password" 
+                          id="currentPassword"
+                          value={securityData.currentPassword}
+                          onChange={handleSecurityChange}
+                        />
+                        <Input 
+                          type="password" 
+                          placeholder="New Password" 
+                          id="newPassword"
+                          value={securityData.newPassword}
+                          onChange={handleSecurityChange}
+                        />
+                        <Input 
+                          type="password" 
+                          placeholder="Confirm New Password" 
+                          id="confirmPassword"
+                          value={securityData.confirmPassword}
+                          onChange={handleSecurityChange}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Session Timeout</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically log out after period of inactivity
+                        </p>
+                      </div>
+                      <Select 
+                        value={securityData.sessionTimeout}
+                        onValueChange={(value) => setSecurityData(prev => ({ ...prev, sessionTimeout: value }))}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Select timeout" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="240">4 hours</SelectItem>
+                          <SelectItem value="720">12 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter>
-                <Button onClick={handleSaveSecuritySettings}>Save Security Settings</Button>
+                <Button 
+                  onClick={handleSaveSecuritySettings}
+                  disabled={isLoading || isLoadingSecuritySettings}
+                >
+                  {isLoading ? "Saving..." : "Save Security Settings"}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>;
+    </DashboardLayout>
+  );
 };
+
 export default DeveloperSettings;

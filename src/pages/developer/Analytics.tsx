@@ -14,23 +14,63 @@ import {
   RefreshCw
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MetricExplanationTooltip } from "@/components/developer/analytics/MetricExplanationTooltip";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { toast } from "sonner";
 
 const Analytics = () => {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dashboardStatus, setDashboardStatus] = useState<"loading" | "ready" | "error">("loading");
 
+  // Simulate data refresh
   const handleRefresh = () => {
-    setLastRefreshed(new Date());
+    setIsRefreshing(true);
+    setDashboardStatus("loading");
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setLastRefreshed(new Date());
+      setIsRefreshing(false);
+      setDashboardStatus("ready");
+      toast.success("Analytics data refreshed successfully");
+    }, 1200);
   };
+
+  // Handle time range change
+  const handleTimeRangeChange = (range: '24h' | '7d' | '30d' | '90d') => {
+    setTimeRange(range);
+    setDashboardStatus("loading");
+    
+    // Simulate data loading for new time range
+    setTimeout(() => {
+      setDashboardStatus("ready");
+    }, 800);
+  };
+
+  // Handle initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDashboardStatus("ready");
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <DashboardLayout type="developer">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+              <StatusBadge 
+                initialState={dashboardStatus} 
+                onStatusChange={setDashboardStatus}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <p className="text-muted-foreground">
                 Monitor your API performance and user engagement metrics
@@ -48,9 +88,15 @@ const Analytics = () => {
             <div className="text-sm text-muted-foreground">
               Last updated: {lastRefreshed.toLocaleTimeString()}
             </div>
-            <Button size="sm" variant="outline" onClick={handleRefresh} className="gap-1">
-              <RefreshCw className="h-3.5 w-3.5" />
-              <span>Refresh</span>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleRefresh} 
+              className="gap-1"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
             </Button>
             <Button size="sm" variant="outline" className="gap-1">
               <Download className="h-3.5 w-3.5" />
@@ -65,8 +111,9 @@ const Analytics = () => {
               <Button 
                 variant={timeRange === '24h' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setTimeRange('24h')}
+                onClick={() => handleTimeRangeChange('24h')}
                 className="gap-1"
+                disabled={isRefreshing || dashboardStatus === "loading"}
               >
                 <Clock className="h-3.5 w-3.5" />
                 <span>24 Hours</span>
@@ -74,8 +121,9 @@ const Analytics = () => {
               <Button 
                 variant={timeRange === '7d' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setTimeRange('7d')}
+                onClick={() => handleTimeRangeChange('7d')}
                 className="gap-1"
+                disabled={isRefreshing || dashboardStatus === "loading"}
               >
                 <Calendar className="h-3.5 w-3.5" />
                 <span>7 Days</span>
@@ -83,8 +131,9 @@ const Analytics = () => {
               <Button 
                 variant={timeRange === '30d' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setTimeRange('30d')}
+                onClick={() => handleTimeRangeChange('30d')}
                 className="gap-1"
+                disabled={isRefreshing || dashboardStatus === "loading"}
               >
                 <CalendarDays className="h-3.5 w-3.5" />
                 <span>30 Days</span>
@@ -92,8 +141,9 @@ const Analytics = () => {
               <Button 
                 variant={timeRange === '90d' ? 'default' : 'outline'} 
                 size="sm" 
-                onClick={() => setTimeRange('90d')}
+                onClick={() => handleTimeRangeChange('90d')}
                 className="gap-1"
+                disabled={isRefreshing || dashboardStatus === "loading"}
               >
                 <CalendarRange className="h-3.5 w-3.5" />
                 <span>90 Days</span>
