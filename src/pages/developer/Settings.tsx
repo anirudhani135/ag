@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -12,61 +11,54 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { User, CreditCard, Bell, Key, Shield, Plus, Save, HelpCircle, Users, Globe, Database } from "lucide-react";
-
 const DeveloperSettings = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
-
   const handleSaveProfile = () => {
     toast({
       title: "Profile updated",
       description: "Your profile information has been saved successfully.",
-      variant: "default",
+      variant: "default"
     });
   };
-
   const handleSavePayment = () => {
     toast({
       title: "Payment information updated",
       description: "Your payment details have been saved successfully.",
-      variant: "default",
+      variant: "default"
     });
   };
-
   const handleSaveNotifications = () => {
     toast({
       title: "Notification preferences updated",
       description: "Your notification preferences have been saved successfully.",
-      variant: "default",
+      variant: "default"
     });
   };
-
   const handleGenerateApiKey = () => {
     toast({
       title: "New API key generated",
       description: "Your new API key has been generated. Keep it secure!",
-      variant: "default",
+      variant: "default"
     });
   };
-
   const handleSaveTeamMember = () => {
     toast({
       title: "Team member added",
       description: "The new team member has been added successfully.",
-      variant: "default",
+      variant: "default"
     });
   };
-
   const handleSaveSecuritySettings = () => {
     toast({
       title: "Security settings updated",
       description: "Your security settings have been updated successfully.",
-      variant: "default",
+      variant: "default"
     });
   };
-
-  return (
-    <DashboardLayout type="developer">
+  return <DashboardLayout type="developer">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
@@ -77,27 +69,27 @@ const DeveloperSettings = () => {
 
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2 h-auto p-1">
-            <TabsTrigger value="profile" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="profile" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-50">
               <User className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="payment" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="payment" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-100">
               <CreditCard className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">Payment</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="notifications" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-100">
               <Bell className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="api" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="api" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-100">
               <Key className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">API</span>
             </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="team" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-100">
               <Users className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">Team</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="security" className="flex items-center data-[state=active]:text-primary-foreground bg-slate-100">
               <Shield className="h-4 w-4 mr-2" />
               <span className="hidden md:inline">Security</span>
             </TabsTrigger>
@@ -132,11 +124,7 @@ const DeveloperSettings = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    defaultValue="AI developer specializing in conversational agents and natural language processing."
-                    rows={4}
-                  />
+                  <Textarea id="bio" defaultValue="AI developer specializing in conversational agents and natural language processing." rows={4} />
                 </div>
               </CardContent>
               <CardFooter>
@@ -243,11 +231,7 @@ const DeveloperSettings = () => {
                 <div className="space-y-2">
                   <Label>Current API Key</Label>
                   <div className="flex items-center">
-                    <Input
-                      value="sk_live_7h4j5k6l7j8k9l0j1k2l3k4j5k6l7j8k"
-                      readOnly
-                      className="font-mono text-sm"
-                    />
+                    <Input value="sk_live_7h4j5k6l7j8k9l0j1k2l3k4j5k6l7j8k" readOnly className="font-mono text-sm" />
                     <Button variant="outline" className="ml-2">
                       Copy
                     </Button>
@@ -265,10 +249,9 @@ const DeveloperSettings = () => {
                       <Badge variant="outline">1,243 / 10,000</Badge>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary"
-                        style={{ width: "12.4%" }}
-                      ></div>
+                      <div className="h-full bg-primary" style={{
+                      width: "12.4%"
+                    }}></div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
                       12.4% of your monthly API calls used
@@ -279,10 +262,7 @@ const DeveloperSettings = () => {
                 <div className="space-y-2">
                   <Label>Webhooks</Label>
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="https://your-app.com/webhooks"
-                      className="flex-1"
-                    />
+                    <Input placeholder="https://your-app.com/webhooks" className="flex-1" />
                     <Button variant="outline">Set URL</Button>
                   </div>
                 </div>
@@ -309,7 +289,7 @@ const DeveloperSettings = () => {
                         <p className="font-medium">Alex Johnson (You)</p>
                         <p className="text-sm text-muted-foreground">alex@example.com</p>
                       </div>
-                      <Badge>Owner</Badge>
+                      <Badge className="rounded-md bg-slate-300">Owner</Badge>
                     </div>
                   </div>
                   
@@ -410,8 +390,6 @@ const DeveloperSettings = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default DeveloperSettings;
