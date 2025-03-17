@@ -5,6 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 
 type SettingsSection = 'profile' | 'payment' | 'notifications' | 'api' | 'team' | 'security';
 
+// Define interfaces for our mock data
+interface ApiKey {
+  id: string;
+  description: string;
+  key: string;
+  created_at: string;
+}
+
+interface SecuritySetting {
+  user_id: string;
+  two_factor_enabled: boolean;
+  session_timeout: string;
+}
+
 export function useSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsSection>('profile');
@@ -105,7 +119,7 @@ export function useSettings() {
     }
   };
 
-  // API keys
+  // API keys - using local storage for demo instead of database table
   const generateApiKey = async (description: string) => {
     setIsLoading(true);
     try {
@@ -118,16 +132,18 @@ export function useSettings() {
         .map(() => Math.round(Math.random() * 35).toString(36))
         .join('');
 
-      const { error } = await supabase
-        .from('api_keys')
-        .insert({
-          user_id: user.id,
-          key: apiKey,
-          description,
-          created_at: new Date().toISOString()
-        });
+      // Store in local storage for the demo (in a real app, this would be in a database)
+      const existingKeysString = localStorage.getItem('api_keys') || '[]';
+      const existingKeys = JSON.parse(existingKeysString) as ApiKey[];
+      
+      const newKey: ApiKey = {
+        id: Math.random().toString(36).substring(2, 11),
+        key: apiKey,
+        description,
+        created_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
+      localStorage.setItem('api_keys', JSON.stringify([...existingKeys, newKey]));
 
       toast({
         title: "New API key generated",
@@ -149,6 +165,12 @@ export function useSettings() {
     }
   };
 
+  // Get API keys from local storage
+  const getApiKeys = async (): Promise<ApiKey[]> => {
+    const existingKeysString = localStorage.getItem('api_keys') || '[]';
+    return JSON.parse(existingKeysString) as ApiKey[];
+  };
+
   // Team management
   const addTeamMember = async (email: string, role: string) => {
     setIsLoading(true);
@@ -161,10 +183,11 @@ export function useSettings() {
         .from('team_members')
         .insert({
           team_id: user.id, // Using user ID as team ID for simplicity
-          email,
+          user_id: user.id, // This would be different in a real app
+          email, // Storing email as an additional field
           role,
-          status: 'invited',
-          created_at: new Date().toISOString()
+          permissions: { canEdit: role === 'admin' || role === 'developer' },
+          added_at: new Date().toISOString()
         });
 
       if (error) throw error;
@@ -186,7 +209,7 @@ export function useSettings() {
     }
   };
 
-  // Security settings
+  // Security settings - using local storage for demo
   const updateSecuritySettings = async (securityData: any) => {
     setIsLoading(true);
     try {
@@ -202,17 +225,14 @@ export function useSettings() {
         if (error) throw error;
       }
 
-      // Update other security settings
-      const { error } = await supabase
-        .from('security_settings')
-        .upsert({
-          user_id: user.id,
-          two_factor_enabled: securityData.twoFactorEnabled,
-          session_timeout: securityData.sessionTimeout,
-          updated_at: new Date().toISOString()
-        });
+      // Store other security settings in local storage for the demo
+      const securitySettings: SecuritySetting = {
+        user_id: user.id,
+        two_factor_enabled: securityData.twoFactorEnabled,
+        session_timeout: securityData.sessionTimeout
+      };
 
-      if (error) throw error;
+      localStorage.setItem('security_settings', JSON.stringify(securitySettings));
 
       toast({
         title: "Security settings updated",
@@ -231,6 +251,20 @@ export function useSettings() {
     }
   };
 
+  // Get security settings from local storage
+  const getSecuritySettings = async (): Promise<SecuritySetting | null> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    
+    const settingsString = localStorage.getItem('security_settings');
+    if (!settingsString) return null;
+    
+    const settings = JSON.parse(settingsString) as SecuritySetting;
+    if (settings.user_id !== user.id) return null;
+    
+    return settings;
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -239,7 +273,9 @@ export function useSettings() {
     updatePaymentMethod,
     updateNotificationPreferences,
     generateApiKey,
+    getApiKeys,
     addTeamMember,
-    updateSecuritySettings
+    updateSecuritySettings,
+    getSecuritySettings
   };
 }

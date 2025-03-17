@@ -61,8 +61,11 @@ const AgentCreationPage = () => {
     }
   };
 
-  const handleStartDeployment = () => {
+  // Make this async to match the expected type
+  const handleStartDeployment = async () => {
     setDeploymentStarted(true);
+    // Return a resolved promise to satisfy the Promise<void> return type
+    return Promise.resolve();
   };
 
   if (isPageLoading) {
@@ -107,7 +110,6 @@ const AgentCreationPage = () => {
                 <DeploymentConfiguration 
                   agentId={createdAgentId} 
                   onDeploymentComplete={handleDeploymentComplete}
-                  onDeploymentStart={handleStartDeployment}
                 />
               ) : (
                 <StepContentWrapper

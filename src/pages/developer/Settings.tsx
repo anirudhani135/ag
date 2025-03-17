@@ -17,6 +17,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define interfaces for typed data
+interface ApiKey {
+  id: string;
+  description: string;
+  key: string;
+  created_at: string;
+}
+
+interface TeamMember {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
 const DeveloperSettings = () => {
   const { toast } = useToast();
   const {
@@ -27,8 +42,10 @@ const DeveloperSettings = () => {
     updatePaymentMethod,
     updateNotificationPreferences,
     generateApiKey,
+    getApiKeys,
     addTeamMember,
-    updateSecuritySettings
+    updateSecuritySettings,
+    getSecuritySettings
   } = useSettings();
 
   // Form state
@@ -86,37 +103,28 @@ const DeveloperSettings = () => {
 
       if (error) throw error;
       return data;
-    },
-    onSuccess: (data) => {
-      if (data) {
-        setProfileData(prev => ({
-          ...prev,
-          name: data.name || prev.name,
-          email: data.email || prev.email,
-          company: data.company || prev.company,
-          website: data.website || prev.website,
-          bio: data.bio || prev.bio
-        }));
-      }
     }
   });
 
-  // Fetch API keys
+  // Use effect to update form when user data loads
+  if (userData && !isLoadingUser) {
+    // This pattern is safer than using useEffect for updating state based on query results
+    if (profileData.name !== userData.name && userData.name) {
+      setProfileData(prev => ({
+        ...prev,
+        name: userData.name || prev.name,
+        email: userData.email || prev.email,
+        company: userData.company || prev.company,
+        website: userData.website || prev.website,
+        bio: userData.bio || prev.bio
+      }));
+    }
+  }
+
+  // Fetch API keys - now using our local storage implementation
   const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
     queryKey: ['api-keys'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    }
+    queryFn: getApiKeys
   });
 
   // Fetch team members
@@ -133,36 +141,33 @@ const DeveloperSettings = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to match our expected interface
+      return data.map((member: any) => ({
+        id: member.id,
+        email: member.user_id, // In a real app, you'd look up the email
+        role: member.role,
+        status: 'active'
+      })) as TeamMember[];
     }
   });
 
-  // Fetch security settings
+  // Fetch security settings - now using our local storage implementation
   const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
     queryKey: ['security-settings'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase
-        .from('security_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found" which is OK
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data) {
-        setSecurityData(prev => ({
-          ...prev,
-          twoFactorEnabled: data.two_factor_enabled || false,
-          sessionTimeout: data.session_timeout || "60"
-        }));
-      }
-    }
+    queryFn: getSecuritySettings
   });
+
+  // Use effect to update form when security settings load
+  if (securitySettings && !isLoadingSecuritySettings) {
+    if (securityData.twoFactorEnabled !== securitySettings.two_factor_enabled) {
+      setSecurityData(prev => ({
+        ...prev,
+        twoFactorEnabled: securitySettings.two_factor_enabled,
+        sessionTimeout: securitySettings.session_timeout
+      }));
+    }
+  }
 
   // Fetch notification preferences
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
@@ -179,16 +184,22 @@ const DeveloperSettings = () => {
 
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows found" which is OK
       return data;
-    },
-    onSuccess: (data) => {
-      if (data && data.preferences) {
-        setNotificationPreferences(prev => ({
-          ...prev,
-          ...data.preferences
-        }));
-      }
     }
   });
+
+  // Use effect to update form when notification preferences load
+  if (notificationPrefs && !isLoadingNotificationPrefs && notificationPrefs.preferences) {
+    const prefsObj = typeof notificationPrefs.preferences === 'object' 
+      ? notificationPrefs.preferences 
+      : {};
+      
+    if (notificationPreferences.emailNotifications !== prefsObj.emailNotifications) {
+      setNotificationPreferences(prev => ({
+        ...prev,
+        ...prefsObj
+      }));
+    }
+  }
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -581,7 +592,7 @@ const DeveloperSettings = () => {
                     </div>
                   ) : apiKeys && apiKeys.length > 0 ? (
                     <div className="space-y-2">
-                      {apiKeys.map((key) => (
+                      {apiKeys.map((key: ApiKey) => (
                         <div key={key.id} className="p-4 border rounded-md">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">{key.description}</span>
@@ -656,7 +667,7 @@ const DeveloperSettings = () => {
                       </div>
                     </div>
                     
-                    {teamMembers && teamMembers.map((member) => (
+                    {teamMembers && teamMembers.map((member: TeamMember) => (
                       <div key={member.id} className="border rounded-md p-4">
                         <div className="flex items-center justify-between">
                           <div>

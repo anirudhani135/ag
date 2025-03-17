@@ -1,569 +1,411 @@
 
-import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Copy, Search, ExternalLink, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Copy, Search, BookOpen, Code, Webhook, MessageSquare, Database, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge"; // Added Badge import
+import { useState } from "react";
 
 const Documentation = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("getting-started");
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Developer Documentation</h2>
-          <p className="text-muted-foreground">
-            Complete guides and references for integrating with our platform
-          </p>
+      <div className="container mx-auto p-4 max-w-6xl">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
+            <p className="text-muted-foreground">
+              Comprehensive guides, API references, and examples to help you build with our platform.
+            </p>
+          </div>
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search documentation..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search documentation..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <Tabs defaultValue="guides" className="space-y-6">
+          <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+            <TabsTrigger value="guides" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Guides</span>
+            </TabsTrigger>
+            <TabsTrigger value="api" className="flex items-center gap-2">
+              <Code className="h-4 w-4" />
+              <span className="hidden sm:inline">API</span>
+            </TabsTrigger>
+            <TabsTrigger value="sdks" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              <span className="hidden sm:inline">SDKs</span>
+            </TabsTrigger>
+            <TabsTrigger value="webhooks" className="flex items-center gap-2">
+              <Webhook className="h-4 w-4" />
+              <span className="hidden sm:inline">Webhooks</span>
+            </TabsTrigger>
+            <TabsTrigger value="faq" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">FAQ</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
+          <TabsContent value="guides" className="space-y-6">
             <Card>
-              <CardContent className="p-4">
-                <nav className="space-y-2">
-                  <Button
-                    variant={activeTab === "getting-started" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("getting-started")}
-                  >
-                    Getting Started
-                  </Button>
-                  <Button
-                    variant={activeTab === "api-reference" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("api-reference")}
-                  >
-                    API Reference
-                  </Button>
-                  <Button
-                    variant={activeTab === "guides" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("guides")}
-                  >
-                    Guides & Tutorials
-                  </Button>
-                  <Button
-                    variant={activeTab === "sdks" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("sdks")}
-                  >
-                    SDKs & Libraries
-                  </Button>
-                  <Button
-                    variant={activeTab === "webhooks" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("webhooks")}
-                  >
-                    Webhooks
-                  </Button>
-                  <Button
-                    variant={activeTab === "faq" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setActiveTab("faq")}
-                  >
-                    FAQ
-                  </Button>
-                </nav>
+              <CardHeader>
+                <CardTitle>Getting Started with Agent Development</CardTitle>
+                <CardDescription>
+                  Learn how to create, configure, and deploy your first AI agent
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>
+                  Our platform provides a powerful framework for creating AI agents that can be integrated into various applications and services. This guide will walk you through the process of creating your first agent, configuring its capabilities, and deploying it to production.
+                </p>
+                <h3 className="text-lg font-semibold mt-4">Agent Creation Steps</h3>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>Define your agent's basic information and purpose</li>
+                  <li>Configure model parameters and capabilities</li>
+                  <li>Set up integrations with external services (optional)</li>
+                  <li>Create and run test cases to validate performance</li>
+                  <li>Deploy your agent to production</li>
+                </ol>
+                <div className="mt-4">
+                  <Button variant="outline" className="mr-2">Read Full Guide</Button>
+                  <Button variant="secondary">View Examples</Button>
+                </div>
               </CardContent>
             </Card>
-          </div>
 
-          <div className="md:col-span-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Testing and Optimization</CardTitle>
+                  <CardDescription>Best practices for testing and improving agent performance</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Learn how to create comprehensive test suites to validate your agent's responses across different scenarios. Understand performance metrics and optimization techniques.</p>
+                  <Button variant="link" className="mt-4 p-0">Read more →</Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Integration Guide</CardTitle>
+                  <CardDescription>Connect your agent with external services and APIs</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Discover how to integrate your agent with databases, APIs, and third-party services to enhance its capabilities and create more powerful automated workflows.</p>
+                  <Button variant="link" className="mt-4 p-0">Read more →</Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Deployment Strategies</CardTitle>
+                  <CardDescription>Learn about different deployment options and best practices</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Understand different deployment environments, scaling strategies, and monitoring approaches to ensure your agent runs reliably in production.</p>
+                  <Button variant="link" className="mt-4 p-0">Read more →</Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Monetization Guide</CardTitle>
+                  <CardDescription>Ways to monetize your AI agents on the marketplace</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>Explore different pricing models, marketing strategies, and analytics tools to optimize the commercial success of your agents in the marketplace.</p>
+                  <Button variant="link" className="mt-4 p-0">Read more →</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="api" className="space-y-6">
             <Card>
-              <CardHeader className="pb-3">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-3 sm:grid-cols-6">
-                    <TabsTrigger value="getting-started">Intro</TabsTrigger>
-                    <TabsTrigger value="api-reference">API</TabsTrigger>
-                    <TabsTrigger value="guides">Guides</TabsTrigger>
-                    <TabsTrigger value="sdks">SDKs</TabsTrigger>
-                    <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-                    <TabsTrigger value="faq">FAQ</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+              <CardHeader>
+                <CardTitle>API Reference</CardTitle>
+                <CardDescription>
+                  Complete reference documentation for our RESTful API
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <TabsContent value="getting-started" className="space-y-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">Authentication</h3>
+                  <p className="mb-2">All API requests require authentication using an API key.</p>
+                  <div className="bg-muted p-3 rounded-md font-mono text-sm">
+                    Authorization: Bearer YOUR_API_KEY
+                  </div>
+                </div>
+
+                <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Getting Started with the Agent Platform</h3>
-                    <p className="text-muted-foreground">
-                      Learn how to create, deploy, and manage AI agents that can solve specific use cases for your customers.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">1. Create Your First Agent</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Start by navigating to the Agent Creation page and defining your agent's purpose and capabilities.
-                      </p>
-                      <Button variant="outline" size="sm">Read Guide</Button>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Agents API</h3>
+                      <Badge variant="outline">v1.0</Badge>
                     </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">2. Configure Your Agent</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Set up your agent's parameters, knowledge base, and behavior to optimize for your use case.
-                      </p>
-                      <Button variant="outline" size="sm">Read Guide</Button>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">3. Deploy Your Agent</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Learn how to deploy your agent to make it available to users with proper scaling and monitoring.
-                      </p>
-                      <Button variant="outline" size="sm">Read Guide</Button>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">4. Integrate With Your Services</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Connect your agent with your existing services via API or webhooks for enhanced functionality.
-                      </p>
-                      <Button variant="outline" size="sm">Read Guide</Button>
+                    <p className="text-muted-foreground mb-2">Manage and deploy AI agents</p>
+                    <div className="bg-muted p-3 rounded-md flex justify-between items-center">
+                      <code className="text-sm">GET /api/v1/agents</code>
+                      <Button variant="ghost" size="sm" className="h-8 gap-1">
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                </TabsContent>
 
-                <TabsContent value="api-reference" className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">API Reference</h3>
-                    <p className="text-muted-foreground">
-                      Complete reference documentation for all available API endpoints, parameters, and response formats.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">Authentication</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        All API requests require authentication using your API key in the Authorization header.
-                      </p>
-                      <div className="bg-slate-100 p-3 rounded-md font-mono text-sm">
-                        <div className="flex justify-between items-center">
-                          <code>Authorization: Bearer YOUR_API_KEY</code>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("Authorization: Bearer YOUR_API_KEY")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Deployments API</h3>
+                      <Badge variant="outline">v1.0</Badge>
                     </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-medium">API Endpoints</h4>
-                      
-                      <div className="p-4 border rounded-md">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs mr-2">GET</span>
-                            <code className="font-mono text-sm">/api/v1/agents</code>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("/api/v1/agents")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground">List all your agents with optional filtering</p>
-                      </div>
-
-                      <div className="p-4 border rounded-md">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs mr-2">GET</span>
-                            <code className="font-mono text-sm">/api/v1/agents/{"{agent_id}"}</code>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("/api/v1/agents/{agent_id}")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Get details for a specific agent</p>
-                      </div>
-
-                      <div className="p-4 border rounded-md">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs mr-2">POST</span>
-                            <code className="font-mono text-sm">/api/v1/agents</code>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("/api/v1/agents")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Create a new agent</p>
-                      </div>
-
-                      <div className="p-4 border rounded-md">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-xs mr-2">PUT</span>
-                            <code className="font-mono text-sm">/api/v1/agents/{"{agent_id}"}</code>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("/api/v1/agents/{agent_id}")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Update an existing agent</p>
-                      </div>
-
-                      <div className="p-4 border rounded-md">
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <span className="bg-red-100 text-red-800 px-2 py-1 rounded-md text-xs mr-2">DELETE</span>
-                            <code className="font-mono text-sm">/api/v1/agents/{"{agent_id}"}</code>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => copyToClipboard("/api/v1/agents/{agent_id}")}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Delete an agent</p>
-                      </div>
+                    <p className="text-muted-foreground mb-2">Deploy and manage agent instances</p>
+                    <div className="bg-muted p-3 rounded-md flex justify-between items-center">
+                      <code className="text-sm">POST /api/v1/deployments</code>
+                      <Button variant="ghost" size="sm" className="h-8 gap-1">
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                </TabsContent>
 
-                <TabsContent value="guides" className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Guides & Tutorials</h3>
-                    <p className="text-muted-foreground">
-                      Step-by-step tutorials to help you master agent development and integration.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card>
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">Creating an AI Customer Support Agent</h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Learn how to build an agent that can handle common customer inquiries and escalate when necessary.
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary">15 min read</Badge>
-                            <Button variant="outline" size="sm">View Tutorial</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">Integrating Your Agent with Slack</h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Connect your AI agent to Slack to provide assistance directly in your team's workspace.
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary">10 min read</Badge>
-                            <Button variant="outline" size="sm">View Tutorial</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">Optimizing Agent Performance</h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Techniques to improve response quality, reduce latency, and enhance user experience.
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary">20 min read</Badge>
-                            <Button variant="outline" size="sm">View Tutorial</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">Building Multi-Modal Agents</h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Create agents that can process and respond to text, images, and other input formats.
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary">25 min read</Badge>
-                            <Button variant="outline" size="sm">View Tutorial</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Analytics API</h3>
+                      <Badge variant="outline">v1.0</Badge>
+                    </div>
+                    <p className="text-muted-foreground mb-2">Retrieve performance and usage analytics</p>
+                    <div className="bg-muted p-3 rounded-md flex justify-between items-center">
+                      <code className="text-sm">GET /api/v1/analytics</code>
+                      <Button variant="ghost" size="sm" className="h-8 gap-1">
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                </TabsContent>
 
-                <TabsContent value="sdks" className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">SDKs & Libraries</h3>
-                    <p className="text-muted-foreground">
-                      Official client libraries to integrate with our platform in your preferred programming language.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-semibold">JavaScript / TypeScript</h4>
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            GitHub
-                          </Button>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Integrate our platform in web applications, Node.js services, or React Native apps.
-                        </p>
-                        
-                        <div className="bg-slate-100 p-3 rounded-md font-mono text-sm mb-4">
-                          <div className="flex justify-between items-center">
-                            <code>npm install @agent-platform/js</code>
-                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard("npm install @agent-platform/js")}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">Documentation</Button>
-                          <Button variant="outline" size="sm">Examples</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-semibold">Python</h4>
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            GitHub
-                          </Button>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Perfect for data science applications, backend services, or AI/ML integrations.
-                        </p>
-                        
-                        <div className="bg-slate-100 p-3 rounded-md font-mono text-sm mb-4">
-                          <div className="flex justify-between items-center">
-                            <code>pip install agent-platform</code>
-                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard("pip install agent-platform")}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">Documentation</Button>
-                          <Button variant="outline" size="sm">Examples</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-semibold">Java</h4>
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            GitHub
-                          </Button>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-4">
-                          For enterprise applications, Android development, or Spring-based services.
-                        </p>
-                        
-                        <div className="bg-slate-100 p-3 rounded-md font-mono text-sm mb-4">
-                          <div className="flex justify-between items-center">
-                            <code>implementation 'com.agent-platform:sdk:1.0.0'</code>
-                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard("implementation 'com.agent-platform:sdk:1.0.0'")}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">Documentation</Button>
-                          <Button variant="outline" size="sm">Examples</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-semibold">Go</h4>
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            GitHub
-                          </Button>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Ideal for high-performance microservices and cloud native applications.
-                        </p>
-                        
-                        <div className="bg-slate-100 p-3 rounded-md font-mono text-sm mb-4">
-                          <div className="flex justify-between items-center">
-                            <code>go get github.com/agent-platform/go-sdk</code>
-                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard("go get github.com/agent-platform/go-sdk")}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">Documentation</Button>
-                          <Button variant="outline" size="sm">Examples</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="webhooks" className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Webhooks</h3>
-                    <p className="text-muted-foreground">
-                      Configure webhooks to receive real-time notifications for platform events.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">Webhook Events Reference</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        All the events you can subscribe to via webhooks and their payload structures.
-                      </p>
-                      
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md">
-                          <div>
-                            <code className="font-mono text-sm">agent.deployed</code>
-                            <p className="text-xs text-muted-foreground">Triggered when an agent is deployed to production</p>
-                          </div>
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md">
-                          <div>
-                            <code className="font-mono text-sm">agent.updated</code>
-                            <p className="text-xs text-muted-foreground">Triggered when an agent configuration is updated</p>
-                          </div>
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md">
-                          <div>
-                            <code className="font-mono text-sm">agent.error</code>
-                            <p className="text-xs text-muted-foreground">Triggered when an agent encounters an error</p>
-                          </div>
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md">
-                          <div>
-                            <code className="font-mono text-sm">conversation.started</code>
-                            <p className="text-xs text-muted-foreground">Triggered when a new conversation begins with an agent</p>
-                          </div>
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                        
-                        <div className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md">
-                          <div>
-                            <code className="font-mono text-sm">conversation.completed</code>
-                            <p className="text-xs text-muted-foreground">Triggered when a conversation with an agent completes</p>
-                          </div>
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Transactions API</h3>
+                      <Badge variant="outline">v1.0</Badge>
                     </div>
-                    
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">Best Practices for Webhook Implementation</h4>
-                      <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
-                        <li>Implement retry logic to handle temporary failures</li>
-                        <li>Verify webhook signatures to ensure security</li>
-                        <li>Respond quickly to webhook deliveries (under 3 seconds)</li>
-                        <li>Use a dedicated endpoint for each webhook type</li>
-                        <li>Implement proper error handling for webhook processing</li>
-                      </ul>
+                    <p className="text-muted-foreground mb-2">Retrieve transaction history and revenue data</p>
+                    <div className="bg-muted p-3 rounded-md flex justify-between items-center">
+                      <code className="text-sm">GET /api/v1/transactions</code>
+                      <Button variant="ghost" size="sm" className="h-8 gap-1">
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                </TabsContent>
+                </div>
 
-                <TabsContent value="faq" className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Frequently Asked Questions</h3>
-                    <p className="text-muted-foreground">
-                      Answers to common questions about agent development and platform usage.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">What is an AI Agent?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        An AI Agent is an autonomous program that can perceive its environment, make decisions, and take actions to achieve specific goals. Our platform enables you to create specialized AI agents that can perform tasks like customer support, data analysis, creative content generation, and more.
-                      </p>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">How do I customize my agent's behavior?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        You can customize your agent's behavior through the configuration settings in the Agent Creation interface. This includes setting parameters for response style, knowledge base sources, permitted actions, and more. For advanced customization, you can also use our API to programmatically define your agent's capabilities.
-                      </p>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">What are the usage limits?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Usage limits depend on your subscription plan. Free tier accounts have limits on the number of API calls, conversations, and deployed agents. Paid plans offer higher limits and the ability to handle more concurrent users. You can view your current usage and limits in the Developer Dashboard.
-                      </p>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">How is billing calculated?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Billing is based on a combination of factors including the number of API calls, the complexity of requests, and the number of deployed agents. We provide detailed analytics in the Revenue section of your Developer Dashboard so you can track costs and optimize your usage.
-                      </p>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">Can I integrate my agent with my existing systems?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Yes, you can integrate your agent with existing systems using our API and webhooks. We provide SDKs for popular programming languages to make integration easier. You can also use custom functions to connect your agent to external APIs and databases.
-                      </p>
-                    </div>
-
-                    <div className="p-4 border rounded-md">
-                      <h4 className="font-medium mb-2">How do I monitor my agent's performance?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        The Analytics Dashboard provides comprehensive metrics on your agent's performance, including response times, error rates, user engagement, and more. You can also set up alerts for performance issues and receive real-time notifications through webhooks.
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
+                <Button className="mt-6">View Full API Documentation</Button>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="sdks" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>SDK Documentation</CardTitle>
+                <CardDescription>
+                  Client libraries for integrating with our platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-lg">JavaScript SDK</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="mb-4">Our official JavaScript SDK for browser and Node.js applications.</p>
+                      <div className="bg-muted p-2 rounded-md font-mono text-sm mb-4">
+                        npm install @platform/js-sdk
+                      </div>
+                      <Button variant="outline" size="sm" className="mr-2">Documentation</Button>
+                      <Button variant="secondary" size="sm">Examples</Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-lg">Python SDK</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="mb-4">Our official Python SDK for server-side integration.</p>
+                      <div className="bg-muted p-2 rounded-md font-mono text-sm mb-4">
+                        pip install platform-sdk
+                      </div>
+                      <Button variant="outline" size="sm" className="mr-2">Documentation</Button>
+                      <Button variant="secondary" size="sm">Examples</Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-lg">Java SDK</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="mb-4">Our official Java SDK for enterprise applications.</p>
+                      <div className="bg-muted p-2 rounded-md font-mono text-sm mb-4">
+                        &lt;dependency&gt;
+                          &lt;groupId&gt;com.platform&lt;/groupId&gt;
+                          &lt;artifactId&gt;sdk&lt;/artifactId&gt;
+                        &lt;/dependency&gt;
+                      </div>
+                      <Button variant="outline" size="sm" className="mr-2">Documentation</Button>
+                      <Button variant="secondary" size="sm">Examples</Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-lg">Go SDK</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="mb-4">Our official Go SDK for backend services.</p>
+                      <div className="bg-muted p-2 rounded-md font-mono text-sm mb-4">
+                        go get github.com/platform/sdk
+                      </div>
+                      <Button variant="outline" size="sm" className="mr-2">Documentation</Button>
+                      <Button variant="secondary" size="sm">Examples</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="webhooks" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Webhooks</CardTitle>
+                <CardDescription>
+                  Receive real-time notifications for platform events
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-6">
+                  Webhooks allow your application to receive real-time updates about events that happen in our platform. You can configure webhooks to notify your systems about agent deployments, purchases, reviews, and more.
+                </p>
+
+                <h3 className="text-lg font-semibold mb-4">Available Webhook Events</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <h4 className="font-medium">agent.deployed</h4>
+                      <p className="text-sm text-muted-foreground">Triggered when an agent is deployed to production</p>
+                    </div>
+                    <Info className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <h4 className="font-medium">agent.purchased</h4>
+                      <p className="text-sm text-muted-foreground">Triggered when someone purchases your agent</p>
+                    </div>
+                    <Info className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <h4 className="font-medium">agent.review.created</h4>
+                      <p className="text-sm text-muted-foreground">Triggered when a new review is submitted for your agent</p>
+                    </div>
+                    <Info className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div>
+                      <h4 className="font-medium">subscription.renewed</h4>
+                      <p className="text-sm text-muted-foreground">Triggered when a subscription is renewed</p>
+                    </div>
+                    <Info className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Webhook Format</h3>
+                  <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
+                    {`{
+  "event": "agent.deployed",
+  "timestamp": "2023-06-01T12:00:00Z",
+  "data": {
+    "agent_id": "ag_12345",
+    "version": "1.0.0",
+    "deployment_id": "dep_67890",
+    "status": "successful"
+  }
+}`}
+                  </div>
+                </div>
+
+                <Button className="mt-6">Set Up Webhooks</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="faq" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Frequently Asked Questions</CardTitle>
+                <CardDescription>
+                  Common questions about development and platform usage
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-2">What types of agents can I build on this platform?</h3>
+                  <p>
+                    Our platform supports a wide range of AI agents, including conversational assistants, data analysis agents, content generation agents, automation agents, and more. You can customize agents to fit specific industry needs or general use cases.
+                  </p>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-2">How do I manage versioning for my agents?</h3>
+                  <p>
+                    Our platform provides built-in versioning capabilities. Each time you make changes to your agent, you can save it as a draft, test it, and then publish a new version. You can roll back to previous versions if needed, and track performance metrics across different versions.
+                  </p>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-2">What are the pricing options for developers?</h3>
+                  <p>
+                    Developers can choose between different revenue models: fixed price, subscription-based, or usage-based pricing. You can set your own prices and our platform handles the payment processing. We take a platform fee of 15% on all transactions.
+                  </p>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-2">How does testing work?</h3>
+                  <p>
+                    You can create test cases with sample inputs and expected outputs. The platform will automatically evaluate your agent's responses against these test cases and provide performance metrics. You can also conduct manual testing through the chat interface.
+                  </p>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-2">Can I integrate external APIs with my agent?</h3>
+                  <p>
+                    Yes, you can integrate external APIs and services with your agent using our API integration framework. This allows your agent to fetch data, perform actions, or integrate with existing systems and databases to enhance its capabilities.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">How do I monitor my agent's performance?</h3>
+                  <p>
+                    The platform provides detailed analytics dashboards where you can monitor usage metrics, error rates, response times, user feedback, and revenue data. You can set up alerts for critical performance issues and receive regular reports.
+                  </p>
+                </div>
+
+                <Button className="mt-4">View All FAQs</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
