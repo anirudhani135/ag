@@ -11,27 +11,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { User, CreditCard, Bell, Shield, Link, Key, Save } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 const Settings = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
-
   const handleSaveSettings = (section: string) => {
     setIsLoading(true);
-    
     setTimeout(() => {
       setIsLoading(false);
       toast({
         title: `${section} settings updated`,
         description: "Your settings have been saved successfully.",
-        variant: "default",
+        variant: "default"
       });
     }, 800);
   };
-
-  return (
-    <DashboardLayout type="user">
+  return <DashboardLayout type="user">
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold">Account Settings</h2>
@@ -42,27 +39,27 @@ const Settings = () => {
 
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2 h-auto p-1">
-            <TabsTrigger value="profile" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="profile" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <User className="h-4 w-4" />
               <span className="hidden md:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="notifications" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <Bell className="h-4 w-4" />
               <span className="hidden md:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="payment" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="payment" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <CreditCard className="h-4 w-4" />
               <span className="hidden md:inline">Payment</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="security" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <Shield className="h-4 w-4" />
               <span className="hidden md:inline">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="connections" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="connections" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <Link className="h-4 w-4" />
               <span className="hidden md:inline">Connections</span>
             </TabsTrigger>
-            <TabsTrigger value="api" className="flex items-center space-x-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="api" className="flex items-center space-x-2 data-[state=active]:text-primary-foreground bg-slate-100">
               <Key className="h-4 w-4" />
               <span className="hidden md:inline">API</span>
             </TabsTrigger>
@@ -107,37 +104,23 @@ const Settings = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="bio">Bio</Label>
-                      <Textarea 
-                        id="bio" 
-                        placeholder="Tell us a little about yourself" 
-                        defaultValue="AI enthusiast and tech explorer"
-                        className="min-h-[100px]"
-                      />
+                      <Textarea id="bio" placeholder="Tell us a little about yourself" defaultValue="AI enthusiast and tech explorer" className="min-h-[100px]" />
                     </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button 
-                  onClick={() => handleSaveSettings('Profile')}
-                  disabled={isLoading}
-                  variant="save" 
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
+                <Button onClick={() => handleSaveSettings('Profile')} disabled={isLoading} variant="save" className="flex items-center gap-2">
+                  {isLoading ? <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Saving...
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Save className="h-4 w-4" />
                       Save Changes
-                    </>
-                  )}
+                    </>}
                 </Button>
               </CardFooter>
             </Card>
@@ -201,26 +184,17 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button 
-                  onClick={() => handleSaveSettings('Notification')}
-                  disabled={isLoading}
-                  variant="save"
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
+                <Button onClick={() => handleSaveSettings('Notification')} disabled={isLoading} variant="save" className="flex items-center gap-2">
+                  {isLoading ? <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Saving...
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Save className="h-4 w-4" />
                       Save Changes
-                    </>
-                  )}
+                    </>}
                 </Button>
               </CardFooter>
             </Card>
@@ -265,11 +239,7 @@ const Settings = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="billingAddress">Billing Address</Label>
-                  <Textarea 
-                    id="billingAddress" 
-                    placeholder="Enter your billing address" 
-                    className="min-h-[80px]"
-                  />
+                  <Textarea id="billingAddress" placeholder="Enter your billing address" className="min-h-[80px]" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -288,26 +258,17 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button 
-                  onClick={() => handleSaveSettings('Payment')}
-                  disabled={isLoading}
-                  variant="save"
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
+                <Button onClick={() => handleSaveSettings('Payment')} disabled={isLoading} variant="save" className="flex items-center gap-2">
+                  {isLoading ? <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Saving...
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Save className="h-4 w-4" />
                       Save Changes
-                    </>
-                  )}
+                    </>}
                 </Button>
               </CardFooter>
             </Card>
@@ -373,26 +334,17 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button 
-                  onClick={() => handleSaveSettings('Security')}
-                  disabled={isLoading}
-                  variant="save"
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
+                <Button onClick={() => handleSaveSettings('Security')} disabled={isLoading} variant="save" className="flex items-center gap-2">
+                  {isLoading ? <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Saving...
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <Save className="h-4 w-4" />
                       Save Changes
-                    </>
-                  )}
+                    </>}
                 </Button>
               </CardFooter>
             </Card>
@@ -461,11 +413,7 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label>API Key</Label>
                   <div className="flex">
-                    <Input
-                      value="sk_test_51NzBQJJAVaYwZ12cKvBrN7K6Rpo8HHg..."
-                      className="font-mono text-sm"
-                      readOnly
-                    />
+                    <Input value="sk_test_51NzBQJJAVaYwZ12cKvBrN7K6Rpo8HHg..." className="font-mono text-sm" readOnly />
                     <Button variant="outline" className="ml-2">Copy</Button>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -497,8 +445,6 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>;
 };
-
 export default Settings;
