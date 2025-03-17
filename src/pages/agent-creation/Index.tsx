@@ -8,6 +8,7 @@ import { useAgentCreation } from "@/hooks/useAgentCreation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DeploymentConfiguration } from "@/components/agent-creation/DeploymentConfiguration";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const AgentCreationPage = () => {
   const {
@@ -32,6 +33,7 @@ const AgentCreationPage = () => {
   } = useAgentCreation();
 
   const [deploymentComplete, setDeploymentComplete] = useState(false);
+  const navigate = useNavigate();
 
   const isLastStep = currentStep === steps.length - 1;
 
@@ -39,8 +41,10 @@ const AgentCreationPage = () => {
     setDeploymentComplete(true);
     toast.success("Deployment completed successfully!");
     
-    // In a real application, this might navigate to the deployment details page
-    console.log(`Deployment completed with ID: ${deploymentId}`);
+    // Navigate to the agent details page when deployment is complete
+    if (createdAgentId) {
+      navigate(`/agent-detail?id=${createdAgentId}`);
+    }
   };
 
   return (

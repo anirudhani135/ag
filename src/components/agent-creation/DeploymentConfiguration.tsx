@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Server, Zap, Upload, Code, Bot, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Server, Zap, Bot, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -31,14 +31,16 @@ interface DeploymentMetrics {
   status?: string;
 }
 
+interface ResourceScaling {
+  minReplicas?: number;
+  maxReplicas?: number;
+}
+
 interface ResourceUsage {
   cpu?: string;
   memory?: string;
   timeout?: number;
-  scaling?: {
-    minReplicas?: number;
-    maxReplicas?: number;
-  };
+  scaling?: ResourceScaling;
 }
 
 interface DeploymentData {
@@ -118,16 +120,17 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
           clearInterval(interval);
         } else if (data.status === 'failed') {
           setDeploymentStatus('error');
-          setErrorMessage(data.metrics && typeof data.metrics === 'object' && 'error' in data.metrics 
-            ? String(data.metrics.error) 
-            : 'Deployment failed');
+          const errorMsg = typeof data.metrics === 'object' && data.metrics ? 
+            (data.metrics as DeploymentMetrics).error || 'Deployment failed' : 
+            'Deployment failed';
+          setErrorMessage(errorMsg);
           clearInterval(interval);
         } else if (data.status === 'deploying') {
           // Update progress based on metrics
-          const progress = data.metrics && typeof data.metrics === 'object' && 'progress' in data.metrics 
-            ? Number(data.metrics.progress) 
-            : deploymentProgress;
-          setDeploymentProgress(Math.min(95, progress));
+          const progress = typeof data.metrics === 'object' && data.metrics ? 
+            (data.metrics as DeploymentMetrics).progress || deploymentProgress : 
+            deploymentProgress;
+          setDeploymentProgress(Math.min(95, Number(progress)));
         }
       } catch (error) {
         console.error("Error checking deployment status:", error);
@@ -146,24 +149,23 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
       }
       
       // Safely access metrics.deployment_type
-      if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'deployment_type' in existingDeployment.metrics) {
-        setDeploymentType(existingDeployment.metrics.deployment_type as "langflow" | "native" || "native");
+      if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
+        const metrics = existingDeployment.metrics as DeploymentMetrics;
+        if (metrics.deployment_type) {
+          setDeploymentType(metrics.deployment_type as "langflow" | "native");
+        }
       }
       
       // Safely access resource_usage properties
       if (existingDeployment.resource_usage && typeof existingDeployment.resource_usage === 'object') {
-        const resourceUsage = existingDeployment.resource_usage;
+        const resourceUsage = existingDeployment.resource_usage as ResourceUsage;
         
         setResourceConfig({
-          cpu: 'cpu' in resourceUsage ? String(resourceUsage.cpu) : "0.5",
-          memory: 'memory' in resourceUsage ? String(resourceUsage.memory) : "512",
-          timeout: 'timeout' in resourceUsage ? Number(resourceUsage.timeout) : 30,
-          minReplicas: resourceUsage.scaling && typeof resourceUsage.scaling === 'object' && 'minReplicas' in resourceUsage.scaling 
-            ? Number(resourceUsage.scaling.minReplicas) 
-            : 1,
-          maxReplicas: resourceUsage.scaling && typeof resourceUsage.scaling === 'object' && 'maxReplicas' in resourceUsage.scaling 
-            ? Number(resourceUsage.scaling.maxReplicas) 
-            : 3,
+          cpu: resourceUsage.cpu || "0.5",
+          memory: resourceUsage.memory || "512",
+          timeout: resourceUsage.timeout || 30,
+          minReplicas: resourceUsage.scaling?.minReplicas || 1,
+          maxReplicas: resourceUsage.scaling?.maxReplicas || 3,
         });
       }
       
@@ -172,8 +174,9 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         setDeploymentStatus('processing');
         
         // Safely get progress from metrics
-        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'progress' in existingDeployment.metrics) {
-          setDeploymentProgress(Number(existingDeployment.metrics.progress) || 30);
+        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
+          const metrics = existingDeployment.metrics as DeploymentMetrics;
+          setDeploymentProgress(metrics.progress ? Number(metrics.progress) : 30);
         } else {
           setDeploymentProgress(30);
         }
@@ -184,8 +187,9 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         setDeploymentStatus('error');
         
         // Safely get error from metrics
-        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object' && 'error' in existingDeployment.metrics) {
-          setErrorMessage(String(existingDeployment.metrics.error) || 'Previous deployment failed');
+        if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
+          const metrics = existingDeployment.metrics as DeploymentMetrics;
+          setErrorMessage(metrics.error || 'Previous deployment failed');
         } else {
           setErrorMessage('Previous deployment failed');
         }
@@ -386,7 +390,7 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="langflow" id="langflow" />
                   <Label htmlFor="langflow" className="flex items-center gap-2 cursor-pointer">
-                    <Code className="h-4 w-4" />
+                    <Bot className="h-4 w-4" />
                     <div>
                       <p className="font-medium">Langflow Integration</p>
                       <p className="text-sm text-muted-foreground">Deploy using Langflow configuration</p>
@@ -559,7 +563,7 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
           <>
             <Button variant="outline">Cancel</Button>
             <Button 
-              onClick={deploymentType === "langflow" ? handleProcessLangflow : () => {}}
+              onClick={deploymentType === "langflow" ? handleProcessLangflow : () => handleDeploy("latest")}
               disabled={isDeploying || (deploymentType === "langflow" && !langflowConfig)}
               className="relative overflow-hidden"
             >
