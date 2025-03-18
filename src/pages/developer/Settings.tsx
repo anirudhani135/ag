@@ -101,12 +101,12 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[]>({
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[], Error, ApiKey[], [string]>({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[]>({
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[], Error, TeamMember[], [string]>({
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -144,7 +144,7 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData | null>({
+  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData | null, Error, NotificationPrefsData | null, [string]>({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -822,3 +822,4 @@ const DeveloperSettings = () => {
 };
 
 export default DeveloperSettings;
+
