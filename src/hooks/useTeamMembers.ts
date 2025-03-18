@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: Record<string, unknown>; // Changed to Record<string, unknown> to avoid deep type analysis
+  permissions: Record<string, unknown>; // Using Record<string, unknown> with proper handling
   added_at: string;
   status: string;
 }
@@ -32,15 +32,24 @@ export const useTeamMembers = () => {
           return [] as TeamMember[];
         }
         
-        // Explicitly cast each field to ensure type compatibility
-        const members: TeamMember[] = (data || []).map(member => ({
-          id: member.id,
-          user_id: member.user_id,
-          role: member.role || 'member',
-          permissions: member.permissions || {} as Record<string, unknown>, // Cast to Record<string, unknown> to prevent deep analysis
-          added_at: member.added_at || new Date().toISOString(),
-          status: 'active'
-        }));
+        // Properly convert and handle the data with explicit typing
+        const members: TeamMember[] = (data || []).map(member => {
+          // Ensure permissions is an object
+          let safePermissions: Record<string, unknown> = {};
+          
+          if (member.permissions && typeof member.permissions === 'object' && !Array.isArray(member.permissions)) {
+            safePermissions = member.permissions as Record<string, unknown>;
+          }
+          
+          return {
+            id: member.id,
+            user_id: member.user_id,
+            role: member.role || 'member',
+            permissions: safePermissions,
+            added_at: member.added_at || new Date().toISOString(),
+            status: 'active'
+          };
+        });
         
         return members;
       } catch (error) {
