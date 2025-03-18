@@ -46,16 +46,19 @@ export const useNotificationPreferences = () => {
           deployment_alerts: false,
           billing_alerts: false,
           performance_reports: false,
-          security_alerts: false,
-          // Extract values from notification_types if available
-          ...(data.notification_types && typeof data.notification_types === 'object' ? {
-            marketing_emails: !!data.notification_types.marketing,
-            deployment_alerts: !!data.notification_types.deployments,
-            billing_alerts: !!data.notification_types.billing,
-            performance_reports: !!data.notification_types.performance,
-            security_alerts: !!data.notification_types.security,
-          } : {})
+          security_alerts: false
         };
+        
+        // Safely extract values from notification_types if available
+        if (data.notification_types && typeof data.notification_types === 'object' && !Array.isArray(data.notification_types)) {
+          const notificationTypes = data.notification_types as Record<string, unknown>;
+          
+          preferences.marketing_emails = Boolean(notificationTypes.marketing);
+          preferences.deployment_alerts = Boolean(notificationTypes.deployments);
+          preferences.billing_alerts = Boolean(notificationTypes.billing);
+          preferences.performance_reports = Boolean(notificationTypes.performance);
+          preferences.security_alerts = Boolean(notificationTypes.security);
+        }
         
         return preferences;
       } catch (error) {
