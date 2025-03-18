@@ -71,6 +71,7 @@ const DeveloperSettings = () => {
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
+  // Fixed: Added proper type annotations to useQuery for user data
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
@@ -101,12 +102,14 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[], Error, ApiKey[], [string]>({
+  // Fixed: Added specific type parameters to avoid deep instantiation
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[], Error, TeamMember[], [string]>({
+  // Fixed: Added specific type parameters to avoid deep instantiation
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -129,6 +132,7 @@ const DeveloperSettings = () => {
     }
   });
 
+  // Fixed: Added specific type parameters to avoid deep instantiation issues
   const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
     queryKey: ['security-settings'],
     queryFn: getSecuritySettings
@@ -144,7 +148,8 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData | null, Error, NotificationPrefsData | null, [string]>({
+  // Fixed: Added specific type parameters to avoid deep instantiation
+  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -822,4 +827,3 @@ const DeveloperSettings = () => {
 };
 
 export default DeveloperSettings;
-
