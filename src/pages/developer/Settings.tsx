@@ -11,31 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { User, CreditCard, Bell, Key, Shield, Plus, Copy, HelpCircle, Users, Globe, Database } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings, ApiKey, TeamMember, NotificationPreferences } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface ApiKey {
-  id: string;
-  description: string;
-  key: string;
-  created_at: string;
-}
-
-interface TeamMember {
-  id: string;
-  email: string;
-  role: string;
-  status: string;
-}
-
-interface NotificationPreferences {
-  emailNotifications: boolean;
-  agentUpdates: boolean;
-  revenueAlerts: boolean;
-  marketingUpdates: boolean;
-}
 
 const DeveloperSettings = () => {
   const { toast } = useToast();
@@ -122,12 +101,20 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[], Error>({
+  type ApiKeysQueryResult = ApiKey[];
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKeysQueryResult>({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[], Error>({
+  interface TeamMemberQueryResult {
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+  }
+
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMemberQueryResult[]>({
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -146,7 +133,7 @@ const DeveloperSettings = () => {
         email: member.user_id,
         role: member.role,
         status: 'active'
-      })) as TeamMember[];
+      }));
     }
   });
 
@@ -165,7 +152,16 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
+  type NotificationPrefsData = {
+    id: string;
+    user_id: string;
+    email_notifications: boolean;
+    notification_types: Record<string, unknown>;
+    created_at: string;
+    updated_at: string;
+  };
+
+  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData>({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -833,4 +829,3 @@ const DeveloperSettings = () => {
 };
 
 export default DeveloperSettings;
-
