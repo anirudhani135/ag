@@ -41,12 +41,20 @@ export const useNotificationPreferences = () => {
           user_id: data.user_id,
           email_notifications: data.email_notifications || false,
           push_notifications: data.push_notifications || false,
-          // Set default values for the missing fields
+          // These fields don't exist in the database, so we provide default values
           marketing_emails: false,
           deployment_alerts: false,
           billing_alerts: false,
           performance_reports: false,
-          security_alerts: false
+          security_alerts: false,
+          // Extract values from notification_types if available
+          ...(data.notification_types && typeof data.notification_types === 'object' ? {
+            marketing_emails: !!data.notification_types.marketing,
+            deployment_alerts: !!data.notification_types.deployments,
+            billing_alerts: !!data.notification_types.billing,
+            performance_reports: !!data.notification_types.performance,
+            security_alerts: !!data.notification_types.security,
+          } : {})
         };
         
         return preferences;

@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: any; // Using 'any' type to avoid deep instantiation issues
+  permissions: unknown; // Changed to unknown to avoid deep instantiation issues
   added_at: string;
   status: string;
 }
@@ -37,7 +37,7 @@ export const useTeamMembers = () => {
           id: member.id,
           user_id: member.user_id,
           role: member.role || 'member',
-          permissions: member.permissions || {}, // Using any type
+          permissions: member.permissions || {}, // Using unknown type
           added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         }));
