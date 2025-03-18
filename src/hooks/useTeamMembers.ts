@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: Record<string, any>; // Changed to Record<string, any> to avoid deep type analysis
+  permissions: Record<string, any>; // Simple type to avoid deep analysis
   added_at: string;
   status: string;
 }
@@ -15,47 +15,36 @@ export const useTeamMembers = () => {
   return useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      try {
-        const authResult = await supabase.auth.getUser();
-        const user = authResult.data.user;
-        
-        if (!user) return [] as TeamMember[];
+      const authResult = await supabase.auth.getUser();
+      const user = authResult.data.user;
+      
+      if (!user) return [] as TeamMember[];
 
-        const { data, error } = await supabase
-          .from('team_members')
-          .select('*')
-          .eq('team_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching team members:", error);
-          return [] as TeamMember[];
-        }
-        
-        // Properly convert and handle the data with explicit typing
-        const members: TeamMember[] = (data || []).map(member => {
-          // Use any to avoid deep type analysis
-          let safePermissions: Record<string, any> = {};
-          
-          if (member.permissions && typeof member.permissions === 'object' && !Array.isArray(member.permissions)) {
-            safePermissions = member.permissions as Record<string, any>;
-          }
-          
-          return {
-            id: member.id,
-            user_id: member.user_id,
-            role: member.role || 'member',
-            permissions: safePermissions,
-            added_at: member.added_at || new Date().toISOString(),
-            status: 'active'
-          };
-        });
-        
-        return members;
-      } catch (error) {
-        console.error("Error in team members query:", error);
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('team_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching team members:", error);
         return [] as TeamMember[];
       }
-    }
+      
+      // Process the data with simpler typing
+      const members = (data || []).map(member => ({
+        id: member.id,
+        user_id: member.user_id,
+        role: member.role || 'member',
+        permissions: member.permissions || {},
+        added_at: member.added_at || new Date().toISOString(),
+        status: 'active'
+      })) as TeamMember[];
+      
+      return members;
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000,    // Garbage collect after 10 minutes
+    refetchOnWindowFocus: false // Don't refetch when window gains focus
   });
 };
