@@ -108,20 +108,25 @@ const DeveloperSettings = () => {
 
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
-    queryFn: async () => {
+    queryFn: async (): Promise<TeamMember[]> => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [] as TeamMember[];
+        const authResult = await supabase.auth.getUser();
+        const user = authResult.data.user;
+        
+        if (!user) return [];
 
-        const { data, error } = await supabase
+        const result = await supabase
           .from('team_members')
           .select('*')
           .eq('team_id', user.id)
           .order('created_at', { ascending: false });
-
-        if (error) throw error;
         
-        const transformedData: TeamMember[] = (data || []).map(member => ({
+        if (result.error) {
+          console.error("Error fetching team members:", result.error);
+          return [];
+        }
+        
+        return (result.data || []).map(member => ({
           id: member.id,
           user_id: member.user_id,
           role: member.role,
@@ -129,11 +134,9 @@ const DeveloperSettings = () => {
           added_at: member.added_at,
           status: 'active'
         }));
-        
-        return transformedData;
       } catch (error) {
-        console.error("Error fetching team members:", error);
-        return [] as TeamMember[];
+        console.error("Error in team members query:", error);
+        return [];
       }
     }
   });
@@ -155,21 +158,27 @@ const DeveloperSettings = () => {
 
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
-    queryFn: async () => {
+    queryFn: async (): Promise<NotificationPrefsData | null> => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const authResult = await supabase.auth.getUser();
+        const user = authResult.data.user;
+        
         if (!user) return null;
 
-        const { data, error } = await supabase
+        const result = await supabase
           .from('notification_preferences')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
-
-        if (error) throw error;
-        return data as NotificationPrefsData | null;
+        
+        if (result.error) {
+          console.error("Error fetching notification preferences:", result.error);
+          return null;
+        }
+        
+        return result.data as NotificationPrefsData | null;
       } catch (error) {
-        console.error("Error fetching notification preferences:", error);
+        console.error("Error in notification preferences query:", error);
         return null;
       }
     }
