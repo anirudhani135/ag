@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ const DeveloperSettings = () => {
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
+  // Remove explicit type parameters to avoid deep instantiation
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
@@ -101,11 +103,13 @@ const DeveloperSettings = () => {
     }
   }
 
+  // Remove explicit type parameters to avoid deep instantiation
   const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
+  // Remove explicit type parameters to avoid deep instantiation
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
@@ -129,6 +133,7 @@ const DeveloperSettings = () => {
     }
   });
 
+  // Remove explicit type parameters to avoid deep instantiation
   const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
     queryKey: ['security-settings'],
     queryFn: getSecuritySettings
@@ -144,6 +149,7 @@ const DeveloperSettings = () => {
     }
   }
 
+  // Remove explicit type parameters to avoid deep instantiation
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
