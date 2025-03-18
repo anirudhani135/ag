@@ -1,15 +1,23 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type SettingsSection = 'profile' | 'payment' | 'notifications' | 'api' | 'team' | 'security';
 
-// Define interfaces for our data structures
+// Define interfaces for our data structures - make sure they're exported
 export interface ApiKey {
   id: string;
   description: string;
   key: string;
   created_at: string;
+}
+
+export interface TeamMember {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
 }
 
 export interface SecuritySetting {
@@ -23,6 +31,17 @@ export interface NotificationPreferences {
   agentUpdates: boolean;
   revenueAlerts: boolean;
   marketingUpdates: boolean;
+}
+
+// Define the shape of the notification data from the database
+export interface NotificationPrefsData {
+  id: string;
+  user_id: string;
+  email_notifications: boolean;
+  notification_types: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  push_notifications?: boolean;
 }
 
 export function useSettings() {

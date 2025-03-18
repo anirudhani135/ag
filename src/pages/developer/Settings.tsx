@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { User, CreditCard, Bell, Key, Shield, Plus, Copy, HelpCircle, Users, Globe, Database } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useSettings, ApiKey, TeamMember, NotificationPreferences } from "@/hooks/useSettings";
+import { useSettings, ApiKey, TeamMember, NotificationPreferences, NotificationPrefsData } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,20 +101,12 @@ const DeveloperSettings = () => {
     }
   }
 
-  type ApiKeysQueryResult = ApiKey[];
-  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKeysQueryResult>({
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[]>({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  interface TeamMemberQueryResult {
-    id: string;
-    email: string;
-    role: string;
-    status: string;
-  }
-
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMemberQueryResult[]>({
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[]>({
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -152,16 +144,7 @@ const DeveloperSettings = () => {
     }
   }
 
-  type NotificationPrefsData = {
-    id: string;
-    user_id: string;
-    email_notifications: boolean;
-    notification_types: Record<string, unknown>;
-    created_at: string;
-    updated_at: string;
-  };
-
-  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData>({
+  const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery<NotificationPrefsData | null>({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -174,7 +157,7 @@ const DeveloperSettings = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return data as NotificationPrefsData | null;
     }
   });
 
@@ -185,9 +168,9 @@ const DeveloperSettings = () => {
       notificationPreferences.emailNotifications !== notificationPrefs.email_notifications ||
       notificationTypes
     ) {
-      let agentUpdates = true;
-      let revenueAlerts = true;
-      let marketingUpdates = false;
+      let agentUpdates = notificationPreferences.agentUpdates;
+      let revenueAlerts = notificationPreferences.revenueAlerts;
+      let marketingUpdates = notificationPreferences.marketingUpdates;
       
       if (notificationTypes && typeof notificationTypes === 'object' && !Array.isArray(notificationTypes)) {
         const typesObj = notificationTypes as Record<string, boolean>;
@@ -196,13 +179,23 @@ const DeveloperSettings = () => {
         marketingUpdates = typesObj.marketing_updates ?? false;
       }
       
-      setNotificationPreferences(prev => ({
-        ...prev,
-        emailNotifications: notificationPrefs.email_notifications || prev.emailNotifications,
-        agentUpdates,
-        revenueAlerts,
-        marketingUpdates
-      }));
+      setNotificationPreferences(prev => {
+        if (
+          prev.emailNotifications === notificationPrefs.email_notifications &&
+          prev.agentUpdates === agentUpdates &&
+          prev.revenueAlerts === revenueAlerts &&
+          prev.marketingUpdates === marketingUpdates
+        ) {
+          return prev;
+        }
+        
+        return {
+          emailNotifications: notificationPrefs.email_notifications,
+          agentUpdates,
+          revenueAlerts,
+          marketingUpdates
+        };
+      });
     }
   }
 
