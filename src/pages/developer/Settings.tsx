@@ -120,7 +120,14 @@ const DeveloperSettings = () => {
 
       if (error) throw error;
       
-      return data;
+      return data?.map(member => ({
+        id: member.id,
+        user_id: member.user_id,
+        role: member.role,
+        permissions: member.permissions,
+        added_at: member.added_at,
+        status: 'active'
+      })) || [];
     }
   });
 
@@ -663,7 +670,7 @@ const DeveloperSettings = () => {
                       <div key={member.id} className="border rounded-md p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">{member.email}</p>
+                            <p className="font-medium">{member.user_id}</p>
                             <p className="text-sm text-muted-foreground">
                               {member.status === 'invited' ? 'Invitation sent' : 'Active'}
                             </p>

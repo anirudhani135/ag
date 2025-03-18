@@ -13,11 +13,14 @@ export interface ApiKey {
   created_at: string;
 }
 
+// Update TeamMember interface to match the database structure
 export interface TeamMember {
   id: string;
-  email: string;
+  user_id: string; // This will be used as the email in the UI
   role: string;
-  status: string;
+  status: string; // Added to match expected properties
+  permissions: Record<string, unknown>;
+  added_at: string;
 }
 
 export interface SecuritySetting {
