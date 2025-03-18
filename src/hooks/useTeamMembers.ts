@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: Record<string, unknown>; // Using Record<string, unknown> with proper handling
+  permissions: Record<string, any>; // Changed to Record<string, any> to avoid deep type analysis
   added_at: string;
   status: string;
 }
@@ -34,11 +34,11 @@ export const useTeamMembers = () => {
         
         // Properly convert and handle the data with explicit typing
         const members: TeamMember[] = (data || []).map(member => {
-          // Ensure permissions is an object
-          let safePermissions: Record<string, unknown> = {};
+          // Use any to avoid deep type analysis
+          let safePermissions: Record<string, any> = {};
           
           if (member.permissions && typeof member.permissions === 'object' && !Array.isArray(member.permissions)) {
-            safePermissions = member.permissions as Record<string, unknown>;
+            safePermissions = member.permissions as Record<string, any>;
           }
           
           return {
