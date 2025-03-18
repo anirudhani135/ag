@@ -157,7 +157,7 @@ const DeveloperSettings = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data as NotificationPrefsData | null;
+      return data;
     }
   });
 
