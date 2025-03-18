@@ -120,14 +120,14 @@ const DeveloperSettings = () => {
 
       if (error) throw error;
       
-      return data?.map(member => ({
+      return (data || []).map(member => ({
         id: member.id,
         user_id: member.user_id,
         role: member.role,
-        permissions: member.permissions,
+        permissions: member.permissions || {},
         added_at: member.added_at,
         status: 'active'
-      })) || [];
+      })) as TeamMember[];
     }
   });
 
@@ -149,16 +149,22 @@ const DeveloperSettings = () => {
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        const { data, error } = await supabase
+          .from('notification_preferences')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      return data || null;
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error("Error fetching notification preferences:", error);
+        return null;
+      }
     }
   });
 
@@ -666,7 +672,7 @@ const DeveloperSettings = () => {
                       </div>
                     </div>
                     
-                    {teamMembers && teamMembers.map((member: TeamMember) => (
+                    {teamMembers && teamMembers.map((member) => (
                       <div key={member.id} className="border rounded-md p-4">
                         <div className="flex items-center justify-between">
                           <div>
