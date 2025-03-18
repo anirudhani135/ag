@@ -122,12 +122,12 @@ const DeveloperSettings = () => {
     }
   }
 
-  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
+  const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery<ApiKey[], Error>({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMember[], Error>({
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -187,22 +187,25 @@ const DeveloperSettings = () => {
     
     if (
       notificationPreferences.emailNotifications !== notificationPrefs.email_notifications ||
-      (notificationTypes && typeof notificationTypes === 'object')
+      notificationTypes
     ) {
-      const prefsFromTypes = notificationTypes && typeof notificationTypes === 'object' ? {
-        agentUpdates: notificationTypes.agent_updates || true,
-        revenueAlerts: notificationTypes.revenue_alerts || true,
-        marketingUpdates: notificationTypes.marketing_updates || false
-      } : {
-        agentUpdates: true,
-        revenueAlerts: true,
-        marketingUpdates: false
-      };
+      let agentUpdates = true;
+      let revenueAlerts = true;
+      let marketingUpdates = false;
+      
+      if (notificationTypes && typeof notificationTypes === 'object' && !Array.isArray(notificationTypes)) {
+        const typesObj = notificationTypes as Record<string, boolean>;
+        agentUpdates = typesObj.agent_updates ?? true;
+        revenueAlerts = typesObj.revenue_alerts ?? true;
+        marketingUpdates = typesObj.marketing_updates ?? false;
+      }
       
       setNotificationPreferences(prev => ({
         ...prev,
         emailNotifications: notificationPrefs.email_notifications || prev.emailNotifications,
-        ...prefsFromTypes
+        agentUpdates,
+        revenueAlerts,
+        marketingUpdates
       }));
     }
   }

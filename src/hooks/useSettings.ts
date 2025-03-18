@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,20 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 type SettingsSection = 'profile' | 'payment' | 'notifications' | 'api' | 'team' | 'security';
 
 // Define interfaces for our data structures
-interface ApiKey {
+export interface ApiKey {
   id: string;
   description: string;
   key: string;
   created_at: string;
 }
 
-interface SecuritySetting {
+export interface SecuritySetting {
   user_id: string;
   two_factor_enabled: boolean;
   session_timeout: string;
 }
 
-interface NotificationPreferences {
+export interface NotificationPreferences {
   emailNotifications: boolean;
   agentUpdates: boolean;
   revenueAlerts: boolean;
@@ -135,7 +134,7 @@ export function useSettings() {
   };
 
   // API keys - using local storage for demo instead of database
-  const generateApiKey = async (description: string) => {
+  const generateApiKey = async (description: string): Promise<string | null> => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
