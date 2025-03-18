@@ -6,13 +6,13 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: Record<string, any>; // Using Record<string, any> to avoid deep type instantiation
+  permissions: any; // Using 'any' instead of Record<string, any> to avoid deep instantiation
   added_at: string;
   status: string;
 }
 
 export const useTeamMembers = () => {
-  return useQuery({
+  return useQuery<TeamMember[], Error>({
     queryKey: ['team-members'],
     queryFn: async () => {
       try {
@@ -32,11 +32,12 @@ export const useTeamMembers = () => {
           return [] as TeamMember[];
         }
         
+        // Explicitly cast each field to ensure type compatibility
         const members: TeamMember[] = (data || []).map(member => ({
           id: member.id,
           user_id: member.user_id,
-          role: member.role,
-          permissions: member.permissions || {},
+          role: member.role || 'member',
+          permissions: member.permissions || {}, // Cast to any
           added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         }));

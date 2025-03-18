@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -16,11 +16,11 @@ export const NotificationPreferencesSection = () => {
   const [preferences, setPreferences] = useState<NotificationPrefsData | null>(null);
 
   // Update local state when API data is loaded
-  useState(() => {
+  useEffect(() => {
     if (notificationPrefs) {
       setPreferences(notificationPrefs);
     }
-  });
+  }, [notificationPrefs]);
 
   const handleToggle = (key: keyof NotificationPrefsData) => {
     if (!preferences) return;
@@ -52,7 +52,13 @@ export const NotificationPreferencesSection = () => {
         .from('notification_preferences')
         .upsert({
           user_id: user.id,
-          ...preferences
+          email_notifications: preferences.email_notifications,
+          push_notifications: preferences.push_notifications,
+          marketing_emails: preferences.marketing_emails,
+          deployment_alerts: preferences.deployment_alerts,
+          billing_alerts: preferences.billing_alerts,
+          performance_reports: preferences.performance_reports,
+          security_alerts: preferences.security_alerts
         });
       
       if (error) throw error;

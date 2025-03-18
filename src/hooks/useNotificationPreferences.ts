@@ -34,7 +34,22 @@ export const useNotificationPreferences = () => {
           return null;
         }
         
-        return data as NotificationPrefsData | null;
+        if (!data) return null;
+        
+        // Transform the database data to match our interface
+        const preferences: NotificationPrefsData = {
+          user_id: data.user_id,
+          email_notifications: data.email_notifications || false,
+          push_notifications: data.push_notifications || false,
+          // Set default values for the missing fields
+          marketing_emails: data.marketing_emails || false,
+          deployment_alerts: data.deployment_alerts || false,
+          billing_alerts: data.billing_alerts || false,
+          performance_reports: data.performance_reports || false,
+          security_alerts: data.security_alerts || false
+        };
+        
+        return preferences;
       } catch (error) {
         console.error("Error in notification preferences query:", error);
         return null;
