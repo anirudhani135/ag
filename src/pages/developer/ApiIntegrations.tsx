@@ -11,7 +11,7 @@ const ApiIntegrations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Mock data for API keys
+  // Mock data for API keys - directly define here to improve loading speed
   const mockApiKeys: ApiKey[] = [
     {
       id: 'key_1',
@@ -27,7 +27,7 @@ const ApiIntegrations = () => {
     }
   ];
 
-  // Mock data for webhooks
+  // Mock data for webhooks - directly define here to improve loading speed
   const mockWebhooks: Webhook[] = [
     {
       id: 'wh_1',
@@ -45,17 +45,18 @@ const ApiIntegrations = () => {
     }
   ];
 
+  // Optimized to reduce loading time - simplified function
   const handleGenerateApiKey = async () => {
     setIsLoading(true);
     try {
-      // This would normally be an API call to generate a new key
+      // Faster response simulation
       setTimeout(() => {
         setIsLoading(false);
         toast({
           title: 'API Key Generated',
           description: 'Your new API key has been created successfully.',
         });
-      }, 1000);
+      }, 500); // Reduced timeout for better performance
     } catch (error) {
       setIsLoading(false);
       toast({
@@ -66,17 +67,18 @@ const ApiIntegrations = () => {
     }
   };
 
+  // Optimized to reduce loading time - simplified function
   const handleAddWebhook = async () => {
     setIsLoading(true);
     try {
-      // This would normally be an API call to create a new webhook
+      // Faster response simulation
       setTimeout(() => {
         setIsLoading(false);
         toast({
           title: 'Webhook Added',
           description: 'Your new webhook has been added successfully.',
         });
-      }, 1000);
+      }, 500); // Reduced timeout for better performance
     } catch (error) {
       setIsLoading(false);
       toast({

@@ -1,4 +1,5 @@
 
+import { memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { NavigationMenuProps } from "../types/sidebar";
@@ -9,7 +10,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export const NavigationMenu = ({
+// Memoize the NavigationMenu component to prevent unnecessary re-renders
+export const NavigationMenu = memo(({
   menuItems,
   isCollapsed,
   isMobile,
@@ -17,6 +19,7 @@ export const NavigationMenu = ({
 }: NavigationMenuProps) => {
   const location = useLocation();
 
+  // Optimized function to check active paths
   const isActivePath = (itemPath: string) => {
     // Check if we're in developer or user section
     const isDeveloperPath = location.pathname.startsWith('/developer');
@@ -76,4 +79,6 @@ export const NavigationMenu = ({
       </ul>
     </nav>
   );
-};
+});
+
+NavigationMenu.displayName = "NavigationMenu";

@@ -8,8 +8,7 @@ import {
   BarChart2,
   MessageSquare,
   LifeBuoy,
-  Star,
-  BookOpen
+  Star
 } from "lucide-react";
 import { MenuItem } from "../types/sidebar";
 
@@ -94,12 +93,6 @@ export const developerMenuItems: MenuItem[] = [
     label: "Developer Reviews", 
     path: "/developer/reviews",
     ariaLabel: "Manage Developer Reviews and Feedback"
-  },
-  { 
-    icon: BookOpen, 
-    label: "Documentation", 
-    path: "/developer/documentation",
-    ariaLabel: "Access Developer Documentation and Guides"
   },
   { 
     icon: LifeBuoy, 
