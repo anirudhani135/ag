@@ -41,7 +41,12 @@ export interface NotificationPrefsData {
   id: string;
   user_id: string;
   email_notifications: boolean;
-  notification_types: Record<string, unknown>;
+  notification_types: {
+    agent_updates?: boolean;
+    revenue_alerts?: boolean;
+    marketing_updates?: boolean;
+    [key: string]: boolean | undefined;
+  };
   created_at: string;
   updated_at: string;
   push_notifications?: boolean;

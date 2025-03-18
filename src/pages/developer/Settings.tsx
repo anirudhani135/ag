@@ -109,25 +109,32 @@ const DeveloperSettings = () => {
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return [] as TeamMember[];
 
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('team_id', user.id)
-        .order('created_at', { ascending: false });
+        const { data, error } = await supabase
+          .from('team_members')
+          .select('*')
+          .eq('team_id', user.id)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      return (data || []).map(member => ({
-        id: member.id,
-        user_id: member.user_id,
-        role: member.role,
-        permissions: member.permissions || {},
-        added_at: member.added_at,
-        status: 'active'
-      })) as TeamMember[];
+        if (error) throw error;
+        
+        const transformedData: TeamMember[] = (data || []).map(member => ({
+          id: member.id,
+          user_id: member.user_id,
+          role: member.role,
+          permissions: member.permissions || {},
+          added_at: member.added_at,
+          status: 'active'
+        }));
+        
+        return transformedData;
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+        return [] as TeamMember[];
+      }
     }
   });
 
@@ -160,7 +167,7 @@ const DeveloperSettings = () => {
           .maybeSingle();
 
         if (error) throw error;
-        return data;
+        return data as NotificationPrefsData | null;
       } catch (error) {
         console.error("Error fetching notification preferences:", error);
         return null;
