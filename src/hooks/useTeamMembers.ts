@@ -6,13 +6,13 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: unknown; // Using unknown type to avoid deep instantiation issues
+  permissions: any; // Changed from unknown to any to prevent TypeScript from deep analyzing
   added_at: string;
   status: string;
 }
 
 export const useTeamMembers = () => {
-  return useQuery<TeamMember[], Error>({
+  return useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
       try {
@@ -37,7 +37,7 @@ export const useTeamMembers = () => {
           id: member.id,
           user_id: member.user_id,
           role: member.role || 'member',
-          permissions: member.permissions || {}, // Using unknown type
+          permissions: member.permissions || {}, // Using any type to prevent deep analysis
           added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         }));
