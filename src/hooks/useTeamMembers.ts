@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: any; // Changed from unknown to any to prevent TypeScript from deep analyzing
+  permissions: Record<string, unknown>; // Changed to Record<string, unknown> to avoid deep type analysis
   added_at: string;
   status: string;
 }
@@ -37,7 +37,7 @@ export const useTeamMembers = () => {
           id: member.id,
           user_id: member.user_id,
           role: member.role || 'member',
-          permissions: member.permissions || {}, // Using any type to prevent deep analysis
+          permissions: member.permissions || {} as Record<string, unknown>, // Cast to Record<string, unknown> to prevent deep analysis
           added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         }));
