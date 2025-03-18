@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: unknown; // Changed to unknown to avoid deep instantiation issues
+  permissions: unknown; // Using unknown type to avoid deep instantiation issues
   added_at: string;
   status: string;
 }
