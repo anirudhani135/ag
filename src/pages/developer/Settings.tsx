@@ -71,7 +71,6 @@ const DeveloperSettings = () => {
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
-  // Fixed: Added proper type annotations to useQuery for user data
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
@@ -102,13 +101,11 @@ const DeveloperSettings = () => {
     }
   }
 
-  // Fixed: Added specific type parameters to avoid deep instantiation
   const { data: apiKeys, isLoading: isLoadingApiKeys } = useQuery({
     queryKey: ['api-keys'],
     queryFn: getApiKeys
   });
 
-  // Fixed: Added specific type parameters to avoid deep instantiation
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
@@ -132,7 +129,6 @@ const DeveloperSettings = () => {
     }
   });
 
-  // Fixed: Added specific type parameters to avoid deep instantiation issues
   const { data: securitySettings, isLoading: isLoadingSecuritySettings } = useQuery({
     queryKey: ['security-settings'],
     queryFn: getSecuritySettings
@@ -148,7 +144,6 @@ const DeveloperSettings = () => {
     }
   }
 
-  // Fixed: Added specific type parameters to avoid deep instantiation
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
