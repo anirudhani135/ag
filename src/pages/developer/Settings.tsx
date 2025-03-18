@@ -1,5 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card } from "@/components/ui/card";
+import { AgentCard } from "@/components/marketplace/AgentCard";
+import { SearchBar } from "@/components/marketplace/SearchBar";
+import { CategoryNav } from "@/components/marketplace/CategoryNav";
+import { FilterSystem } from "@/components/marketplace/FilterSystem";
+import { supabase } from "@/integrations/supabase/client";
+import { useFeatureTour } from "@/components/feature-tours/FeatureTourProvider";
+import { FeatureTourDisplay } from "@/components/feature-tours/FeatureTourDisplay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -13,8 +22,6 @@ import { User, CreditCard, Bell, Key, Shield, Plus, Copy, HelpCircle, Users, Glo
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings, ApiKey, TeamMember, NotificationPreferences, NotificationPrefsData } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 const DeveloperSettings = () => {
   const { toast } = useToast();
@@ -108,35 +115,37 @@ const DeveloperSettings = () => {
 
   const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
     queryKey: ['team-members'],
-    queryFn: async (): Promise<TeamMember[]> => {
+    queryFn: async () => {
       try {
         const authResult = await supabase.auth.getUser();
         const user = authResult.data.user;
         
-        if (!user) return [];
+        if (!user) return [] as TeamMember[];
 
-        const result = await supabase
+        const { data, error } = await supabase
           .from('team_members')
           .select('*')
           .eq('team_id', user.id)
           .order('created_at', { ascending: false });
         
-        if (result.error) {
-          console.error("Error fetching team members:", result.error);
-          return [];
+        if (error) {
+          console.error("Error fetching team members:", error);
+          return [] as TeamMember[];
         }
         
-        return (result.data || []).map(member => ({
+        const members: TeamMember[] = (data || []).map(member => ({
           id: member.id,
           user_id: member.user_id,
           role: member.role,
-          permissions: member.permissions || {},
-          added_at: member.added_at,
+          permissions: member.permissions,
+          added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         }));
+        
+        return members;
       } catch (error) {
         console.error("Error in team members query:", error);
-        return [];
+        return [] as TeamMember[];
       }
     }
   });
@@ -158,25 +167,25 @@ const DeveloperSettings = () => {
 
   const { data: notificationPrefs, isLoading: isLoadingNotificationPrefs } = useQuery({
     queryKey: ['notification-preferences'],
-    queryFn: async (): Promise<NotificationPrefsData | null> => {
+    queryFn: async () => {
       try {
         const authResult = await supabase.auth.getUser();
         const user = authResult.data.user;
         
         if (!user) return null;
 
-        const result = await supabase
+        const { data, error } = await supabase
           .from('notification_preferences')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        if (result.error) {
-          console.error("Error fetching notification preferences:", result.error);
+        if (error) {
+          console.error("Error fetching notification preferences:", error);
           return null;
         }
         
-        return result.data as NotificationPrefsData | null;
+        return data as NotificationPrefsData | null;
       } catch (error) {
         console.error("Error in notification preferences query:", error);
         return null;
