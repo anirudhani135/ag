@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: Record<string, any>; // Simple type to avoid deep analysis
+  permissions: any; // Using 'any' to prevent excessive type recursion
   added_at: string;
   status: string;
 }
@@ -44,7 +44,7 @@ export const useTeamMembers = () => {
       return members;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000,    // Garbage collect after 10 minutes
+    gcTime: 10 * 60 * 1000,   // Garbage collect after 10 minutes
     refetchOnWindowFocus: false // Don't refetch when window gains focus
   });
 };

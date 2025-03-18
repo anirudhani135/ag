@@ -4,10 +4,15 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { supabase } from "@/integrations/supabase/client";
 import { type DeveloperDashboardMetrics } from "@/types/dashboard";
-import { DashboardHeader } from "../dashboard/DashboardHeader";
-import { DashboardStatsGrid } from "../dashboard/DashboardStatsGrid";
-import { QuickActions } from "../dashboard/QuickActions";
-import { DashboardMetricsPanel } from "../dashboard/DashboardMetricsPanel";
+import { lazy, Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
+
+// Lazy loaded components for better code splitting
+const DeveloperDashboardHeader = lazy(() => import("./dashboard/DashboardHeader").then(mod => ({ default: mod.DeveloperDashboardHeader })));
+const QuickStatsGrid = lazy(() => import("./dashboard/QuickStatsGrid").then(mod => ({ default: mod.QuickStatsGrid })));
+const DeveloperActionsSection = lazy(() => import("./dashboard/ActionsSection").then(mod => ({ default: mod.DeveloperActionsSection })));
+const DashboardMetricsSection = lazy(() => import("./dashboard/DashboardMetricsSection").then(mod => ({ default: mod.DashboardMetricsSection })));
 
 interface ActivityMetadata {
   agent_name?: string;
@@ -99,30 +104,46 @@ export const DeveloperDashboard = () => {
         recentActivity: formattedActivity
       } as DeveloperDashboardMetrics;
     },
+    staleTime: 60 * 1000, // Cache for 1 minute for better performance
   });
 
   return (
     <DashboardProvider type="developer">
       <DashboardLayout type="developer">
-        <div className="space-y-6 p-6">
-          <DashboardHeader 
-            userName={dashboardData?.userName}
-            lastLoginDate={dashboardData?.lastLoginDate}
-          />
+        <div className="space-y-6 p-6 animate-fade-in">
+          <OptimizedSuspense fallback={<Skeleton className="h-16 w-full" />} delay={100}>
+            <DeveloperDashboardHeader 
+              userName={dashboardData?.userName}
+              lastLoginDate={dashboardData?.lastLoginDate}
+            />
+          </OptimizedSuspense>
 
-          <DashboardStatsGrid 
-            creditBalance={dashboardData?.availableBalance || 0}
-            activeAgents={dashboardData?.publishedAgents || 0}
-            monthlyUsage={dashboardData?.monthlyRevenue || 0}
-            averageRating={dashboardData?.averageRating || 0}
-          />
+          <OptimizedSuspense fallback={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>} delay={150}>
+            <QuickStatsGrid 
+              creditBalance={dashboardData?.availableBalance || 0}
+              activeAgents={dashboardData?.publishedAgents || 0}
+              monthlyRevenue={dashboardData?.monthlyRevenue || 0}
+              averageRating={dashboardData?.averageRating || 0}
+            />
+          </OptimizedSuspense>
 
-          <QuickActions type="developer" />
+          <OptimizedSuspense fallback={<Skeleton className="h-20 w-full" />} delay={200}>
+            <DeveloperActionsSection />
+          </OptimizedSuspense>
 
-          <DashboardMetricsPanel 
-            activities={dashboardData?.recentActivity}
-            isLoading={isLoading}
-          />
+          <OptimizedSuspense fallback={<div className="grid gap-6 md:grid-cols-2">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>} delay={250}>
+            <DashboardMetricsSection 
+              activities={dashboardData?.recentActivity}
+              isLoading={isLoading}
+            />
+          </OptimizedSuspense>
         </div>
       </DashboardLayout>
     </DashboardProvider>

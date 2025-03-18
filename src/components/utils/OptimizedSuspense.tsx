@@ -6,17 +6,19 @@ interface OptimizedSuspenseProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   delay?: number;
+  minHeight?: string;
 }
 
 export const OptimizedSuspense = ({ 
   children, 
   fallback = <Skeleton className="h-32 w-full" />,
-  delay = 200 
+  delay = 100,
+  minHeight = "0"
 }: OptimizedSuspenseProps) => {
   const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
-    // Only show the fallback if the loading takes longer than the delay
+    // Don't show fallback immediately to prevent flashing for fast loads
     const timer = setTimeout(() => {
       setShowFallback(true);
     }, delay);
@@ -25,8 +27,10 @@ export const OptimizedSuspense = ({
   }, [delay]);
 
   return (
-    <Suspense fallback={showFallback ? fallback : null}>
-      {children}
-    </Suspense>
+    <div style={{ minHeight }}>
+      <Suspense fallback={showFallback ? fallback : null}>
+        {children}
+      </Suspense>
+    </div>
   );
 };
