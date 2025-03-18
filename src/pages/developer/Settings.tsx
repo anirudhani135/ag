@@ -120,12 +120,7 @@ const DeveloperSettings = () => {
 
       if (error) throw error;
       
-      return data.map((member: any) => ({
-        id: member.id,
-        email: member.user_id,
-        role: member.role,
-        status: 'active'
-      }));
+      return data;
     }
   });
 
@@ -154,10 +149,9 @@ const DeveloperSettings = () => {
         .from('notification_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return data || null;
     }
   });
 
