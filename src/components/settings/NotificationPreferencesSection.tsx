@@ -1,0 +1,136 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import { useNotificationPreferences, NotificationPrefsData } from "@/hooks/useNotificationPreferences";
+import { supabase } from "@/integrations/supabase/client";
+
+export const NotificationPreferencesSection = () => {
+  const { toast } = useToast();
+  const { data: notificationPrefs, isLoading, refetch } = useNotificationPreferences();
+  const [isSaving, setIsSaving] = useState(false);
+  const [preferences, setPreferences] = useState<NotificationPrefsData | null>(null);
+
+  // Update local state when API data is loaded
+  useState(() => {
+    if (notificationPrefs) {
+      setPreferences(notificationPrefs);
+    }
+  });
+
+  const handleToggle = (key: keyof NotificationPrefsData) => {
+    if (!preferences) return;
+    
+    setPreferences({
+      ...preferences,
+      [key]: !preferences[key]
+    });
+  };
+
+  const handleSavePreferences = async () => {
+    if (!preferences) return;
+
+    setIsSaving(true);
+    try {
+      const authResult = await supabase.auth.getUser();
+      const user = authResult.data.user;
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You need to be logged in to save preferences",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          ...preferences
+        });
+      
+      if (error) throw error;
+
+      toast({
+        title: "Preferences Saved",
+        description: "Your notification preferences have been updated",
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error("Error saving notification preferences:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save notification preferences",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const notificationOptions = [
+    { key: 'email_notifications', label: 'Email Notifications' },
+    { key: 'push_notifications', label: 'Push Notifications' },
+    { key: 'marketing_emails', label: 'Marketing Emails' },
+    { key: 'deployment_alerts', label: 'Deployment Alerts' },
+    { key: 'billing_alerts', label: 'Billing Alerts' },
+    { key: 'performance_reports', label: 'Performance Reports' },
+    { key: 'security_alerts', label: 'Security Alerts' }
+  ] as const;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Preferences</CardTitle>
+          <CardDescription>
+            Manage how you receive notifications from the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                {notificationOptions.map(({ key, label }) => (
+                  <div
+                    key={key}
+                    className="flex flex-row items-center justify-between"
+                  >
+                    <Label htmlFor={key} className="flex-1">
+                      {label}
+                    </Label>
+                    <Switch
+                      id={key}
+                      checked={preferences?.[key] || false}
+                      onCheckedChange={() => handleToggle(key)}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button
+                onClick={handleSavePreferences}
+                disabled={isSaving || isLoading || !preferences}
+                className="w-full sm:w-auto"
+              >
+                {isSaving ? "Saving..." : "Save Preferences"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
