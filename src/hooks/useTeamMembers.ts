@@ -2,11 +2,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define a simpler permissions type to avoid recursive type issues
+export type TeamMemberPermissions = Record<string, boolean>;
+
 export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: any; // Using 'any' to prevent excessive type recursion
+  permissions: TeamMemberPermissions; // Using a simplified type definition
   added_at: string;
   status: string;
 }
@@ -31,12 +34,12 @@ export const useTeamMembers = () => {
         return [] as TeamMember[];
       }
       
-      // Process the data with simpler typing
+      // Process the data with explicit typing to avoid recursion
       const members = (data || []).map(member => ({
         id: member.id,
         user_id: member.user_id,
         role: member.role || 'member',
-        permissions: member.permissions || {},
+        permissions: member.permissions || {} as TeamMemberPermissions,
         added_at: member.added_at || new Date().toISOString(),
         status: 'active'
       })) as TeamMember[];
