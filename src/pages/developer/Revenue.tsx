@@ -15,10 +15,21 @@ import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 
 // Memoize the component to prevent unnecessary re-renders
 const Revenue = memo(() => {
+  // Button click handlers
+  const handleHowToIncrease = () => {
+    console.log('How to increase revenue clicked');
+    // Add functionality here
+  };
+  
+  const handleExportPDF = () => {
+    console.log('Export PDF clicked');
+    // Add functionality here
+  };
+  
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-5 max-w-[calc(100%-1rem)] mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="space-y-4 max-w-full mx-auto"> {/* Reduced vertical spacing */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Revenue Analytics</h2>
             <div className="flex items-center gap-2">
@@ -42,18 +53,18 @@ const Revenue = memo(() => {
           </div>
           
           <div className="flex items-center gap-2 self-start">
-            <Button variant="outline" size="sm" className="gap-1 h-8">
+            <Button variant="outline" size="sm" className="gap-1 h-8" onClick={handleHowToIncrease}>
               <Info className="h-3.5 w-3.5" />
               <span className="text-xs">How to Increase Revenue</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-1 h-8">
+            <Button variant="outline" size="sm" className="gap-1 h-8" onClick={handleExportPDF}>
               <Download className="h-3.5 w-3.5" />
               <span className="text-xs">Export PDF</span>
             </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4"> {/* Reduced gap */}
           <div className="lg:col-span-2">
             <OptimizedSuspense fallback={<div className="h-64 animate-pulse bg-muted rounded-md"/>} priority="high">
               <EnhancedRevenueDashboard />

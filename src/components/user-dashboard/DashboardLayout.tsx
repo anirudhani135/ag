@@ -40,9 +40,9 @@ export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => 
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto transition-all duration-150",
-            sidebarOpen && !isMobile ? "md:ml-60" : "ml-0",
-            "p-3 sm:p-4 md:p-5"
+            "flex-1 overflow-auto transition-all duration-75", // Reduced duration for faster transitions
+            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Aligned spacing with sidebar width
+            "p-3 sm:p-4" // Reduced padding to prevent cluttering
           )}
           role="main"
           aria-label="User Dashboard Main Content"

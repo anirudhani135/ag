@@ -35,8 +35,8 @@ export const Sidebar = memo(({ isOpen, isMobile, onClose, type }: SidebarProps) 
       <aside 
         className={cn(
           "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-background border-r border-border",
-          "transition-transform duration-150 z-40", // Reduced duration for snappier feel
-          isCollapsed ? "w-16" : "w-60", // Reduced from 64 to 60 for better alignment
+          "transition-transform duration-150 z-40", 
+          isCollapsed ? "w-14" : "w-[240px]", // Fixed consistent width
           isOpen ? "translate-x-0" : "-translate-x-full",
           isMobile && "shadow-lg"
         )}
@@ -55,7 +55,7 @@ export const Sidebar = memo(({ isOpen, isMobile, onClose, type }: SidebarProps) 
           </Button>
         )}
 
-        <div className="flex flex-col h-full py-3">
+        <div className="flex flex-col h-full py-2"> {/* Reduced padding to avoid clutter */}
           <SidebarHeader
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}

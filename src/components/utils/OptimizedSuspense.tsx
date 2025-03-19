@@ -17,23 +17,22 @@ interface OptimizedSuspenseProps {
 export const OptimizedSuspense = memo(({ 
   children, 
   fallback = <Skeleton className="h-32 w-full" />,
-  delay = 30, // Reduced from 50 to 30ms for faster display
+  delay = 0, // Reduced to 0 for immediate rendering
   minHeight = "0",
-  priority = 'high' // Changed default to high for faster loading
+  priority = 'high' // Default to high priority
 }: OptimizedSuspenseProps) => {
   const [showFallback, setShowFallback] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
   // Adjust delay based on priority - optimized for faster loading
-  const actualDelay = priority === 'high' ? 0 : priority === 'medium' ? delay : delay * 1.5;
+  const actualDelay = priority === 'high' ? 0 : priority === 'medium' ? 20 : 50;
 
   useEffect(() => {
     mountedRef.current = true;
     
-    // Only show fallback after a delay to prevent flashing for fast loads
+    // For high priority, show immediately but still avoid layout shifts
     if (actualDelay === 0) {
-      // For high priority, show immediately but still avoid layout shifts
       setShowFallback(true);
     } else {
       timerRef.current = setTimeout(() => {

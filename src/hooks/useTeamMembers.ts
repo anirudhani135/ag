@@ -34,16 +34,16 @@ export const useTeamMembers = () => {
         return [] as TeamMember[];
       }
       
-      // Process the data with explicit type casting to avoid recursion
+      // Process the data with explicit type casting without recursion
       const members = (data || []).map(member => {
-        // Create a safe copy of permissions to avoid reference issues
-        const safePermissions: TeamMemberPermissions = {};
+        // Create a new permissions object to avoid reference issues
+        const permissions: Record<string, boolean> = {};
         
         // Only copy boolean values to ensure type safety
         if (member.permissions && typeof member.permissions === 'object') {
           Object.entries(member.permissions).forEach(([key, value]) => {
             if (typeof value === 'boolean') {
-              safePermissions[key] = value;
+              permissions[key] = value;
             }
           });
         }
@@ -52,7 +52,7 @@ export const useTeamMembers = () => {
           id: member.id,
           user_id: member.user_id,
           role: member.role || 'member',
-          permissions: safePermissions,
+          permissions: permissions,
           added_at: member.added_at || new Date().toISOString(),
           status: 'active'
         } as TeamMember;

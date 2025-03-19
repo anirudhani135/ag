@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -106,11 +105,10 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
       <aside 
         className={cn(
           "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-background border-r border-border",
-          "transition-all duration-300 z-40",
-          isCollapsed ? "w-16" : "w-64",
+          "transition-all duration-200 z-40",
+          isCollapsed ? "w-14" : "w-[240px]",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          isMobile && "shadow-lg",
-          "md:rounded-lg md:shadow-md"
+          isMobile && "shadow-lg"
         )}
         aria-label="User Navigation"
         role="navigation"
@@ -225,14 +223,12 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
           </div>
         </div>
 
-        {/* Search Overlay */}
         <SearchOverlay
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
           placeholder="Find an agent or setting..."
         />
 
-        {/* Floating CTA */}
         <FloatingCTA
           label="Buy Credits"
           icon={<Plus className="h-4 w-4" />}
