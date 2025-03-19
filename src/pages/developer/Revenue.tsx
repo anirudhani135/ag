@@ -28,19 +28,19 @@ const Revenue = memo(() => {
   
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-4 max-w-full mx-auto"> {/* Reduced vertical spacing */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+      <div className="space-y-3 max-w-full mx-auto mt-6"> {/* Further reduced vertical spacing and added top margin */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Revenue Analytics</h2>
+            <h2 className="text-xl font-bold tracking-tight">Revenue Analytics</h2> {/* Reduced text size */}
             <div className="flex items-center gap-2">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-xs"> {/* Reduced text size */}
                 Track your earnings and analyze revenue streams
               </p>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <HelpCircle className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-5 w-5"> {/* Reduced button size */}
+                      <HelpCircle className="h-3 w-3" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-sm">
@@ -53,18 +53,18 @@ const Revenue = memo(() => {
           </div>
           
           <div className="flex items-center gap-2 self-start">
-            <Button variant="outline" size="sm" className="gap-1 h-8" onClick={handleHowToIncrease}>
-              <Info className="h-3.5 w-3.5" />
+            <Button variant="outline" size="sm" className="gap-1 h-7" onClick={handleHowToIncrease}> {/* Reduced height */}
+              <Info className="h-3 w-3" />
               <span className="text-xs">How to Increase Revenue</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-1 h-8" onClick={handleExportPDF}>
-              <Download className="h-3.5 w-3.5" />
+            <Button variant="outline" size="sm" className="gap-1 h-7" onClick={handleExportPDF}> {/* Reduced height */}
+              <Download className="h-3 w-3" />
               <span className="text-xs">Export PDF</span>
             </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4"> {/* Reduced gap */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2"> {/* Further reduced gap */}
           <div className="lg:col-span-2">
             <OptimizedSuspense fallback={<div className="h-64 animate-pulse bg-muted rounded-md"/>} priority="high">
               <EnhancedRevenueDashboard />

@@ -40,16 +40,19 @@ export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => 
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto transition-all duration-75", // Reduced duration for faster transitions
-            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Aligned spacing with sidebar width
-            "p-3 sm:p-4" // Reduced padding to prevent cluttering
+            "flex-1 overflow-auto transition-all duration-50", // Further reduced duration
+            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Match sidebar width
+            "p-2 sm:p-3", // Further reduced padding
+            "pt-4" // Add extra top padding to avoid navbar overlap
           )}
           role="main"
           aria-label="User Dashboard Main Content"
         >
-          <OptimizedSuspense priority="high">
-            {children}
-          </OptimizedSuspense>
+          <div className="mt-2">
+            <OptimizedSuspense priority="high">
+              {children}
+            </OptimizedSuspense>
+          </div>
         </main>
       </div>
     </div>

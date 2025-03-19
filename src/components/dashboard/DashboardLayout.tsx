@@ -36,14 +36,17 @@ const DashboardLayoutContent = memo(({
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto transition-all duration-75", // Reduced duration for better performance
-            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Fixed spacing to exactly match sidebar width
-            "p-3 sm:p-4 md:p-4" // Reduced padding for less clutter
+            "flex-1 overflow-auto transition-all duration-50", // Further reduced duration
+            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Fixed spacing to match sidebar width
+            "p-2 sm:p-3", // Further reduced padding for less clutter
+            "pt-4" // Add extra top padding to prevent navbar overlap
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
-          {children}
+          <div className="mt-2">
+            {children}
+          </div>
         </main>
       </div>
     </div>
@@ -94,7 +97,7 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
         </div>
         <div className="flex h-[calc(100vh-4rem)]">
           <Skeleton className="w-60 hidden md:block" />
-          <main className="flex-1 p-3 sm:p-4 md:p-4">
+          <main className="flex-1 p-3 pt-6">
             <div className="space-y-3">
               <Skeleton className="h-8 w-[200px]" />
               <Skeleton className="h-4 w-[300px]" />

@@ -16,48 +16,38 @@ interface OptimizedSuspenseProps {
  */
 export const OptimizedSuspense = memo(({ 
   children, 
-  fallback = <Skeleton className="h-32 w-full" />,
-  delay = 0, // Reduced to 0 for immediate rendering
+  fallback = <Skeleton className="h-24 w-full" />, // Reduced skeleton height
+  delay = 0, 
   minHeight = "0",
-  priority = 'high' // Default to high priority
+  priority = 'high' 
 }: OptimizedSuspenseProps) => {
   const [showFallback, setShowFallback] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
-  // Adjust delay based on priority - optimized for faster loading
-  const actualDelay = priority === 'high' ? 0 : priority === 'medium' ? 20 : 50;
+  // Immediate rendering for high priority components
+  const actualDelay = 0;
 
   useEffect(() => {
     mountedRef.current = true;
+    setShowFallback(true);
     
-    // For high priority, show immediately but still avoid layout shifts
-    if (actualDelay === 0) {
-      setShowFallback(true);
-    } else {
-      timerRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          setShowFallback(true);
-        }
-      }, actualDelay);
-    }
-
     return () => {
       mountedRef.current = false;
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [actualDelay]);
+  }, []);
 
   return (
     <div 
       style={{ 
         minHeight,
-        contentVisibility: 'auto', // Improve paint performance
-        contain: 'content', // Improve layout calculation
+        contentVisibility: 'auto',
+        contain: 'content',
       }}
-      className="will-change-transform" // Hint to browser for optimization
+      className="will-change-transform"
     >
       <Suspense fallback={showFallback ? fallback : null}>
         {children}

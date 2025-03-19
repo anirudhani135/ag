@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Use a simple non-recursive type definition for permissions
+// Define TeamMemberPermissions as a simple Record to avoid recursive type issues
 export type TeamMemberPermissions = Record<string, boolean>;
 
 export interface TeamMember {
@@ -34,16 +34,18 @@ export const useTeamMembers = () => {
         return [] as TeamMember[];
       }
       
-      // Process the data with explicit type casting without recursion
+      // Process the data with explicit type casting
       const members = (data || []).map(member => {
-        // Create a new permissions object to avoid reference issues
+        // Create a new permissions object with only boolean values
         const permissions: Record<string, boolean> = {};
         
-        // Only copy boolean values to ensure type safety
         if (member.permissions && typeof member.permissions === 'object') {
           Object.entries(member.permissions).forEach(([key, value]) => {
             if (typeof value === 'boolean') {
               permissions[key] = value;
+            } else {
+              // Convert non-boolean values to boolean to ensure type safety
+              permissions[key] = Boolean(value);
             }
           });
         }
@@ -54,7 +56,7 @@ export const useTeamMembers = () => {
           role: member.role || 'member',
           permissions: permissions,
           added_at: member.added_at || new Date().toISOString(),
-          status: 'active'
+          status: member.status || 'active'
         } as TeamMember;
       });
       
