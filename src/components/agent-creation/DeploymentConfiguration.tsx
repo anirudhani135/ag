@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,9 +17,9 @@ import { Progress } from "@/components/ui/progress";
 interface DeploymentConfigProps {
   agentId: string;
   onDeploymentComplete: (deploymentId: string) => void;
+  status?: string;
 }
 
-// Define proper types for the metrics and resource usage
 interface DeploymentMetrics {
   progress?: number;
   error?: string;
@@ -59,14 +58,20 @@ interface DeploymentData {
   alert_status: string;
 }
 
-export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: DeploymentConfigProps) => {
+export const DeploymentConfiguration = ({ 
+  agentId, 
+  onDeploymentComplete,
+  status: initialStatus 
+}: DeploymentConfigProps) => {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentType, setDeploymentType] = useState<"langflow" | "native">("langflow");
   const [environment, setEnvironment] = useState<"production" | "staging">("staging");
   const [langflowConfig, setLangflowConfig] = useState<string>("");
   const [deploymentId, setDeploymentId] = useState<string | null>(null);
   const [deploymentProgress, setDeploymentProgress] = useState<number>(0);
-  const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">(
+    initialStatus === "Deploying..." ? "processing" : "idle"
+  );
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [resourceConfig, setResourceConfig] = useState({
     cpu: "0.5",
@@ -76,7 +81,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
     maxReplicas: 3,
   });
 
-  // Fetch existing deployment if available
   const { data: existingDeployment, isLoading: isLoadingDeployment } = useQuery({
     queryKey: ['agent-deployment', agentId],
     queryFn: async () => {
@@ -94,7 +98,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
     retry: 1
   });
 
-  // Set up deployment progress tracking
   useEffect(() => {
     if (!deploymentId) return;
     
@@ -126,7 +129,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
           setErrorMessage(errorMsg);
           clearInterval(interval);
         } else if (data.status === 'deploying') {
-          // Update progress based on metrics
           const progress = typeof data.metrics === 'object' && data.metrics ? 
             (data.metrics as DeploymentMetrics).progress || deploymentProgress : 
             deploymentProgress;
@@ -140,15 +142,12 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
     return () => clearInterval(interval);
   }, [deploymentId, deploymentStatus, onDeploymentComplete, deploymentProgress]);
 
-  // Initialize from existing deployment if available
   useEffect(() => {
     if (existingDeployment) {
-      // Safely access environment property
       if (existingDeployment.environment) {
         setEnvironment(existingDeployment.environment as "production" | "staging");
       }
       
-      // Safely access metrics.deployment_type
       if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
         const metrics = existingDeployment.metrics as DeploymentMetrics;
         if (metrics.deployment_type) {
@@ -156,7 +155,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         }
       }
       
-      // Safely access resource_usage properties
       if (existingDeployment.resource_usage && typeof existingDeployment.resource_usage === 'object') {
         const resourceUsage = existingDeployment.resource_usage as ResourceUsage;
         
@@ -173,7 +171,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         setDeploymentId(existingDeployment.id);
         setDeploymentStatus('processing');
         
-        // Safely get progress from metrics
         if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
           const metrics = existingDeployment.metrics as DeploymentMetrics;
           setDeploymentProgress(metrics.progress ? Number(metrics.progress) : 30);
@@ -186,7 +183,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
       } else if (existingDeployment.status === 'failed') {
         setDeploymentStatus('error');
         
-        // Safely get error from metrics
         if (existingDeployment.metrics && typeof existingDeployment.metrics === 'object') {
           const metrics = existingDeployment.metrics as DeploymentMetrics;
           setErrorMessage(metrics.error || 'Previous deployment failed');
@@ -219,7 +215,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         return;
       }
 
-      // Call the process-langflow edge function
       const { data, error } = await supabase.functions.invoke('process-langflow', {
         body: { agentId, config }
       });
@@ -229,7 +224,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
       toast.success("Langflow configuration processed");
       setDeploymentProgress(40);
       
-      // Start the deployment process
       await handleDeploy(data.versionId);
       
     } catch (error) {
@@ -264,7 +258,6 @@ export const DeploymentConfiguration = ({ agentId, onDeploymentComplete }: Deplo
         }
       };
 
-      // Call the deploy-agent edge function
       const { data, error } = await supabase.functions.invoke('deploy-agent', {
         body: { agentId, versionId, config: deploymentConfig }
       });

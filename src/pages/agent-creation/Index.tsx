@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { AgentCreationHeader } from "@/components/agent-creation/AgentCreationHeader";
@@ -42,7 +41,6 @@ const AgentCreationPage = () => {
 
   const isLastStep = currentStep === steps.length - 1;
 
-  // Simulate initial page loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoading(false);
@@ -55,7 +53,6 @@ const AgentCreationPage = () => {
     setDeploymentComplete(true);
     toast.success("Deployment completed successfully!");
     
-    // Navigate to the agent details page when deployment is complete
     if (createdAgentId) {
       setTimeout(() => {
         navigate(`/agent-detail?id=${createdAgentId}`);
@@ -63,15 +60,12 @@ const AgentCreationPage = () => {
     }
   };
 
-  // Make this async to match the expected type
   const handleStartDeployment = async () => {
     if (!createdAgentId) {
-      // Create a mock agent ID for development
       const mockAgentId = `dev-agent-${Date.now()}`;
       setDeploymentStatus("Deploying...");
       setDeploymentStarted(true);
       
-      // Simulate deployment process
       setTimeout(() => {
         setDeploymentStatus("Deployed");
         setDeploymentComplete(true);
@@ -85,11 +79,10 @@ const AgentCreationPage = () => {
     setDeploymentStatus("Deploying...");
     
     try {
-      // Call the edge function to deploy the agent
       const { data, error } = await supabase.functions.invoke('deploy-agent', {
         body: {
           agentId: createdAgentId,
-          versionId: createdAgentId, // Using agent ID as version ID for simplicity
+          versionId: createdAgentId,
           config: {
             environment: "production",
             resources: {
@@ -111,7 +104,6 @@ const AgentCreationPage = () => {
       setDeploymentComplete(true);
       toast.success("Agent deployed successfully!");
       
-      // Navigate to the agent details page after successful deployment
       setTimeout(() => {
         if (createdAgentId) {
           navigate(`/agent-detail?id=${createdAgentId}`);
@@ -130,7 +122,7 @@ const AgentCreationPage = () => {
   if (isPageLoading) {
     return (
       <DashboardLayout type="developer">
-        <div className="w-full px-4 md:px-6 lg:px-8 pt-16"> {/* Added top padding to avoid overlap */}
+        <div className="w-full px-4 md:px-6 lg:px-8 pt-16">
           <div className="mx-auto max-w-4xl space-y-6">
             <Skeleton className="h-10 w-64 mb-8" />
             <Skeleton className="h-4 w-full max-w-xl mb-12" />
@@ -152,7 +144,7 @@ const AgentCreationPage = () => {
 
   return (
     <DashboardLayout type="developer">
-      <div className="w-full px-4 md:px-6 lg:px-8 pt-12"> {/* Added top padding to avoid overlap */}
+      <div className="w-full px-4 md:px-6 lg:px-8 pt-12">
         <div className="mx-auto max-w-4xl space-y-4">
           <AgentCreationHeader />
 
@@ -168,8 +160,7 @@ const AgentCreationPage = () => {
               {isLastStep && createdAgentId ? (
                 <DeploymentConfiguration 
                   agentId={createdAgentId} 
-                  onDeploymentComplete={handleDeploymentComplete}
-                  status={deploymentStatus}
+                  onDeploymentComplete={handleDeploymentComplete} 
                 />
               ) : (
                 <StepContentWrapper
