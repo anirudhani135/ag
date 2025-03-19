@@ -26,11 +26,17 @@ export const OptimizedSuspense = memo(({
   const mountedRef = useRef(true);
 
   // Immediate rendering for high priority components
-  const actualDelay = 0;
+  const actualDelay = priority === 'high' ? 0 : priority === 'medium' ? 100 : 200;
 
   useEffect(() => {
     mountedRef.current = true;
-    setShowFallback(true);
+    
+    // Only show fallback after a delay to prevent flickering for fast-loading components
+    timerRef.current = setTimeout(() => {
+      if (mountedRef.current) {
+        setShowFallback(true);
+      }
+    }, actualDelay);
     
     return () => {
       mountedRef.current = false;
@@ -38,7 +44,7 @@ export const OptimizedSuspense = memo(({
         clearTimeout(timerRef.current);
       }
     };
-  }, []);
+  }, [actualDelay]);
 
   return (
     <div 

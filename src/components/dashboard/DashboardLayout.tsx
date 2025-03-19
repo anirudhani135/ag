@@ -6,6 +6,7 @@ import { TopNav } from "./TopNav";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation";
+import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -38,14 +39,16 @@ const DashboardLayoutContent = memo(({
           className={cn(
             "flex-1 overflow-auto transition-all duration-50", // Further reduced duration
             sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Fixed spacing to match sidebar width
-            "p-2 sm:p-3", // Further reduced padding for less clutter
-            "pt-4" // Add extra top padding to prevent navbar overlap
+            "p-2 sm:p-3", // Reduced padding for less clutter
+            "pt-20" // Increased top padding to prevent navbar overlap
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
           <div className="mt-2">
-            {children}
+            <OptimizedSuspense priority="high">
+              {children}
+            </OptimizedSuspense>
           </div>
         </main>
       </div>
