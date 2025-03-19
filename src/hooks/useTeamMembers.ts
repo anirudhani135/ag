@@ -34,15 +34,29 @@ export const useTeamMembers = () => {
         return [] as TeamMember[];
       }
       
-      // Process the data with explicit typing to avoid recursion
-      const members = (data || []).map(member => ({
-        id: member.id,
-        user_id: member.user_id,
-        role: member.role || 'member',
-        permissions: member.permissions || {},
-        added_at: member.added_at || new Date().toISOString(),
-        status: 'active'
-      })) as TeamMember[];
+      // Process the data with explicit type casting to avoid recursion
+      const members = (data || []).map(member => {
+        // Create a safe copy of permissions to avoid reference issues
+        const safePermissions: TeamMemberPermissions = {};
+        
+        // Only copy boolean values to ensure type safety
+        if (member.permissions && typeof member.permissions === 'object') {
+          Object.entries(member.permissions).forEach(([key, value]) => {
+            if (typeof value === 'boolean') {
+              safePermissions[key] = value;
+            }
+          });
+        }
+        
+        return {
+          id: member.id,
+          user_id: member.user_id,
+          role: member.role || 'member',
+          permissions: safePermissions,
+          added_at: member.added_at || new Date().toISOString(),
+          status: 'active'
+        } as TeamMember;
+      });
       
       return members;
     },
