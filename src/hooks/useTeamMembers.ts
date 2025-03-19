@@ -2,14 +2,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define a non-recursive type for permissions
+// Define a non-recursive type for permissions with a clear structure
 export type TeamMemberPermissions = Record<string, boolean>;
 
 export interface TeamMember {
   id: string;
   user_id: string;
   role: string;
-  permissions: any; // Using 'any' to prevent excessive type recursion
+  permissions: TeamMemberPermissions; // Explicitly use the non-recursive type
   added_at: string;
   status: string;
 }
