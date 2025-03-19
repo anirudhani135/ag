@@ -56,7 +56,7 @@ export const useTeamMembers = () => {
           role: member.role || 'member',
           permissions: permissions,
           added_at: member.added_at || new Date().toISOString(),
-          status: member.status || 'active'
+          status: member.status || 'active' // Apply default value if status doesn't exist
         } as TeamMember;
       });
       
