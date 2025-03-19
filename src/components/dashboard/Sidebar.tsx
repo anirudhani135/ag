@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { X, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { SidebarHeader } from "./components/SidebarHeader";
 import { NavigationMenu } from "./components/NavigationMenu";
 import { UserProfile } from "./components/UserProfile";
 
-export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
+export const Sidebar = memo(({ isOpen, isMobile, onClose, type }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -35,11 +35,10 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
       <aside 
         className={cn(
           "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-background border-r border-border",
-          "transition-all duration-300 z-40",
-          isCollapsed ? "w-16" : "w-64",
+          "transition-transform duration-150 z-40", // Reduced duration for snappier feel
+          isCollapsed ? "w-16" : "w-60", // Reduced from 64 to 60 for better alignment
           isOpen ? "translate-x-0" : "-translate-x-full",
-          isMobile && "shadow-lg",
-          "md:rounded-lg md:shadow-md"
+          isMobile && "shadow-lg"
         )}
         aria-label={`${type === "developer" ? "Developer" : "User"} Navigation`}
         role="navigation"
@@ -56,7 +55,7 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
           </Button>
         )}
 
-        <div className="flex flex-col h-full py-4">
+        <div className="flex flex-col h-full py-3">
           <SidebarHeader
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
@@ -94,6 +93,8 @@ export const Sidebar = ({ isOpen, isMobile, onClose, type }: SidebarProps) => {
       </aside>
     </TooltipProvider>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

@@ -1,4 +1,5 @@
 
+import { memo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EnhancedRevenueDashboard } from "@/components/developer/revenue/EnhancedRevenueDashboard";
 import { RevenueInsightsPanel } from "@/components/developer/revenue/RevenueInsightsPanel";
@@ -10,16 +11,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 
-const Revenue = () => {
+// Memoize the component to prevent unnecessary re-renders
+const Revenue = memo(() => {
   return (
     <DashboardLayout type="developer">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-5 max-w-[calc(100%-1rem)] mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Revenue Analytics</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Revenue Analytics</h2>
             <div className="flex items-center gap-2">
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Track your earnings and analyze revenue streams
               </p>
               <TooltipProvider>
@@ -38,29 +41,35 @@ const Revenue = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1">
-              <Info className="h-4 w-4" />
-              <span>How to Increase Revenue</span>
+          <div className="flex items-center gap-2 self-start">
+            <Button variant="outline" size="sm" className="gap-1 h-8">
+              <Info className="h-3.5 w-3.5" />
+              <span className="text-xs">How to Increase Revenue</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-1">
-              <Download className="h-4 w-4" />
-              <span>Export PDF Report</span>
+            <Button variant="outline" size="sm" className="gap-1 h-8">
+              <Download className="h-3.5 w-3.5" />
+              <span className="text-xs">Export PDF</span>
             </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
           <div className="lg:col-span-2">
-            <EnhancedRevenueDashboard />
+            <OptimizedSuspense fallback={<div className="h-64 animate-pulse bg-muted rounded-md"/>} priority="high">
+              <EnhancedRevenueDashboard />
+            </OptimizedSuspense>
           </div>
           <div className="lg:col-span-1">
-            <RevenueInsightsPanel />
+            <OptimizedSuspense fallback={<div className="h-64 animate-pulse bg-muted rounded-md"/>} priority="high">
+              <RevenueInsightsPanel />
+            </OptimizedSuspense>
           </div>
         </div>
       </div>
     </DashboardLayout>
   );
-};
+});
+
+Revenue.displayName = 'Revenue';
 
 export default Revenue;

@@ -1,22 +1,26 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
 import { UserSidebar } from "./UserSidebar";
 import { UserTopNav } from "./UserTopNav";
+import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export const UserDashboardLayout = ({ children }: DashboardLayoutProps) => {
+export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
         setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
       }
     };
 
@@ -36,15 +40,20 @@ export const UserDashboardLayout = ({ children }: DashboardLayoutProps) => {
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto p-6 transition-all duration-300",
-            sidebarOpen && !isMobile ? "md:ml-64" : "ml-0"
+            "flex-1 overflow-auto transition-all duration-150",
+            sidebarOpen && !isMobile ? "md:ml-60" : "ml-0",
+            "p-3 sm:p-4 md:p-5"
           )}
           role="main"
           aria-label="User Dashboard Main Content"
         >
-          {children}
+          <OptimizedSuspense priority="high">
+            {children}
+          </OptimizedSuspense>
         </main>
       </div>
     </div>
   );
-};
+});
+
+UserDashboardLayout.displayName = 'UserDashboardLayout';
