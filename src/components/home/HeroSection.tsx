@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
+import { BoxReveal } from "@/components/ui/box-reveal";
 
 export const HeroSection = () => {
   return (
@@ -19,9 +20,12 @@ export const HeroSection = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col justify-center"
         >
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-primary">
-            Transform Your Business with <span className="text-accent">AI Agents</span>
-          </h1>
+          <BoxReveal boxColor="#9b87f5" duration={0.7}>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-primary">
+              Transform Your Business with <span className="text-accent">AI Agents</span>
+            </h1>
+          </BoxReveal>
+          
           <p className="text-xl text-primary/80 mb-12">
             Deploy powerful AI solutions in minutes. Access a marketplace of pre-trained agents ready to revolutionize your workflow.
           </p>
