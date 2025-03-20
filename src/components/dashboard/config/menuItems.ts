@@ -79,7 +79,7 @@ export const developerMenuItems: MenuItem[] = [
   { 
     icon: Share2, 
     label: "API & Integrations", 
-    path: "/developer/api",
+    path: "/developer/api-integrations",
     ariaLabel: "Access API and Integration Tools"
   },
   { 

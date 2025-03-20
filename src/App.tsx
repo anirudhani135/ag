@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -125,8 +126,11 @@ const AppContent = () => {
           <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<Revenue />} />
           </Route>
-          <Route path="api" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+          <Route path="api-integrations" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<ApiIntegrations />} />
+          </Route>
+          <Route path="api" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<Navigate to="/developer/api-integrations" replace />} />
           </Route>
           <Route path="analytics" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<DeveloperAnalytics />} />
