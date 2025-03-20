@@ -1,69 +1,78 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
-// Define TeamMemberPermissions as a simple Record to avoid recursive type issues
-export type TeamMemberPermissions = Record<string, boolean>;
-
-export interface TeamMember {
+export interface TeamMemberData {
   id: string;
   user_id: string;
+  name: string;
+  email: string;
   role: string;
-  permissions: TeamMemberPermissions;
-  added_at: string;
   status: string;
+  added_at: string;
+  permissions: TeamMemberPermissions;
 }
+
+export type TeamMemberPermissions = Record<string, boolean>;
 
 export const useTeamMembers = () => {
   return useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      const authResult = await supabase.auth.getUser();
-      const user = authResult.data.user;
-      
-      if (!user) return [] as TeamMember[];
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('team_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching team members:", error);
-        return [] as TeamMember[];
-      }
-      
-      // Process the data with explicit type casting
-      const members = (data || []).map(member => {
-        // Create a new permissions object with only boolean values
-        const permissions: Record<string, boolean> = {};
+        // Get team members from the database
+        const { data, error } = await supabase
+          .from('team_members')
+          .select(`
+            id,
+            user_id,
+            role,
+            permissions,
+            added_at
+          `)
+          .eq('team_id', user.id);
         
-        if (member.permissions && typeof member.permissions === 'object') {
-          Object.entries(member.permissions).forEach(([key, value]) => {
-            if (typeof value === 'boolean') {
-              permissions[key] = value;
-            } else {
-              // Convert non-boolean values to boolean to ensure type safety
-              permissions[key] = Boolean(value);
-            }
-          });
+        if (error) {
+          console.error("Error fetching team members:", error);
+          return [];
         }
         
-        return {
-          id: member.id,
-          user_id: member.user_id,
-          role: member.role || 'member',
-          permissions: permissions,
-          added_at: member.added_at || new Date().toISOString(),
-          status: member.status || 'active' // Apply default value if status doesn't exist
-        } as TeamMember;
-      });
-      
-      return members;
-    },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000,   // Garbage collect after 10 minutes
-    refetchOnWindowFocus: false // Don't refetch when window gains focus
+        if (!data || data.length === 0) return [];
+        
+        // Get user profiles for each team member
+        const memberIds = data.map(member => member.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', memberIds);
+        
+        if (profilesError) {
+          console.error("Error fetching team member profiles:", profilesError);
+          return [];
+        }
+        
+        // Map team members with their profiles
+        return data.map(member => {
+          const profile = profilesData?.find(p => p.id === member.user_id);
+          return {
+            id: member.id,
+            user_id: member.user_id,
+            name: profile?.name || "Unknown User",
+            email: profile?.email || "unknown@example.com",
+            role: member.role || "member",
+            status: 'active', // Default status since it doesn't exist in the database
+            added_at: member.added_at,
+            permissions: member.permissions as TeamMemberPermissions || {}
+          } as TeamMemberData;
+        });
+      } catch (error) {
+        console.error("Error in team members query:", error);
+        return [];
+      }
+    }
   });
 };

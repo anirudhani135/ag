@@ -13,51 +13,6 @@ interface DashboardLayoutProps {
   type?: "user" | "developer";
 }
 
-// Create a memoized component to prevent unnecessary re-renders
-const DashboardLayoutContent = memo(({ 
-  children, 
-  type, 
-  sidebarOpen, 
-  isMobile, 
-  setSidebarOpen 
-}: DashboardLayoutProps & { 
-  sidebarOpen: boolean; 
-  isMobile: boolean; 
-  setSidebarOpen: (open: boolean) => void; 
-}) => {
-  return (
-    <div className="min-h-screen bg-background">
-      <TopNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex h-[calc(100vh-4rem)]">
-        <Sidebar 
-          isOpen={sidebarOpen} 
-          isMobile={isMobile}
-          onClose={() => isMobile && setSidebarOpen(false)} 
-          type={type}
-        />
-        <main 
-          className={cn(
-            "flex-1 overflow-auto transition-all duration-75",
-            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0",
-            "p-4 md:p-6",
-            "pt-20 md:pt-24" // Increased padding to prevent navbar overlap
-          )}
-          role="main"
-          aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
-        >
-          <div className="max-w-7xl mx-auto">
-            <OptimizedSuspense priority="high">
-              {children}
-            </OptimizedSuspense>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-});
-
-DashboardLayoutContent.displayName = 'DashboardLayoutContent';
-
 export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -117,13 +72,33 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   }
 
   return (
-    <DashboardLayoutContent
-      children={children}
-      type={type}
-      sidebarOpen={sidebarOpen}
-      isMobile={isMobile}
-      setSidebarOpen={setSidebarOpen}
-    />
+    <div className="min-h-screen bg-background">
+      <TopNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="flex h-[calc(100vh-4rem)]">
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          isMobile={isMobile}
+          onClose={() => isMobile && setSidebarOpen(false)} 
+          type={type}
+        />
+        <main 
+          className={cn(
+            "flex-1 overflow-auto transition-all duration-75",
+            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0",
+            "p-4 md:p-6",
+            "pt-20 md:pt-24" // Increased padding to prevent navbar overlap
+          )}
+          role="main"
+          aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
+        >
+          <div className="max-w-7xl mx-auto">
+            <OptimizedSuspense priority="high">
+              {children}
+            </OptimizedSuspense>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 });
 
