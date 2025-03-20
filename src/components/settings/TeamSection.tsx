@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTeamMembers, TeamMember } from "@/hooks/useTeamMembers";
+import { useTeamMembers, TeamMemberData } from "@/hooks/useTeamMembers";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -108,13 +108,13 @@ export const TeamSection = () => {
               </div>
             ) : teamMembers && teamMembers.length > 0 ? (
               <div className="space-y-2">
-                {teamMembers.map((member) => (
+                {teamMembers.map((member: TeamMemberData) => (
                   <div
                     key={member.id}
                     className="flex items-center justify-between p-3 border rounded"
                   >
                     <div>
-                      <div className="font-medium">{member.user_id}</div>
+                      <div className="font-medium">{member.name}</div>
                       <div className="text-sm text-muted-foreground capitalize">
                         {member.role}
                       </div>
