@@ -14,6 +14,7 @@ export interface TeamMemberData {
   permissions: TeamMemberPermissions;
 }
 
+// Define TeamMemberPermissions as a simple Record type instead of a recursive type
 export type TeamMemberPermissions = Record<string, boolean>;
 
 export const useTeamMembers = () => {
