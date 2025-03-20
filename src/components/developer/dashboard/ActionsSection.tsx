@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +9,6 @@ export const DeveloperActionsSection = memo(() => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Keep only the create agent action
   const handleCreateAgentAction = useCallback(() => {
     // Pre-initialize navigation
     requestAnimationFrame(() => {

@@ -93,7 +93,6 @@ export const DeveloperDashboard = () => {
       }) || [];
 
       return {
-        availableBalance: totalRevenue || 0,
         publishedAgents: publishedAgents || 0,
         monthlyRevenue: totalRevenue || 0,
         averageRating,
@@ -116,13 +115,12 @@ export const DeveloperDashboard = () => {
           />
         </OptimizedSuspense>
 
-        <OptimizedSuspense fallback={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+        <OptimizedSuspense fallback={<div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32" />
           ))}
         </div>} delay={150}>
           <QuickStatsGrid 
-            creditBalance={dashboardData?.availableBalance || 0}
             activeAgents={dashboardData?.publishedAgents || 0}
             monthlyRevenue={dashboardData?.monthlyRevenue || 0}
             averageRating={dashboardData?.averageRating || 0}

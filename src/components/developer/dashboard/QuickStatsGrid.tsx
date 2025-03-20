@@ -1,7 +1,6 @@
 
-import { Coins, Bot, BarChart2, Star } from "lucide-react";
+import { Bot, BarChart2, Star } from "lucide-react";
 import { StatsCard } from "../../dashboard/StatsCard";
-import { cn } from "@/lib/utils";
 
 interface QuickStatsGridProps {
   creditBalance: number;
@@ -11,25 +10,12 @@ interface QuickStatsGridProps {
 }
 
 export const QuickStatsGrid = ({
-  creditBalance,
   activeAgents,
   monthlyRevenue,
   averageRating,
-}: QuickStatsGridProps) => {
-  const lowCredits = creditBalance < 50;
-
+}: Omit<QuickStatsGridProps, 'creditBalance'>) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatsCard
-        title="Available Balance"
-        value={`$${creditBalance.toFixed(2)}`}
-        icon={Coins}
-        description={lowCredits ? "Low balance!" : "Available for withdrawal"}
-        className={cn(
-          "transition-all duration-300",
-          lowCredits && "border-red-500"
-        )}
-      />
+    <div className="grid gap-4 md:grid-cols-3">
       <StatsCard
         title="Published Agents"
         value={activeAgents}
