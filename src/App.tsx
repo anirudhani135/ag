@@ -74,16 +74,16 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        {/* Standalone agent creation route */}
-        <Route path="/agent-creation" element={
-          <ProtectedRoute>
-            <WithRoleProtection allowedRoles={["developer"]}>
+        {/* Standalone agent creation route - Fixed to work with ProtectedRoute and WithRoleProtection */}
+        <Route path="/agent-creation" element={<ProtectedRoute />}>
+          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={
               <DashboardLayout type="developer">
                 <AgentCreation />
               </DashboardLayout>
-            </WithRoleProtection>
-          </ProtectedRoute>
-        } />
+            } />
+          </Route>
+        </Route>
 
         <Route path="/user" element={<ProtectedRoute />}>
           <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
@@ -126,7 +126,11 @@ const AppContent = () => {
             <Route index element={<AgentManagement />} />
           </Route>
           <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<AgentCreation />} />
+            <Route index element={
+              <DashboardLayout type="developer">
+                <AgentCreation />
+              </DashboardLayout>
+            } />
           </Route>
           <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<Revenue />} />
