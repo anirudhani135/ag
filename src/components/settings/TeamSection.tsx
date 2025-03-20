@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTeamMembers, TeamMemberData } from "@/hooks/useTeamMembers";
+import { useTeamMembers, TeamMember } from "@/hooks/useTeamMembers";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,7 +13,7 @@ export const TeamSection = () => {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("viewer");
   const [isInviting, setIsInviting] = useState(false);
-  const { data: teamMembers, isLoading, refetch } = useTeamMembers();
+  const { teamMembers, isLoading, addTeamMember, removeTeamMember } = useTeamMembers();
 
   const handleInvite = async () => {
     if (!email) {
@@ -27,16 +27,21 @@ export const TeamSection = () => {
 
     setIsInviting(true);
     try {
-      // Here would be the actual invite logic
-      // For now, just showing a success message
-      toast({
-        title: "Invitation Sent",
-        description: `Invitation sent to ${email}`,
+      // Here would be the actual invite logic with addTeamMember
+      addTeamMember({
+        name: email.split('@')[0], // Simple name generation from email
+        email: email,
+        role: role,
+        permissions: {
+          viewAnalytics: role === "admin" || role === "editor",
+          manageAgents: role === "admin" || role === "editor",
+          manageTeam: role === "admin",
+          manageSettings: role === "admin",
+        },
       });
+      
       setEmail("");
       setRole("viewer");
-      // Refetch team members after successful invite
-      refetch();
     } catch (error) {
       toast({
         title: "Error",
@@ -50,14 +55,8 @@ export const TeamSection = () => {
 
   const handleRemoveMember = async (memberId: string) => {
     try {
-      // Here would be the actual remove logic
-      // For now, just showing a success message
-      toast({
-        title: "Team Member Removed",
-        description: "The team member has been removed",
-      });
-      // Refetch team members after successful removal
-      refetch();
+      // Use the removeTeamMember function from the hook
+      removeTeamMember(memberId);
     } catch (error) {
       toast({
         title: "Error",
@@ -108,7 +107,7 @@ export const TeamSection = () => {
               </div>
             ) : teamMembers && teamMembers.length > 0 ? (
               <div className="space-y-2">
-                {teamMembers.map((member: TeamMemberData) => (
+                {teamMembers.map((member: TeamMember) => (
                   <div
                     key={member.id}
                     className="flex items-center justify-between p-3 border rounded"
