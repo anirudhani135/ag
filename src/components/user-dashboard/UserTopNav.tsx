@@ -1,8 +1,9 @@
 
-import { Menu, Bell, Plus, User } from "lucide-react";
+import { Menu, Bell, Plus, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,19 +18,30 @@ interface TopNavProps {
 
 export const UserTopNav = ({ onMenuClick }: TopNavProps) => {
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-50">
-      <div className="flex items-center justify-between h-full px-4">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b border-border z-50 shadow-sm">
+      <div className="flex items-center justify-between h-full px-4 max-w-[100%] lg:max-w-7xl mx-auto">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
-          <Link to="/">
+          <Link to="/" className="hidden sm:block">
             <Logo />
           </Link>
         </div>
         
+        <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
+          <div className="relative w-full">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="search" 
+              placeholder="Search agents..." 
+              className="pl-8 bg-background border-border h-9"
+            />
+          </div>
+        </div>
+        
         <div className="flex items-center space-x-2">
-          <Button variant="default" size="sm" className="gap-2">
+          <Button variant="default" size="sm" className="gap-2 hidden sm:flex">
             <Plus className="h-4 w-4" />
             Add Credits
           </Button>
@@ -41,7 +53,7 @@ export const UserTopNav = ({ onMenuClick }: TopNavProps) => {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="rounded-full">
                 <User className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
@@ -57,8 +69,12 @@ export const UserTopNav = ({ onMenuClick }: TopNavProps) => {
                 <span>Credits: 1,234</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/settings">Profile Settings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/credits">Billing</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">
                 Logout
               </DropdownMenuItem>

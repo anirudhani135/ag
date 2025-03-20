@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Home,
@@ -13,7 +14,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Plus
+  Plus,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,63 +35,63 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
+const menuItems = [
+  { 
+    icon: Home, 
+    label: "Overview", 
+    path: "/dashboard",
+    ariaLabel: "Go to Dashboard Overview"
+  },
+  { 
+    icon: Bot, 
+    label: "My Agents", 
+    path: "/dashboard/agents",
+    ariaLabel: "View My AI Agents"
+  },
+  { 
+    icon: CreditCard, 
+    label: "Credits", 
+    path: "/dashboard/credits",
+    ariaLabel: "Manage Credits and Transactions"
+  },
+  { 
+    icon: Star, 
+    label: "Saved Agents", 
+    path: "/dashboard/saved",
+    ariaLabel: "View Saved Agents"
+  },
+  { 
+    icon: BarChart2, 
+    label: "Analytics", 
+    path: "/dashboard/analytics",
+    ariaLabel: "View Usage Analytics"
+  },
+  { 
+    icon: MessageSquare, 
+    label: "Reviews", 
+    path: "/dashboard/reviews",
+    ariaLabel: "Manage Reviews"
+  },
+  { 
+    icon: LifeBuoy, 
+    label: "Support", 
+    path: "/dashboard/support",
+    ariaLabel: "Access Support"
+  },
+  { 
+    icon: Settings, 
+    label: "Settings", 
+    path: "/dashboard/settings",
+    ariaLabel: "Manage Account Settings"
+  }
+];
+
+export const UserSidebar = memo(({ isOpen, isMobile, onClose }: SidebarProps) => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
-  const menuItems = [
-    { 
-      icon: Home, 
-      label: "Overview", 
-      path: "/dashboard",
-      ariaLabel: "Go to Dashboard Overview"
-    },
-    { 
-      icon: Bot, 
-      label: "My Agents", 
-      path: "/dashboard/agents",
-      ariaLabel: "View My AI Agents"
-    },
-    { 
-      icon: CreditCard, 
-      label: "Credits", 
-      path: "/dashboard/credits",
-      ariaLabel: "Manage Credits and Transactions"
-    },
-    { 
-      icon: Star, 
-      label: "Saved Agents", 
-      path: "/dashboard/saved",
-      ariaLabel: "View Saved Agents"
-    },
-    { 
-      icon: BarChart2, 
-      label: "Analytics", 
-      path: "/dashboard/analytics",
-      ariaLabel: "View Usage Analytics"
-    },
-    { 
-      icon: MessageSquare, 
-      label: "Reviews", 
-      path: "/dashboard/reviews",
-      ariaLabel: "Manage Reviews"
-    },
-    { 
-      icon: LifeBuoy, 
-      label: "Support", 
-      path: "/dashboard/support",
-      ariaLabel: "Access Support"
-    },
-    { 
-      icon: Settings, 
-      label: "Settings", 
-      path: "/dashboard/settings",
-      ariaLabel: "Manage Account Settings"
-    }
-  ];
-
   const handleKeyNavigation = (event: React.KeyboardEvent, index: number) => {
     if (event.key === 'ArrowUp' && index > 0) {
       const prevItem = document.querySelector(`[data-index="${index - 1}"]`) as HTMLElement;
@@ -125,8 +127,8 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
           </Button>
         )}
 
-        <div className="flex flex-col h-full py-4">
-          <div className="px-4 mb-4 flex items-center justify-between">
+        <div className="flex flex-col h-full">
+          <div className="px-4 py-3 flex items-center justify-between border-b border-border">
             <Button
               variant="ghost"
               size="icon"
@@ -136,11 +138,7 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
             >
               <Search className="h-4 w-4" />
             </Button>
-            <Switch
-              checked={isDarkMode}
-              onCheckedChange={setIsDarkMode}
-              aria-label="Toggle dark mode"
-            />
+            
             {!isMobile && (
               <Button
                 variant="ghost"
@@ -158,7 +156,7 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
             )}
           </div>
 
-          <nav className="flex-1">
+          <nav className="flex-1 py-2">
             <ul className="space-y-1" role="menu">
               {menuItems.map((item, index) => (
                 <li key={item.path} role="none">
@@ -169,9 +167,9 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 text-sm transition-all duration-200",
                           "hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
-                          "relative",
+                          "relative rounded-r-lg mr-2",
                           location.pathname === item.path && [
-                            "bg-accent/20 text-accent font-medium",
+                            "bg-accent/10 text-accent font-medium",
                             "before:absolute before:left-0 before:top-0 before:h-full",
                             "before:w-1 before:bg-accent before:rounded-r"
                           ]
@@ -185,8 +183,8 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
                       >
                         <item.icon 
                           className={cn(
-                            "w-5 h-5 transition-transform duration-200",
-                            "hover:scale-110"
+                            "w-5 h-5",
+                            location.pathname === item.path ? "text-accent" : "text-foreground/70"
                           )}
                           aria-hidden="true"
                         />
@@ -204,19 +202,15 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
             </ul>
           </nav>
           
-          <div className="px-4 py-4 mt-auto border-t border-border">
+          <div className="px-4 py-3 mt-auto border-t border-border">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-                <img 
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-                  alt="User avatar"
-                  className="w-8 h-8 rounded-full"
-                />
+                <User className="h-4 w-4 text-accent" />
               </div>
               {!isCollapsed && (
-                <div>
-                  <p className="text-sm font-medium">John User</p>
-                  <p className="text-xs text-muted-foreground">john@example.com</p>
+                <div className="overflow-hidden">
+                  <p className="text-sm font-medium truncate">John User</p>
+                  <p className="text-xs text-muted-foreground truncate">john@example.com</p>
                 </div>
               )}
             </div>
@@ -226,7 +220,7 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
         <SearchOverlay
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
-          placeholder="Find an agent or setting..."
+          placeholder="Search dashboard..."
         />
 
         <FloatingCTA
@@ -237,4 +231,6 @@ export const UserSidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
       </aside>
     </TooltipProvider>
   );
-};
+});
+
+UserSidebar.displayName = 'UserSidebar';

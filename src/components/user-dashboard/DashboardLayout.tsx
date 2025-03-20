@@ -40,15 +40,15 @@ export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => 
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto transition-all duration-50", // Reduced duration
-            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0", // Match sidebar width
-            "p-2 sm:p-3", // Reduced padding
-            "pt-20" // Increased top padding to prevent navbar overlap
+            "flex-1 overflow-auto transition-all duration-75",
+            sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0",
+            "p-4 md:p-6",
+            "pt-20 md:pt-24" // Increased padding to prevent navbar overlap
           )}
           role="main"
           aria-label="User Dashboard Main Content"
         >
-          <div className="mt-2">
+          <div className="max-w-7xl mx-auto">
             <OptimizedSuspense priority="high">
               {children}
             </OptimizedSuspense>

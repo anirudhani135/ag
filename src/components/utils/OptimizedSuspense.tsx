@@ -16,7 +16,7 @@ interface OptimizedSuspenseProps {
  */
 export const OptimizedSuspense = memo(({ 
   children, 
-  fallback = <Skeleton className="h-24 w-full" />, // Reduced skeleton height
+  fallback = <Skeleton className="h-24 w-full rounded-md" />,
   delay = 0, 
   minHeight = "0",
   priority = 'high' 
@@ -51,7 +51,6 @@ export const OptimizedSuspense = memo(({
       style={{ 
         minHeight,
         contentVisibility: 'auto',
-        contain: 'content',
       }}
       className="will-change-transform"
     >
