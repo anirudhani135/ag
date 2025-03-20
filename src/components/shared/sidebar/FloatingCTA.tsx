@@ -36,18 +36,14 @@ export const FloatingCTA = ({
       return;
     }
 
-    if (type === "developer") {
-      toast({
-        title: "Withdrawal Request",
-        description: "Your withdrawal request has been initiated. Please check your email for confirmation.",
-      });
-    } else {
+    // Only navigate for user type, not for developer
+    if (type === "user") {
       navigate("/user/credits");
     }
   };
 
-  // Don't render for users, only for developers
-  if (type === "user") {
+  // Don't render for either type to avoid cluttering the UI
+  if (type === "developer" || type === "user") {
     return null;
   }
 
@@ -60,7 +56,7 @@ export const FloatingCTA = ({
         "bg-black hover:bg-black/90 hover:scale-105 hover:shadow-xl",
         className
       )}
-      aria-label={type === "developer" ? "Withdraw Funds" : "Buy Credits"}
+      aria-label="Buy Credits"
     >
       {icon}
       <span className="font-medium">{label}</span>

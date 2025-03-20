@@ -8,6 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download, BarChart2, LineChart, PieChart, Users } from "lucide-react";
 import { subMonths, subDays } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense, lazy } from "react";
+
+// Define the quick range options to reduce redundancy
+const quickRanges = [
+  { label: "Today", value: "today" },
+  { label: "Yesterday", value: "yesterday" },
+  { label: "Last 7 Days", value: "last7" },
+  { label: "Last 30 Days", value: "last30" },
+  { label: "This Month", value: "thisMonth" },
+  { label: "Last Month", value: "lastMonth" }
+];
 
 export const EnhancedRevenueDashboard = () => {
   const [dateRange, setDateRange] = useState<{
@@ -19,13 +31,18 @@ export const EnhancedRevenueDashboard = () => {
   });
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDateRangeChange = (range: { from: Date; to: Date }) => {
+    setIsLoading(true);
     setDateRange(range);
+    // Simulate loading state for better UX
+    setTimeout(() => setIsLoading(false), 300);
   };
 
   // Simplified quick range handler
   const handleQuickRange = (range: string) => {
+    setIsLoading(true);
     const now = new Date();
     
     switch (range) {
@@ -54,6 +71,9 @@ export const EnhancedRevenueDashboard = () => {
       default:
         break;
     }
+    
+    // Simulate loading state for better UX
+    setTimeout(() => setIsLoading(false), 300);
   };
 
   return (
@@ -80,14 +100,7 @@ export const EnhancedRevenueDashboard = () => {
         </div>
 
         <div className="flex flex-wrap gap-1 mb-4">
-          {[
-            { label: "Today", value: "today" },
-            { label: "Yesterday", value: "yesterday" },
-            { label: "Last 7 Days", value: "last7" },
-            { label: "Last 30 Days", value: "last30" },
-            { label: "This Month", value: "thisMonth" },
-            { label: "Last Month", value: "lastMonth" }
-          ].map((item) => (
+          {quickRanges.map((item) => (
             <Button 
               key={item.value}
               variant="outline" 
@@ -100,7 +113,23 @@ export const EnhancedRevenueDashboard = () => {
           ))}
         </div>
 
-        <EnhancedRevenueMetrics startDate={dateRange.from} endDate={dateRange.to} />
+        <Suspense fallback={
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array(4).fill(null).map((_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        }>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array(4).fill(null).map((_, i) => (
+                <Skeleton key={i} className="h-32" />
+              ))}
+            </div>
+          ) : (
+            <EnhancedRevenueMetrics startDate={dateRange.from} endDate={dateRange.to} />
+          )}
+        </Suspense>
       </Card>
 
       <Card className="p-4">
@@ -136,7 +165,9 @@ export const EnhancedRevenueDashboard = () => {
           </TabsContent>
 
           <TabsContent value="transactions">
-            <TransactionsList />
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+              <TransactionsList />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="trends">

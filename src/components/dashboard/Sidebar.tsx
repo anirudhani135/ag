@@ -1,9 +1,8 @@
 
 import { useState, memo } from "react";
-import { X, DollarSign } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { FloatingCTA } from "../shared/sidebar/FloatingCTA";
 import { SearchOverlay } from "../shared/sidebar/SearchOverlay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProps } from "./types/sidebar";
@@ -18,17 +17,6 @@ export const Sidebar = memo(({ isOpen, isMobile, onClose, type }: SidebarProps) 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const menuItems = type === "developer" ? developerMenuItems : userMenuItems;
-  const ctaConfig = type === "developer" 
-    ? {
-        label: "Withdraw Funds",
-        icon: <DollarSign className="h-4 w-4" />,
-        onClick: () => console.log('Withdraw funds clicked'),
-      }
-    : {
-        label: "Buy Credits",
-        icon: <DollarSign className="h-4 w-4" />,
-        onClick: () => console.log('Buy credits clicked'),
-      };
 
   return (
     <TooltipProvider>
@@ -82,13 +70,6 @@ export const Sidebar = memo(({ isOpen, isMobile, onClose, type }: SidebarProps) 
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
           placeholder={`Search ${type === "developer" ? "agents, analytics, or settings" : "agents, transactions, or settings"}...`}
-        />
-
-        <FloatingCTA
-          label={ctaConfig.label}
-          icon={ctaConfig.icon}
-          onClick={ctaConfig.onClick}
-          type={type}
         />
       </aside>
     </TooltipProvider>

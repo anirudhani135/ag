@@ -1,5 +1,5 @@
+
 import { useQuery } from "@tanstack/react-query";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { supabase } from "@/integrations/supabase/client";
 import { type DeveloperDashboardMetrics } from "@/types/dashboard";

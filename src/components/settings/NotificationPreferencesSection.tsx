@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { useNotificationPreferences, NotificationPrefsData } from "@/hooks/useNotificationPreferences";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const NotificationPreferencesSection = () => {
   const { toast } = useToast();
@@ -25,10 +26,53 @@ export const NotificationPreferencesSection = () => {
   const handleToggle = (key: keyof NotificationPrefsData) => {
     if (!preferences) return;
     
+    // Update local state immediately for responsive UI
     setPreferences({
       ...preferences,
       [key]: !preferences[key]
     });
+    
+    // Also save the change immediately for better UX
+    savePreference(key, !preferences[key]);
+  };
+
+  const savePreference = async (key: keyof NotificationPrefsData, value: boolean) => {
+    try {
+      const authResult = await supabase.auth.getUser();
+      const user = authResult.data.user;
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You need to be logged in to save preferences",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show a toast notification that the preference is being saved
+      toast.promise(
+        supabase
+          .from('notification_preferences')
+          .upsert({
+            user_id: user.id,
+            [key]: value,
+            updated_at: new Date().toISOString()
+          }),
+        {
+          loading: `Updating ${key.replace('_', ' ')}...`,
+          success: `${key.replace('_', ' ')} preference updated`,
+          error: `Failed to update ${key.replace('_', ' ')}`
+        }
+      );
+    } catch (error) {
+      console.error(`Error saving ${key} preference:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to save ${key.replace('_', ' ')} preference`,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSavePreferences = async () => {
@@ -58,7 +102,8 @@ export const NotificationPreferencesSection = () => {
           deployment_alerts: preferences.deployment_alerts,
           billing_alerts: preferences.billing_alerts,
           performance_reports: preferences.performance_reports,
-          security_alerts: preferences.security_alerts
+          security_alerts: preferences.security_alerts,
+          updated_at: new Date().toISOString()
         });
       
       if (error) throw error;
@@ -122,6 +167,7 @@ export const NotificationPreferencesSection = () => {
                       id={key}
                       checked={preferences?.[key] || false}
                       onCheckedChange={() => handleToggle(key)}
+                      aria-label={`Toggle ${label}`}
                     />
                   </div>
                 ))}
@@ -131,7 +177,7 @@ export const NotificationPreferencesSection = () => {
                 disabled={isSaving || isLoading || !preferences}
                 className="w-full sm:w-auto"
               >
-                {isSaving ? "Saving..." : "Save Preferences"}
+                {isSaving ? "Saving..." : "Save All Preferences"}
               </Button>
             </div>
           )}
