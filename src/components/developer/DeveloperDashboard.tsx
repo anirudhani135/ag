@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { supabase } from "@/integrations/supabase/client";
 import { type DeveloperDashboardMetrics } from "@/types/dashboard";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 

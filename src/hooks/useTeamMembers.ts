@@ -1,7 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
 
 export interface TeamMemberData {
   id: string;
@@ -14,8 +13,10 @@ export interface TeamMemberData {
   permissions: TeamMemberPermissions;
 }
 
-// Define TeamMemberPermissions as a simple Record type instead of a recursive type
-export type TeamMemberPermissions = Record<string, boolean>;
+// Define TeamMemberPermissions as a non-recursive simple type
+export type TeamMemberPermissions = {
+  [key: string]: boolean;
+};
 
 export const useTeamMembers = () => {
   return useQuery({
