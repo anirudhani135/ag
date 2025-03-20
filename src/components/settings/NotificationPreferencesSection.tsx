@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { useNotificationPreferences, NotificationPrefsData } from "@/hooks/useNotificationPreferences";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export const NotificationPreferencesSection = () => {
   const { toast } = useToast();
@@ -50,26 +49,33 @@ export const NotificationPreferencesSection = () => {
         return;
       }
 
-      // Show a toast notification that the preference is being saved
-      toast.promise(
-        supabase
-          .from('notification_preferences')
-          .upsert({
-            user_id: user.id,
-            [key]: value,
-            updated_at: new Date().toISOString()
-          }),
-        {
-          loading: `Updating ${key.replace('_', ' ')}...`,
-          success: `${key.replace('_', ' ')} preference updated`,
-          error: `Failed to update ${key.replace('_', ' ')}`
-        }
-      );
+      // Show loading toast
+      toast({
+        title: `Updating ${key.replace('_', ' ')}...`,
+        description: "Your preference is being saved",
+      });
+
+      // Make the actual request
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          [key]: value,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: `${key.replace('_', ' ')} preference updated`,
+      });
     } catch (error) {
       console.error(`Error saving ${key} preference:`, error);
       toast({
         title: "Error",
-        description: `Failed to save ${key.replace('_', ' ')} preference`,
+        description: `Failed to update ${key.replace('_', ' ')} preference`,
         variant: "destructive",
       });
     }
