@@ -1,102 +1,27 @@
 
 import { useState, memo } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Home,
-  Bot,
-  CreditCard,
-  BarChart2,
-  MessageSquare,
-  LifeBuoy,
-  Settings,
-  Star,
-  X,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  User
-} from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { FloatingCTA } from "../shared/sidebar/FloatingCTA";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { userMenuItems } from "./config/menuItems";
 import { SearchOverlay } from "../shared/sidebar/SearchOverlay";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { FloatingCTA } from "../shared/sidebar/FloatingCTA";
+import { SidebarHeader } from "./components/SidebarHeader";
+import { SidebarNavigation } from "./components/SidebarNavigation";
+import { SidebarFooter } from "./components/SidebarFooter";
+import { UserSidebarProps } from "./types/sidebar";
 
-interface SidebarProps {
-  isOpen: boolean;
-  isMobile: boolean;
-  onClose: () => void;
-}
-
-const menuItems = [
-  { 
-    icon: Home, 
-    label: "Overview", 
-    path: "/dashboard",
-    ariaLabel: "Go to Dashboard Overview"
-  },
-  { 
-    icon: Bot, 
-    label: "My Agents", 
-    path: "/dashboard/agents",
-    ariaLabel: "View My AI Agents"
-  },
-  { 
-    icon: CreditCard, 
-    label: "Credits", 
-    path: "/dashboard/credits",
-    ariaLabel: "Manage Credits and Transactions"
-  },
-  { 
-    icon: Star, 
-    label: "Saved Agents", 
-    path: "/dashboard/saved",
-    ariaLabel: "View Saved Agents"
-  },
-  { 
-    icon: BarChart2, 
-    label: "Analytics", 
-    path: "/dashboard/analytics",
-    ariaLabel: "View Usage Analytics"
-  },
-  { 
-    icon: MessageSquare, 
-    label: "Reviews", 
-    path: "/dashboard/reviews",
-    ariaLabel: "Manage Reviews"
-  },
-  { 
-    icon: LifeBuoy, 
-    label: "Support", 
-    path: "/dashboard/support",
-    ariaLabel: "Access Support"
-  },
-  { 
-    icon: Settings, 
-    label: "Settings", 
-    path: "/dashboard/settings",
-    ariaLabel: "Manage Account Settings"
-  }
-];
-
-export const UserSidebar = memo(({ isOpen, isMobile, onClose }: SidebarProps) => {
+export const UserSidebar = memo(({ isOpen, isMobile, onClose }: UserSidebarProps) => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   const handleKeyNavigation = (event: React.KeyboardEvent, index: number) => {
     if (event.key === 'ArrowUp' && index > 0) {
       const prevItem = document.querySelector(`[data-index="${index - 1}"]`) as HTMLElement;
       prevItem?.focus();
-    } else if (event.key === 'ArrowDown' && index < menuItems.length - 1) {
+    } else if (event.key === 'ArrowDown' && index < userMenuItems.length - 1) {
       const nextItem = document.querySelector(`[data-index="${index + 1}"]`) as HTMLElement;
       nextItem?.focus();
     }
@@ -115,106 +40,25 @@ export const UserSidebar = memo(({ isOpen, isMobile, onClose }: SidebarProps) =>
         aria-label="User Navigation"
         role="navigation"
       >
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 md:hidden"
-            onClick={onClose}
-            aria-label="Close navigation menu"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-
         <div className="flex flex-col h-full">
-          <div className="px-4 py-3 flex items-center justify-between border-b border-border">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSearchOpen(true)}
-              className="hover:bg-accent/10"
-              aria-label="Open search"
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-            
-            {!isMobile && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hover:bg-accent/10"
-                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-          </div>
+          <SidebarHeader 
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            setIsSearchOpen={setIsSearchOpen}
+            isMobile={isMobile}
+            onClose={onClose}
+          />
 
-          <nav className="flex-1 py-2">
-            <ul className="space-y-1" role="menu">
-              {menuItems.map((item, index) => (
-                <li key={item.path} role="none">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        to={item.path}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-2 text-sm transition-all duration-200",
-                          "hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
-                          "relative rounded-r-lg mr-2",
-                          location.pathname === item.path && [
-                            "bg-accent/10 text-accent font-medium",
-                            "before:absolute before:left-0 before:top-0 before:h-full",
-                            "before:w-1 before:bg-accent before:rounded-r"
-                          ]
-                        )}
-                        onClick={() => isMobile && onClose()}
-                        role="menuitem"
-                        aria-label={item.ariaLabel}
-                        aria-current={location.pathname === item.path ? "page" : undefined}
-                        data-index={index}
-                        onKeyDown={(e) => handleKeyNavigation(e, index)}
-                      >
-                        <item.icon 
-                          className={cn(
-                            "w-5 h-5",
-                            location.pathname === item.path ? "text-accent" : "text-foreground/70"
-                          )}
-                          aria-hidden="true"
-                        />
-                        {!isCollapsed && <span>{item.label}</span>}
-                      </Link>
-                    </TooltipTrigger>
-                    {isCollapsed && (
-                      <TooltipContent side="right">
-                        {item.label}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <SidebarNavigation 
+            menuItems={userMenuItems}
+            isCollapsed={isCollapsed}
+            isMobile={isMobile}
+            onClose={onClose}
+            currentPath={location.pathname}
+            onKeyNavigation={handleKeyNavigation}
+          />
           
-          <div className="px-4 py-3 mt-auto border-t border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-                <User className="h-4 w-4 text-accent" />
-              </div>
-              {!isCollapsed && (
-                <div className="overflow-hidden">
-                  <p className="text-sm font-medium truncate">John User</p>
-                  <p className="text-xs text-muted-foreground truncate">john@example.com</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <SidebarFooter isCollapsed={isCollapsed} />
         </div>
 
         <SearchOverlay
