@@ -13,10 +13,8 @@ export interface TeamMemberData {
   permissions: TeamMemberPermissions;
 }
 
-// Define TeamMemberPermissions as a non-recursive simple type
-export type TeamMemberPermissions = {
-  [key: string]: boolean;
-};
+// Define TeamMemberPermissions as a simple non-recursive type
+export type TeamMemberPermissions = Record<string, boolean>;
 
 export const useTeamMembers = () => {
   return useQuery({

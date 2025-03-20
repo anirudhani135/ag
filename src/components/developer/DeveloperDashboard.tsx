@@ -109,6 +109,7 @@ export const DeveloperDashboard = () => {
 
   return (
     <DashboardProvider type="developer">
+      {/* Only use DashboardLayout with type="developer" - this ensures only one sidebar */}
       <DashboardLayout type="developer">
         <div className="space-y-6 p-6 animate-fade-in">
           <OptimizedSuspense fallback={<Skeleton className="h-16 w-full" />} delay={100}>

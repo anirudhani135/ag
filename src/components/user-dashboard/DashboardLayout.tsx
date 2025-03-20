@@ -33,6 +33,7 @@ export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => 
     <div className="min-h-screen bg-background">
       <UserTopNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex h-[calc(100vh-4rem)]">
+        {/* Only render UserSidebar, not DashboardLayout Sidebar */}
         <UserSidebar 
           isOpen={sidebarOpen} 
           isMobile={isMobile}
