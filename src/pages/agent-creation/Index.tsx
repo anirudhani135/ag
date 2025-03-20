@@ -1,15 +1,17 @@
+
 import { useState, useEffect } from "react";
 import { WizardLayout } from "@/components/agent-creation/WizardLayout";
 import { AgentCreationHeader } from "@/components/agent-creation/AgentCreationHeader";
 import { StepContentWrapper } from "@/components/agent-creation/StepContentWrapper";
 import { NavigationActions } from "@/components/agent-creation/NavigationActions";
 import { useAgentCreation } from "@/hooks/useAgentCreation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DeploymentConfiguration } from "@/components/agent-creation/DeploymentConfiguration";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+
+// Removed the DashboardLayout import since we're using it at the App level
 
 const AgentCreationPage = () => {
   const {
@@ -121,77 +123,73 @@ const AgentCreationPage = () => {
 
   if (isPageLoading) {
     return (
-      <DashboardLayout type="developer">
-        <div className="w-full px-4 md:px-6 lg:px-8 pt-16">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <Skeleton className="h-10 w-64 mb-8" />
-            <Skeleton className="h-4 w-full max-w-xl mb-12" />
-            <div className="flex justify-between mb-8">
-              {steps.map((_, i) => (
-                <Skeleton key={i} className="h-2 w-16" />
-              ))}
-            </div>
-            <Skeleton className="h-64 w-full mb-8" />
-            <div className="flex justify-end gap-2 mt-6">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-            </div>
+      <div className="w-full px-4 md:px-6 lg:px-8 pt-16">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <Skeleton className="h-10 w-64 mb-8" />
+          <Skeleton className="h-4 w-full max-w-xl mb-12" />
+          <div className="flex justify-between mb-8">
+            {steps.map((_, i) => (
+              <Skeleton key={i} className="h-2 w-16" />
+            ))}
+          </div>
+          <Skeleton className="h-64 w-full mb-8" />
+          <div className="flex justify-end gap-2 mt-6">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
           </div>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout type="developer">
-      <div className="w-full px-4 md:px-6 lg:px-8 pt-12">
-        <div className="mx-auto max-w-4xl space-y-4">
-          <AgentCreationHeader />
+    <div className="w-full px-4 md:px-6 lg:px-8 pt-12">
+      <div className="mx-auto max-w-4xl space-y-4">
+        <AgentCreationHeader />
 
-          <WizardLayout
-            currentStep={currentStep}
-            steps={steps}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
+        <WizardLayout
+          currentStep={currentStep}
+          steps={steps}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSaveDraft={handleSaveDraft}
+          canProceed={canProceed()}
+        >
+          <div className="mt-8 w-full">
+            {isLastStep && createdAgentId ? (
+              <DeploymentConfiguration 
+                agentId={createdAgentId} 
+                onDeploymentComplete={handleDeploymentComplete} 
+              />
+            ) : (
+              <StepContentWrapper
+                currentStep={currentStep}
+                basicInfo={basicInfo}
+                setBasicInfo={setBasicInfo}
+                configData={configData}
+                handleConfigurationSave={handleConfigurationSave}
+                integrationData={integrationData}
+                handleIntegrationSave={handleIntegrationSave}
+                testCases={testCases}
+                handleTestCasesSave={handleTestCasesSave}
+              />
+            )}
+          </div>
+
+          <NavigationActions
             onSaveDraft={handleSaveDraft}
-            canProceed={canProceed()}
-          >
-            <div className="mt-8 w-full">
-              {isLastStep && createdAgentId ? (
-                <DeploymentConfiguration 
-                  agentId={createdAgentId} 
-                  onDeploymentComplete={handleDeploymentComplete} 
-                />
-              ) : (
-                <StepContentWrapper
-                  currentStep={currentStep}
-                  basicInfo={basicInfo}
-                  setBasicInfo={setBasicInfo}
-                  configData={configData}
-                  handleConfigurationSave={handleConfigurationSave}
-                  integrationData={integrationData}
-                  handleIntegrationSave={handleIntegrationSave}
-                  testCases={testCases}
-                  handleTestCasesSave={handleTestCasesSave}
-                />
-              )}
-            </div>
-
-            <NavigationActions
-              onSaveDraft={handleSaveDraft}
-              onNext={isLastStep && !deploymentStarted ? handleStartDeployment : handleNext}
-              onPrevious={handlePrevious}
-              canProceed={isLastStep ? (!deploymentStarted || deploymentComplete) : canProceed()}
-              isSaving={isSaving}
-              isSubmitting={isSubmitting}
-              isLastStep={isLastStep}
-              deploymentStarted={deploymentStarted}
-              deploymentComplete={deploymentComplete}
-            />
-          </WizardLayout>
-        </div>
+            onNext={isLastStep && !deploymentStarted ? handleStartDeployment : handleNext}
+            onPrevious={handlePrevious}
+            canProceed={isLastStep ? (!deploymentStarted || deploymentComplete) : canProceed()}
+            isSaving={isSaving}
+            isSubmitting={isSubmitting}
+            isLastStep={isLastStep}
+            deploymentStarted={deploymentStarted}
+            deploymentComplete={deploymentComplete}
+          />
+        </WizardLayout>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

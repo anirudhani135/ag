@@ -1,116 +1,56 @@
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldAlert, Lock, CheckCircle2, Copy, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Shield } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-export const SecurityGuidancePanel = () => {
-  const [open, setOpen] = useState(false);
+export function SecurityGuidancePanel() {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Card className="bg-muted/30 border-muted mb-6">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-500" />
-            <CardTitle className="text-base">API Security Best Practices</CardTitle>
-          </div>
-          <CollapsibleTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setOpen(!open)}
-              className="h-8"
-            >
-              {open ? "Hide Details" : "Show Details"}
-            </Button>
-          </CollapsibleTrigger>
-        </div>
+    <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
+          <Shield className="h-5 w-5 mr-2 text-primary" />
+          API Security Best Practices
+        </CardTitle>
       </CardHeader>
-      
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            <Alert className="bg-background mb-3">
-              <Lock className="h-4 w-4" />
-              <AlertTitle>Protect Your API Keys</AlertTitle>
-              <AlertDescription>
-                Never expose API keys in client-side code or public repositories. Use backend services 
-                to make authenticated API calls.
-              </AlertDescription>
-            </Alert>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Do's
-                </h4>
-                <ul className="text-sm space-y-2">
-                  <li className="flex gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>Store keys in environment variables</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>Implement rate limiting on your endpoints</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>Rotate API keys regularly</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>Use separate keys for different environments</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <ShieldAlert className="h-4 w-4 text-red-500" />
-                  Don'ts
-                </h4>
-                <ul className="text-sm space-y-2">
-                  <li className="flex gap-2">
-                    <span className="text-red-500">✗</span>
-                    <span>Embed API keys in mobile or frontend code</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-red-500">✗</span>
-                    <span>Commit API keys to version control</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-red-500">✗</span>
-                    <span>Share API keys via insecure channels</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-red-500">✗</span>
-                    <span>Grant unnecessary permissions to API keys</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t flex items-center justify-between">
-              <div className="text-sm">
-                Need more guidance? Check our 
-                <Button variant="link" className="h-auto p-0 px-1">
-                  <span>security documentation</span>
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </Button>
-              </div>
-              
-              <Button variant="outline" size="sm" className="gap-1">
-                <Copy className="h-3 w-3" />
-                <span>Copy Example Implementation</span>
+      <CardContent>
+        <Alert className="bg-amber-50 border-amber-100 mb-4">
+          <AlertTitle className="text-amber-800 font-medium">Important</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Always secure your API keys and never expose them in client-side code.
+          </AlertDescription>
+        </Alert>
+
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-slate-700">View security guidelines</h4>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+                <span className="sr-only">Toggle</span>
               </Button>
+            </CollapsibleTrigger>
+          </div>
+          
+          <CollapsibleContent className="space-y-2">
+            <div className="rounded-md bg-white p-3 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                <li>Use environment variables for storing API keys</li>
+                <li>Implement proper authentication for all API endpoints</li>
+                <li>Set up rate limiting to prevent abuse</li>
+                <li>Use HTTPS for all API communications</li>
+                <li>Implement proper error handling without exposing sensitive information</li>
+                <li>Regularly rotate API keys and tokens</li>
+              </ul>
             </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
     </Card>
   );
-};
+}

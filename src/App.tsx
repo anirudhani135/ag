@@ -74,7 +74,16 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        <Route path="/agent-creation" element={<AgentCreation />} />
+        {/* Standalone agent creation route */}
+        <Route path="/agent-creation" element={
+          <ProtectedRoute>
+            <WithRoleProtection allowedRoles={["developer"]}>
+              <DashboardLayout type="developer">
+                <AgentCreation />
+              </DashboardLayout>
+            </WithRoleProtection>
+          </ProtectedRoute>
+        } />
 
         <Route path="/user" element={<ProtectedRoute />}>
           <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
@@ -117,11 +126,7 @@ const AppContent = () => {
             <Route index element={<AgentManagement />} />
           </Route>
           <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={
-              <DashboardLayout type="developer">
-                <AgentCreation />
-              </DashboardLayout>
-            } />
+            <Route index element={<AgentCreation />} />
           </Route>
           <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<Revenue />} />
