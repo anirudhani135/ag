@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardProvider } from "@/context/DashboardContext";
@@ -109,44 +108,41 @@ export const DeveloperDashboard = () => {
 
   return (
     <DashboardProvider type="developer">
-      {/* Only use DashboardLayout with type="developer" - this ensures only one sidebar */}
-      <DashboardLayout type="developer">
-        <div className="space-y-6 p-6 animate-fade-in">
-          <OptimizedSuspense fallback={<Skeleton className="h-16 w-full" />} delay={100}>
-            <DeveloperDashboardHeader 
-              userName={dashboardData?.userName}
-              lastLoginDate={dashboardData?.lastLoginDate}
-            />
-          </OptimizedSuspense>
+      <div className="space-y-6 p-6 animate-fade-in">
+        <OptimizedSuspense fallback={<Skeleton className="h-16 w-full" />} delay={100}>
+          <DeveloperDashboardHeader 
+            userName={dashboardData?.userName}
+            lastLoginDate={dashboardData?.lastLoginDate}
+          />
+        </OptimizedSuspense>
 
-          <OptimizedSuspense fallback={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
-          </div>} delay={150}>
-            <QuickStatsGrid 
-              creditBalance={dashboardData?.availableBalance || 0}
-              activeAgents={dashboardData?.publishedAgents || 0}
-              monthlyRevenue={dashboardData?.monthlyRevenue || 0}
-              averageRating={dashboardData?.averageRating || 0}
-            />
-          </OptimizedSuspense>
+        <OptimizedSuspense fallback={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>} delay={150}>
+          <QuickStatsGrid 
+            creditBalance={dashboardData?.availableBalance || 0}
+            activeAgents={dashboardData?.publishedAgents || 0}
+            monthlyRevenue={dashboardData?.monthlyRevenue || 0}
+            averageRating={dashboardData?.averageRating || 0}
+          />
+        </OptimizedSuspense>
 
-          <OptimizedSuspense fallback={<Skeleton className="h-20 w-full" />} delay={200}>
-            <DeveloperActionsSection />
-          </OptimizedSuspense>
+        <OptimizedSuspense fallback={<Skeleton className="h-20 w-full" />} delay={200}>
+          <DeveloperActionsSection />
+        </OptimizedSuspense>
 
-          <OptimizedSuspense fallback={<div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-          </div>} delay={250}>
-            <DashboardMetricsSection 
-              activities={dashboardData?.recentActivity}
-              isLoading={isLoading}
-            />
-          </OptimizedSuspense>
-        </div>
-      </DashboardLayout>
+        <OptimizedSuspense fallback={<div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>} delay={250}>
+          <DashboardMetricsSection 
+            activities={dashboardData?.recentActivity}
+            isLoading={isLoading}
+          />
+        </OptimizedSuspense>
+      </div>
     </DashboardProvider>
   );
 };

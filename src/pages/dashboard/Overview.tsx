@@ -20,7 +20,7 @@ const performanceData = [
 
 const Dashboard = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout type="user">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>

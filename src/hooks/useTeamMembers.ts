@@ -1,78 +1,120 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
-export interface TeamMemberData {
+// Define a simple type for permissions to avoid infinite recursion
+type TeamMemberPermissions = Record<string, boolean>;
+
+export type TeamMember = {
   id: string;
-  user_id: string;
   name: string;
   email: string;
   role: string;
-  status: string;
-  added_at: string;
   permissions: TeamMemberPermissions;
-}
-
-// Define TeamMemberPermissions as a simple non-recursive type
-export type TeamMemberPermissions = Record<string, boolean>;
+  joinedAt: string;
+  lastActive: string;
+  avatarUrl?: string;
+};
 
 export const useTeamMembers = () => {
-  return useQuery({
-    queryKey: ['team-members'],
-    queryFn: async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [];
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
+    {
+      id: "1",
+      name: "John Doe",
+      email: "john@example.com",
+      role: "Admin",
+      permissions: {
+        viewAnalytics: true,
+        manageAgents: true,
+        manageTeam: true,
+        manageSettings: true,
+      },
+      joinedAt: "2023-01-15T10:30:00Z",
+      lastActive: "2023-05-20T14:45:00Z",
+      avatarUrl: "/avatars/user1.png",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      role: "Developer",
+      permissions: {
+        viewAnalytics: true,
+        manageAgents: true,
+        manageTeam: false,
+        manageSettings: false,
+      },
+      joinedAt: "2023-02-10T09:15:00Z",
+      lastActive: "2023-05-19T16:30:00Z",
+      avatarUrl: "/avatars/user2.png",
+    },
+  ]);
 
-        // Get team members from the database
-        const { data, error } = await supabase
-          .from('team_members')
-          .select(`
-            id,
-            user_id,
-            role,
-            permissions,
-            added_at
-          `)
-          .eq('team_id', user.id);
-        
-        if (error) {
-          console.error("Error fetching team members:", error);
-          return [];
-        }
-        
-        if (!data || data.length === 0) return [];
-        
-        // Get user profiles for each team member
-        const memberIds = data.map(member => member.user_id);
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, email')
-          .in('id', memberIds);
-        
-        if (profilesError) {
-          console.error("Error fetching team member profiles:", profilesError);
-          return [];
-        }
-        
-        // Map team members with their profiles
-        return data.map(member => {
-          const profile = profilesData?.find(p => p.id === member.user_id);
-          return {
-            id: member.id,
-            user_id: member.user_id,
-            name: profile?.name || "Unknown User",
-            email: profile?.email || "unknown@example.com",
-            role: member.role || "member",
-            status: 'active', // Default status since it doesn't exist in the database
-            added_at: member.added_at,
-            permissions: member.permissions as TeamMemberPermissions || {}
-          } as TeamMemberData;
-        });
-      } catch (error) {
-        console.error("Error in team members query:", error);
-        return [];
-      }
-    }
-  });
+  const addTeamMember = (member: Omit<TeamMember, "id" | "joinedAt" | "lastActive">) => {
+    setIsLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      const newMember: TeamMember = {
+        ...member,
+        id: Math.random().toString(36).substring(2, 9),
+        joinedAt: new Date().toISOString(),
+        lastActive: new Date().toISOString(),
+      };
+
+      setTeamMembers([...teamMembers, newMember]);
+      setIsLoading(false);
+
+      toast({
+        title: "Team member added",
+        description: `${member.name} has been added to the team.`,
+      });
+    }, 1000);
+  };
+
+  const removeTeamMember = (id: string) => {
+    setIsLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      setTeamMembers(teamMembers.filter(member => member.id !== id));
+      setIsLoading(false);
+
+      toast({
+        title: "Team member removed",
+        description: "The team member has been removed.",
+      });
+    }, 1000);
+  };
+
+  const updateTeamMember = (id: string, updates: Partial<Omit<TeamMember, "id" | "joinedAt">>) => {
+    setIsLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      setTeamMembers(
+        teamMembers.map(member =>
+          member.id === id
+            ? { ...member, ...updates, lastActive: new Date().toISOString() }
+            : member
+        )
+      );
+      setIsLoading(false);
+
+      toast({
+        title: "Team member updated",
+        description: "The team member has been updated.",
+      });
+    }, 1000);
+  };
+
+  return {
+    teamMembers,
+    isLoading,
+    addTeamMember,
+    removeTeamMember,
+    updateTeamMember,
+  };
 };
