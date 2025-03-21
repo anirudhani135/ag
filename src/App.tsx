@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -76,7 +75,6 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        {/* Standalone agent creation route - Fixed to work with ProtectedRoute and WithRoleProtection */}
         <Route path="/agent-creation" element={<ProtectedRoute />}>
           <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={
@@ -87,7 +85,11 @@ const AppContent = () => {
           </Route>
         </Route>
 
-        <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
+        <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
+          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<ExternalSourceDeployment />} />
+          </Route>
+        </Route>
 
         <Route path="/user" element={<ProtectedRoute />}>
           <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
@@ -162,6 +164,9 @@ const AppContent = () => {
           </Route>
           <Route path="monitoring" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<DeveloperMonitoring />} />
+          </Route>
+          <Route path="agents/external" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<ExternalSourceDeployment />} />
           </Route>
         </Route>
 

@@ -14,14 +14,13 @@ interface Transaction {
   created_at: string;
 }
 
-// Define types for the purchase history data
-interface PurchaseHistory {
+// Define the explicit return type to avoid TypeScript's excessive type instantiation
+interface PurchaseHistoryData {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-// Explicitly define the function without return type annotation
-const fetchPurchaseHistory = async () => {
+const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -41,7 +40,6 @@ const fetchPurchaseHistory = async () => {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
-  // Return a plain object
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
@@ -51,7 +49,6 @@ const fetchPurchaseHistory = async () => {
 export const PurchaseHistory = () => {
   const navigate = useNavigate();
   
-  // Use the query without explicit types
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
