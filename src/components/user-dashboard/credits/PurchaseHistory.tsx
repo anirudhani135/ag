@@ -20,8 +20,8 @@ interface PurchaseData {
   totalPurchases: number;
 }
 
-// Define the query function without explicit return type annotation
-const fetchPurchaseHistory = async () => {
+// Define the query function with a simple return type annotation
+const fetchPurchaseHistory = async (): Promise<PurchaseData> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -50,7 +50,7 @@ const fetchPurchaseHistory = async () => {
 export const PurchaseHistory = () => {
   const navigate = useNavigate();
   
-  // Use the query function without specifying complex generic types
+  // Use the query function with the simplified return type
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
