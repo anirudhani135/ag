@@ -14,35 +14,50 @@ interface Transaction {
 }
 
 // Define the purchase history data interface
-interface PurchaseHistoryData {
+type PurchaseHistoryData = {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-// Use function declaration with explicit return type to avoid deep type instantiation
-async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('No user found');
+// Create a completely standalone function with explicit return type
+async function fetchPurchaseHistory(): Promise<{
+  latest: Transaction | null;
+  totalPurchases: number;
+}> {
+  // Get the current user
+  const userResponse = await supabase.auth.getUser();
+  const user = userResponse.data.user;
+  
+  if (!user) {
+    throw new Error('No user found');
+  }
 
-  const { data, error } = await supabase
+  // Get the latest transaction
+  const transactionResponse = await supabase
     .from('transactions')
     .select('amount, created_at')
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase')
     .order('created_at', { ascending: false })
     .limit(1);
-
-  if (error) throw error;
   
-  const { count } = await supabase
+  if (transactionResponse.error) {
+    throw transactionResponse.error;
+  }
+  
+  // Get the transaction count
+  const countResponse = await supabase
     .from('transactions')
     .select('amount', { count: 'exact' })
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
-
+  
+  // Build and return the result object
   return {
-    latest: data && data.length > 0 ? data[0] : null,
-    totalPurchases: count || 0
+    latest: transactionResponse.data && transactionResponse.data.length > 0 
+      ? transactionResponse.data[0] 
+      : null,
+    totalPurchases: countResponse.count || 0
   };
 }
 
