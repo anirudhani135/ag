@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 import { useNotifications } from './NotificationProvider';
 import {
   Popover,

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/dashboard/ModeToggle";
 import { UserNav } from "@/components/dashboard/UserNav";
@@ -8,11 +8,18 @@ import { NotificationIcon } from "@/components/notifications/NotificationIcon";
 
 interface TopNavProps {
   showSearch?: boolean;
+  onMenuClick?: () => void;
 }
 
-export const TopNav = ({ showSearch = true }: TopNavProps) => {
+export const TopNav = ({ showSearch = true, onMenuClick }: TopNavProps) => {
   return (
     <div className="flex h-16 items-center px-4 border-b bg-background">
+      {onMenuClick && (
+        <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={onMenuClick}>
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      )}
       <div className="flex-1">
         {showSearch && (
           <div className="relative hidden md:flex items-center w-full max-w-sm">
