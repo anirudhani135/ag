@@ -679,6 +679,54 @@ export type Database = {
           },
         ]
       }
+      credit_usage: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_usage_breakdown: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          service_name: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          service_name: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          service_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       deployment_environments: {
         Row: {
           config: Json | null
@@ -1213,9 +1261,11 @@ export type Database = {
           company: string | null
           created_at: string
           credit_balance: number | null
+          credit_limit: number | null
           email: string
           id: string
           last_active: string | null
+          last_credit_purchase: string | null
           last_login: string | null
           login_count: number | null
           name: string | null
@@ -1232,9 +1282,11 @@ export type Database = {
           company?: string | null
           created_at?: string
           credit_balance?: number | null
+          credit_limit?: number | null
           email: string
           id: string
           last_active?: string | null
+          last_credit_purchase?: string | null
           last_login?: string | null
           login_count?: number | null
           name?: string | null
@@ -1251,9 +1303,11 @@ export type Database = {
           company?: string | null
           created_at?: string
           credit_balance?: number | null
+          credit_limit?: number | null
           email?: string
           id?: string
           last_active?: string | null
+          last_credit_purchase?: string | null
           last_login?: string | null
           login_count?: number | null
           name?: string | null

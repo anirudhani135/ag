@@ -12,6 +12,11 @@ interface CreditUsageProps {
   showDetailed?: boolean;
 }
 
+interface UsageBreakdown {
+  service_name: string;
+  amount: number;
+}
+
 export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
   const { data, isLoading } = useQuery({
     queryKey: ['credit-usage'],
@@ -25,16 +30,17 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
         .eq('id', user.id)
         .single();
 
-      const { data: usage } = await supabase
+      // Get credit usage
+      const { data: usageData } = await supabase
         .from('credit_usage')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // For detailed view, get usage breakdown
-      let usageBreakdown = null;
+      let usageBreakdown: UsageBreakdown[] = [];
       if (showDetailed) {
         const { data: breakdown } = await supabase
           .from('credit_usage_breakdown')
@@ -42,14 +48,14 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
-        usageBreakdown = breakdown;
+        usageBreakdown = breakdown || [];
       }
 
       return {
         balance: profile?.credit_balance || 0,
         limit: profile?.credit_limit || 1000,
-        usage: usage?.amount || 0,
-        breakdown: usageBreakdown || []
+        usage: usageData?.amount || 0,
+        breakdown: usageBreakdown
       };
     }
   });
@@ -100,8 +106,7 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
                 </div>
                 <Progress 
                   value={usagePercentage} 
-                  className="h-2" 
-                  indicatorClassName={getProgressColor(usagePercentage)}
+                  className={cn("h-2", getProgressColor(usagePercentage))}
                 />
                 <p className="text-xs text-muted-foreground">
                   {usagePercentage > 90 
@@ -115,21 +120,20 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
               <div className="border-t pt-4">
                 <h4 className="text-sm font-medium mb-3">Usage by Service</h4>
                 <div className="space-y-3">
-                  {data?.breakdown && data.breakdown.map((item: any, index: number) => (
-                    <div key={index} className="space-y-1">
-                      <div className="flex justify-between items-center text-sm">
-                        <span>{item.service_name}</span>
-                        <span className="font-mono text-xs">{item.amount} credits</span>
+                  {data?.breakdown && data.breakdown.length > 0 ? (
+                    data.breakdown.map((item: UsageBreakdown, index: number) => (
+                      <div key={index} className="space-y-1">
+                        <div className="flex justify-between items-center text-sm">
+                          <span>{item.service_name}</span>
+                          <span className="font-mono text-xs">{item.amount} credits</span>
+                        </div>
+                        <Progress 
+                          value={(item.amount / data.usage) * 100} 
+                          className={cn("h-1.5", `bg-blue-${300 + index * 100}`)}
+                        />
                       </div>
-                      <Progress 
-                        value={(item.amount / data.usage) * 100} 
-                        className="h-1.5" 
-                        indicatorClassName={`bg-blue-${300 + index * 100}`}
-                      />
-                    </div>
-                  ))}
-                  
-                  {(!data?.breakdown || data.breakdown.length === 0) && (
+                    ))
+                  ) : (
                     <div className="text-center py-6 text-muted-foreground">
                       <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-40" />
                       <p>No usage data available yet</p>
@@ -170,8 +174,7 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
             </div>
             <Progress 
               value={usagePercentage} 
-              className="h-2" 
-              indicatorClassName={getProgressColor(usagePercentage)}
+              className={cn("h-2", getProgressColor(usagePercentage))}
             />
             <p className="text-xs text-muted-foreground mt-2">
               {usagePercentage > 90 

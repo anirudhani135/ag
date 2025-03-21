@@ -23,7 +23,7 @@ export const PurchaseHistory = () => {
 
       if (error) throw error;
       
-      const total = await supabase
+      const { count } = await supabase
         .from('transactions')
         .select('amount', { count: 'exact' })
         .eq('user_id', user.id)
@@ -31,7 +31,7 @@ export const PurchaseHistory = () => {
 
       return {
         latest: data && data.length > 0 ? data[0] : null,
-        totalPurchases: total.count || 0
+        totalPurchases: count || 0
       };
     }
   });
