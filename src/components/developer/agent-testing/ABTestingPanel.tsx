@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -762,7 +763,7 @@ export const ABTestingPanel = ({ agentId, versions }: ABTestingPanelProps) => {
                           
                           {winner && winner.id === version.id && (
                             <div className="mt-3 bg-green-50 text-green-800 p-2 rounded-md text-sm flex items-center">
-                              <CheckMark className="h-4 w-4 mr-1" />
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
                               Leading variant
                             </div>
                           )}
@@ -832,3 +833,122 @@ export const ABTestingPanel = ({ agentId, versions }: ABTestingPanelProps) => {
                           <p className="text-sm text-muted-foreground mb-3">
                             Based on current data, here are the key insights for improving your agent's performance.
                           </p>
+                          
+                          <ul className="space-y-2">
+                            <li className="flex items-start gap-2">
+                              <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                              <span className="text-sm">
+                                <span className="font-medium">Version B</span> is showing <span className="text-green-600 font-medium">18.8% higher</span> conversion rates than the control group.
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                              <span className="text-sm">
+                                Average session time is <span className="font-medium">13.6% longer</span> in Version B compared to other versions.
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                              <span className="text-sm">
+                                Users are <span className="font-medium">consistently more satisfied</span> with Version B's responses across all metrics.
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-5">
+                      <h3 className="font-medium text-base mb-3">Recommendations</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="p-3 border rounded-md flex items-start gap-3 bg-gradient-to-r from-green-50 to-green-50/30">
+                          <div className="bg-green-100 p-1.5 rounded-full mt-0.5">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium">Consider making Version B your primary agent</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Based on consistent performance improvements across all metrics, Version B is showing significant advantages over other versions.
+                            </p>
+                            <Button variant="outline" size="sm" className="mt-2">
+                              <Download className="h-3.5 w-3.5 mr-1" />
+                              Generate Report
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 border rounded-md flex items-start gap-3">
+                          <div className="bg-yellow-100 p-1.5 rounded-full mt-0.5">
+                            <Lightbulb className="h-4 w-4 text-yellow-600" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium">Continue testing to improve statistical significance</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Current confidence level is at 92%. We recommend continuing the test until you reach your target confidence level of 95%.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-5">
+                      <h3 className="font-medium text-base mb-3">Performance Analysis</h3>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-xs font-medium mb-1">Statistical Significance</h4>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '92%' }}></div>
+                          </div>
+                          <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                            <span>0%</span>
+                            <span>92% (Current)</span>
+                            <span>100%</span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <h4 className="text-xs font-medium mb-2">Detailed Version Comparison</h4>
+                          <div className="relative overflow-x-auto rounded-md border">
+                            <table className="w-full text-sm text-left">
+                              <thead className="text-xs bg-muted/50">
+                                <tr>
+                                  <th className="px-4 py-2">Version</th>
+                                  <th className="px-4 py-2">Traffic</th>
+                                  <th className="px-4 py-2">Conv. Rate</th>
+                                  <th className="px-4 py-2">Engagement</th>
+                                  <th className="px-4 py-2">Satisfaction</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {activeVersions.map((version, i) => (
+                                  <tr key={version.id} className={i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                                    <td className="px-4 py-2 font-medium">{version.name}</td>
+                                    <td className="px-4 py-2">{version.trafficAllocation}%</td>
+                                    <td className="px-4 py-2">
+                                      <span className={version === winner ? 'font-medium text-green-600' : ''}>
+                                        {version.metrics.conversionRate}%
+                                      </span>
+                                    </td>
+                                    <td className="px-4 py-2">{version.metrics.engagementRate}%</td>
+                                    <td className="px-4 py-2">{version.metrics.userSatisfaction}/10</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Tabs>
+      </Card>
+    </div>
+  );
+};
+
