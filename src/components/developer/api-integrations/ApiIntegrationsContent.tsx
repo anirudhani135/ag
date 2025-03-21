@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ApiKey, Webhook } from './types';
-
 interface ApiIntegrationsContentProps {
   activeTab: 'api-keys' | 'webhooks' | 'documentation';
   setActiveTab: (tab: 'api-keys' | 'webhooks' | 'documentation') => void;
@@ -19,7 +17,6 @@ interface ApiIntegrationsContentProps {
   onGenerateApiKey: () => void;
   onAddWebhook: () => void;
 }
-
 export const ApiIntegrationsContent = ({
   activeTab,
   setActiveTab,
@@ -31,7 +28,6 @@ export const ApiIntegrationsContent = ({
   onAddWebhook
 }: ApiIntegrationsContentProps) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
   const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -42,11 +38,9 @@ export const ApiIntegrationsContent = ({
   const formatKey = (key: string) => {
     return `${key.substring(0, 8)}...${key.substring(key.length - 4)}`;
   };
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader className="pb-3">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+        <Tabs value={activeTab} onValueChange={value => setActiveTab(value as any)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="api-keys" className="flex items-center gap-2">
               <Key className="h-4 w-4" />
@@ -70,14 +64,10 @@ export const ApiIntegrationsContent = ({
                 {isLoadingKeys ? 'Generating...' : 'Generate API Key'}
               </Button>
             </div>
-            {apiKeys.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
+            {apiKeys.length === 0 ? <div className="text-center py-6 text-muted-foreground">
                 No API keys found. Generate one to get started.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {apiKeys.map((apiKey) => (
-                  <Card key={apiKey.id} className="overflow-hidden">
+              </div> : <div className="space-y-4">
+                {apiKeys.map(apiKey => <Card key={apiKey.id} className="overflow-hidden">
                     <CardContent className="p-0">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-4">
                         <div>
@@ -87,12 +77,7 @@ export const ApiIntegrationsContent = ({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="ml-2 h-6 w-6"
-                                    onClick={() => handleCopyToClipboard(apiKey.key, apiKey.id)}
-                                  >
+                                  <Button variant="ghost" size="icon" className="ml-2 h-6 w-6" onClick={() => handleCopyToClipboard(apiKey.key, apiKey.id)}>
                                     <Copy className="h-3 w-3" />
                                   </Button>
                                 </TooltipTrigger>
@@ -117,10 +102,8 @@ export const ApiIntegrationsContent = ({
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </TabsContent>
 
           <TabsContent value="webhooks" className="pt-4">
@@ -131,14 +114,10 @@ export const ApiIntegrationsContent = ({
                 {isLoadingWebhooks ? 'Adding...' : 'Add Webhook'}
               </Button>
             </div>
-            {webhooks.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
+            {webhooks.length === 0 ? <div className="text-center py-6 text-muted-foreground">
                 No webhooks found. Add one to get started.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {webhooks.map((webhook) => (
-                  <Card key={webhook.id} className="overflow-hidden">
+              </div> : <div className="space-y-4">
+                {webhooks.map(webhook => <Card key={webhook.id} className="overflow-hidden">
                     <CardContent className="p-0">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-4">
                         <div>
@@ -148,12 +127,7 @@ export const ApiIntegrationsContent = ({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="ml-2 h-6 w-6"
-                                    onClick={() => handleCopyToClipboard(webhook.url, webhook.id)}
-                                  >
+                                  <Button variant="ghost" size="icon" className="ml-2 h-6 w-6" onClick={() => handleCopyToClipboard(webhook.url, webhook.id)}>
                                     <Copy className="h-3 w-3" />
                                   </Button>
                                 </TooltipTrigger>
@@ -167,25 +141,21 @@ export const ApiIntegrationsContent = ({
                         <div>
                           <div className="text-sm font-medium">Events</div>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {webhook.events.map((event, index) => (
-                              <Badge key={index} variant="secondary">{event}</Badge>
-                            ))}
+                            {webhook.events.map((event, index) => <Badge key={index} variant="secondary">{event}</Badge>)}
                           </div>
                         </div>
                         <div>
                           <div className="text-sm font-medium">Status</div>
                           <div className="mt-1">
-                            <Badge variant={webhook.status === 'active' ? 'default' : 'outline'}>
+                            <Badge variant={webhook.status === 'active' ? 'default' : 'outline'} className="bg-stone-400">
                               {webhook.status}
                             </Badge>
                           </div>
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </TabsContent>
 
           <TabsContent value="documentation" className="pt-4">
@@ -226,6 +196,5 @@ export const ApiIntegrationsContent = ({
           </TabsContent>
         </Tabs>
       </CardHeader>
-    </Card>
-  );
+    </Card>;
 };
