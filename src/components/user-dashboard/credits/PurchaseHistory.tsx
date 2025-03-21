@@ -6,8 +6,16 @@ import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface PurchaseData {
+  latest: {
+    amount: number;
+    created_at: string;
+  } | null;
+  totalPurchases: number;
+}
+
 export const PurchaseHistory = () => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<PurchaseData>({
     queryKey: ['purchase-history'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
