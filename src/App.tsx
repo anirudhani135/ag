@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import { CacheProvider } from "@/context/CacheContext";
 import { initSampleData } from "@/utils/dataInit";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserOnboarding } from "@/components/onboarding/UserOnboarding";
+import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 
 // Configure QueryClient with improved caching and performance
 const queryClient = new QueryClient({
@@ -257,8 +259,10 @@ const App = () => (
           <Toaster />
           <Sonner />
           <AuthProvider>
-            <AppContent />
-            <UserOnboarding />
+            <NotificationProvider>
+              <AppContent />
+              <UserOnboarding />
+            </NotificationProvider>
           </AuthProvider>
         </FeatureTourProvider>
       </TooltipProvider>

@@ -41,6 +41,7 @@
       border-radius: 4px;
       cursor: pointer;
       font-weight: 500;
+      transition: background-color 0.2s;
     }
     button:hover {
       background-color: #2563eb;
@@ -49,6 +50,31 @@
       font-size: 4rem;
       margin-bottom: 1rem;
     }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+    .pending-actions {
+      margin-top: 20px;
+      padding: 15px;
+      border-top: 1px solid #e5e5e5;
+      text-align: left;
+    }
+    .pending-item {
+      background-color: #f8fafc;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        width: 90%;
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -56,8 +82,53 @@
     <div class="icon">📡</div>
     <h1>You're offline</h1>
     <p>It looks like you've lost your internet connection. Some features may not be available while you're offline.</p>
-    <p>Check your connection and try again.</p>
-    <button onclick="window.location.reload()">Retry</button>
+    <p>You can still access cached pages and any work you've saved locally.</p>
+    
+    <div class="actions">
+      <button onclick="window.location.reload()">Retry Connection</button>
+      <button onclick="window.location.href='/'">Go to Home</button>
+    </div>
+    
+    <div id="pending-actions" class="pending-actions" style="display: none;">
+      <h3>Pending Actions</h3>
+      <p>These actions will be synchronized when you're back online:</p>
+      <div id="pending-list"></div>
+    </div>
   </div>
+
+  <script>
+    // Check for any pending actions in IndexedDB and display them
+    document.addEventListener('DOMContentLoaded', async () => {
+      if ('indexedDB' in window) {
+        try {
+          // This is a simplified example - in a real app you'd have proper IndexedDB code
+          const pendingActions = localStorage.getItem('pendingActions');
+          
+          if (pendingActions) {
+            const actions = JSON.parse(pendingActions);
+            
+            if (actions.length > 0) {
+              document.getElementById('pending-actions').style.display = 'block';
+              const pendingList = document.getElementById('pending-list');
+              
+              actions.forEach(action => {
+                const item = document.createElement('div');
+                item.className = 'pending-item';
+                item.textContent = `${action.type} - ${new Date(action.timestamp).toLocaleString()}`;
+                pendingList.appendChild(item);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking pending actions:', error);
+        }
+      }
+    });
+
+    // Register for online event to refresh the page when connection is restored
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
 </body>
 </html>

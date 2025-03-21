@@ -1,68 +1,69 @@
 
-import { useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
-export const useABTestingTransition = (
-  tabValue: string,
-  callback?: (tab: string) => void
-) => {
-  const animateCharts = useCallback(() => {
-    // Select all charts to animate them when tab changes
-    const charts = document.querySelectorAll('.recharts-wrapper');
-    
-    charts.forEach(chart => {
-      chart.classList.add('animate-in', 'fade-in', 'duration-300');
-      
-      // Remove animation classes after animation completes
-      setTimeout(() => {
-        chart.classList.remove('animate-in', 'fade-in', 'duration-300');
-      }, 500);
-    });
-  }, []);
+interface UseABTestingTransitionProps {
+  duration?: number;
+  initialActive?: boolean;
+}
 
-  const animateContent = useCallback(() => {
-    // Select tab content
-    const content = document.querySelectorAll('.transition-element');
-    
-    content.forEach((element, index) => {
-      const delay = index * 100; // stagger animations
-      
-      setTimeout(() => {
-        element.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-4', 'duration-300');
-        
-        // Remove animation classes
-        setTimeout(() => {
-          element.classList.remove('animate-in', 'fade-in', 'slide-in-from-bottom-4', 'duration-300');
-        }, 500);
-      }, delay);
-    });
-  }, []);
-  
-  useEffect(() => {
-    // Call the callback when tab changes
-    if (callback) {
-      callback(tabValue);
+export const useABTestingTransition = ({
+  duration = 500,
+  initialActive = false
+}: UseABTestingTransitionProps = {}) => {
+  const [isActive, setIsActive] = useState(initialActive);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<'in' | 'out'>(initialActive ? 'in' : 'out');
+  const timeoutRef = useRef<number | null>(null);
+
+  // Cleanup function to clear any existing timeouts
+  const clearTimeouts = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+  }, []);
+
+  // Toggle the active state with transitions
+  const toggle = useCallback(() => {
+    setIsAnimating(true);
+    setDirection(isActive ? 'out' : 'in');
     
-    // Animate charts
-    animateCharts();
+    clearTimeouts();
     
-    // Animate other content
-    animateContent();
+    timeoutRef.current = window.setTimeout(() => {
+      setIsActive(!isActive);
+      setIsAnimating(false);
+    }, duration);
+  }, [isActive, duration, clearTimeouts]);
+
+  // Force a specific state with transitions
+  const setActive = useCallback((active: boolean) => {
+    if (active === isActive) return;
     
-    // Prefetch images for better performance
-    const images = document.querySelectorAll('img[data-src]');
-    images.forEach(img => {
-      const element = img as HTMLImageElement;
-      if (element.dataset.src) {
-        const newImg = new Image();
-        newImg.src = element.dataset.src;
-        newImg.onload = () => {
-          element.src = element.dataset.src || '';
-        };
-      }
-    });
+    setIsAnimating(true);
+    setDirection(active ? 'in' : 'out');
     
-  }, [tabValue, callback, animateCharts, animateContent]);
-  
-  return null;
+    clearTimeouts();
+    
+    timeoutRef.current = window.setTimeout(() => {
+      setIsActive(active);
+      setIsAnimating(false);
+    }, duration);
+  }, [isActive, duration, clearTimeouts]);
+
+  // Clean up any timeouts when component unmounts
+  useEffect(() => {
+    return clearTimeouts;
+  }, [clearTimeouts]);
+
+  return {
+    isActive,
+    isAnimating,
+    direction,
+    toggle,
+    setActive,
+    duration
+  };
 };
+
+export default useABTestingTransition;

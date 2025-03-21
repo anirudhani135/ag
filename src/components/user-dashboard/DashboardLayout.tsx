@@ -1,5 +1,5 @@
 
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 
@@ -8,8 +8,15 @@ interface DashboardLayoutProps {
 }
 
 export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => {
-  // This component no longer manages a sidebar, it just renders content
-  // The sidebar is now managed by the main DashboardLayout component
+  // Memoized fallback content
+  const renderFallback = useCallback(() => (
+    <div className="animate-pulse space-y-4">
+      <div className="h-8 bg-muted rounded w-1/4"></div>
+      <div className="h-32 bg-muted rounded"></div>
+      <div className="h-32 bg-muted rounded"></div>
+    </div>
+  ), []);
+
   return (
     <div className="min-h-screen bg-background">
       <main 
@@ -20,13 +27,7 @@ export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => 
         <div className="max-w-7xl mx-auto">
           <OptimizedSuspense 
             priority="high" 
-            fallback={
-              <div className="animate-pulse space-y-4">
-                <div className="h-8 bg-muted rounded w-1/4"></div>
-                <div className="h-32 bg-muted rounded"></div>
-                <div className="h-32 bg-muted rounded"></div>
-              </div>
-            }
+            fallback={renderFallback()}
           >
             {children}
           </OptimizedSuspense>
