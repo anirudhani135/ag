@@ -9,12 +9,16 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
+// Updated interface to match the actual transaction data
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  type: string;
+  metadata?: {
+    type?: string;
+    description?: string;
+  };
 }
 
 export const PurchaseHistory = () => {
@@ -29,12 +33,12 @@ export const PurchaseHistory = () => {
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('type', 'purchase')
+        .eq('metadata->type', 'purchase')
         .order('created_at', { ascending: false })
         .limit(3);
         
       if (error) throw error;
-      return data;
+      return data as Transaction[];
     },
     retry: user ? 2 : 0
   });
@@ -62,7 +66,7 @@ export const PurchaseHistory = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {data.map((transaction: Transaction) => (
+            {data.map((transaction) => (
               <div key={transaction.id} className="flex items-center justify-between py-1 border-b border-border last:border-0">
                 <div>
                   <p className="text-sm font-medium">

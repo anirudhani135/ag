@@ -23,7 +23,7 @@ export const EnhancedTransactionsList = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   
   const { data: transactions, isLoading } = useQuery({
-    queryKey: ["transactions", user?.id],
+    queryKey: ["transactions", user?.id, sortOrder, statusFilter, typeFilter],
     queryFn: async () => {
       if (!user) return [];
       
@@ -38,13 +38,21 @@ export const EnhancedTransactionsList = () => {
       }
       
       if (typeFilter !== "all") {
-        query = query.eq("type", typeFilter);
+        query = query.eq("metadata->type", typeFilter);
       }
       
       const { data, error } = await query;
       
       if (error) throw error;
-      return data || [];
+      
+      // Transform the data to add virtual properties
+      return data.map(tx => ({
+        ...tx,
+        // Extract type from metadata or provide default
+        type: tx.metadata?.type || 'unknown',
+        // Create a description from metadata or provide default
+        description: tx.metadata?.description || `Transaction ${tx.id.substring(0, 8)}`
+      })) || [];
     },
     enabled: !!user
   });
@@ -62,6 +70,11 @@ export const EnhancedTransactionsList = () => {
       case "failed": return "bg-red-100 text-red-800 border-red-200";
       default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
+  };
+
+  // Get transaction type
+  const getTransactionType = (tx: any) => {
+    return tx.type || 'unknown';
   };
 
   return (
@@ -144,7 +157,7 @@ export const EnhancedTransactionsList = () => {
                       {format(new Date(tx.created_at), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>{tx.description}</TableCell>
-                    <TableCell className="capitalize">{tx.type}</TableCell>
+                    <TableCell className="capitalize">{getTransactionType(tx)}</TableCell>
                     <TableCell className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
                       {tx.amount > 0 ? "+" : ""}{tx.amount} credits
                     </TableCell>
