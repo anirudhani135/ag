@@ -14,6 +14,7 @@ import { Check, ChevronRight, Gift, Star, User, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { useCache } from '@/context/CacheContext';
 
 type OnboardingStep = {
   id: string;
@@ -30,6 +31,7 @@ export const UserOnboarding = () => {
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { prefetchRoute } = useCache();
 
   // Define onboarding steps
   const steps: OnboardingStep[] = [
@@ -67,11 +69,16 @@ export const UserOnboarding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('onboarding_completed, onboarding_steps')
           .eq('id', user.id)
           .single();
+        
+        if (error) {
+          console.error("Error fetching onboarding status:", error);
+          return;
+        }
         
         if (data) {
           if (!data.onboarding_completed) {
@@ -139,6 +146,13 @@ export const UserOnboarding = () => {
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
       markStepComplete(currentStep.id);
+      
+      // Prefetch data for the next step if it has a route
+      const nextStep = steps[currentStepIndex + 1];
+      if (nextStep.route) {
+        prefetchRoute(nextStep.route);
+      }
+      
       setCurrentStepIndex(prev => prev + 1);
     } else {
       markStepComplete(currentStep.id);
@@ -148,6 +162,12 @@ export const UserOnboarding = () => {
 
   const handleSkip = () => {
     if (currentStepIndex < steps.length - 1) {
+      // Prefetch next route even when skipping
+      const nextStep = steps[currentStepIndex + 1];
+      if (nextStep.route) {
+        prefetchRoute(nextStep.route);
+      }
+      
       setCurrentStepIndex(prev => prev + 1);
     } else {
       completeOnboarding();
@@ -156,6 +176,7 @@ export const UserOnboarding = () => {
 
   const handleNavigate = () => {
     if (currentStep.route) {
+      markStepComplete(currentStep.id);
       navigate(currentStep.route);
       setOpen(false);
     }

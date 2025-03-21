@@ -1270,6 +1270,8 @@ export type Database = {
           login_count: number | null
           name: string | null
           notification_settings: Json | null
+          onboarding_completed: boolean | null
+          onboarding_steps: Json | null
           preferences: Json | null
           role: string
           social_links: Json | null
@@ -1291,6 +1293,8 @@ export type Database = {
           login_count?: number | null
           name?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
+          onboarding_steps?: Json | null
           preferences?: Json | null
           role?: string
           social_links?: Json | null
@@ -1312,6 +1316,8 @@ export type Database = {
           login_count?: number | null
           name?: string | null
           notification_settings?: Json | null
+          onboarding_completed?: boolean | null
+          onboarding_steps?: Json | null
           preferences?: Json | null
           role?: string
           social_links?: Json | null
