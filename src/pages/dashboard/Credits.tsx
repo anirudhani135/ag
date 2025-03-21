@@ -30,15 +30,15 @@ const Credits = () => {
           </div>
           <Button 
             variant="default"
-            size="lg"
-            className="shadow-lg hover:shadow-blue-200/50"
+            className="shadow-sm"
           >
             <PlusCircle className="mr-2 h-5 w-5" />
             Purchase Credits
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Simplified card layout */}
+        <div className="grid gap-4 md:grid-cols-3">
           <CreditBalance />
           <CreditUsage />
           <PurchaseHistory />

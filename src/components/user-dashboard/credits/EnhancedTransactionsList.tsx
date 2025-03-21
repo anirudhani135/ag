@@ -1,368 +1,168 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DateRangePicker } from "@/components/shared/filters/DateRangePicker";
-import { Loader2, Search, ArrowUpDown, CalendarRange } from "lucide-react";
-import { DateRange } from "react-day-picker";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
+// Main component 
 export const EnhancedTransactionsList = () => {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [sortField, setSortField] = useState<string>("created_at");
-  const [sortOrder, setSortOrder] = useState<string>("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   
-  const { data, isLoading } = useQuery({
-    queryKey: ['transactions', search, status, dateRange, sortField, sortOrder, currentPage],
+  const { data: transactions, isLoading } = useQuery({
+    queryKey: ["transactions", user?.id],
     queryFn: async () => {
-      // Simulating pagination offset
-      const offset = (currentPage - 1) * itemsPerPage;
+      if (!user) return [];
       
       let query = supabase
-        .from('transactions')
-        .select(`
-          *,
-          agents(title, id),
-          profiles(email, name)
-        `, { count: 'exact' })
-        .order(sortField, { ascending: sortOrder === 'asc' })
-        .range(offset, offset + itemsPerPage - 1);
-
-      if (search) {
-        query = query.or(`agents.title.ilike.%${search}%,profiles.email.ilike.%${search}%`);
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: sortOrder === "asc" });
+      
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
       }
-
-      if (status) {
-        query = query.eq('status', status);
+      
+      if (typeFilter !== "all") {
+        query = query.eq("type", typeFilter);
       }
-
-      if (dateRange?.from) {
-        query = query.gte('created_at', dateRange.from.toISOString());
-        
-        if (dateRange.to) {
-          query = query.lte('created_at', dateRange.to.toISOString());
-        }
-      }
-
-      const { data, error, count } = await query;
+      
+      const { data, error } = await query;
       
       if (error) throw error;
-      return { 
-        transactions: data,
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / itemsPerPage)
-      };
-    }
+      return data || [];
+    },
+    enabled: !!user
   });
+  
+  const filteredTransactions = transactions?.filter(tx => 
+    tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tx.id?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const toggleSort = (field: string) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('desc'); // Default to descending for new field
-    }
-  };
-
-  const getSortIcon = (field: string) => {
-    if (sortField !== field) return null;
-    
-    return (
-      <span className="ml-1 text-blue-600">
-        {sortOrder === 'asc' ? '↑' : '↓'}
-      </span>
-    );
-  };
-
-  const getBadgeVariant = (status: string) => {
+  // Get status badge color
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'success';
-      case 'pending':
-        return 'outline';
-      case 'failed':
-        return 'destructive';
-      case 'refunded':
-        return 'secondary';
-      default:
-        return 'default';
+      case "completed": return "bg-green-100 text-green-800 border-green-200";
+      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "failed": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="bg-gradient-to-r from-white to-blue-50/50 pb-4">
-        <CardTitle className="flex items-center">
-          <span>Transaction History</span>
-        </CardTitle>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-4">
-          <div className="flex flex-1 items-center gap-2">
-            <div className="relative w-full max-w-xs">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search transactions..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 w-full"
-              />
-            </div>
-            <Select value={status || ""} onValueChange={setStatus}>
-              <SelectTrigger className="w-[150px] bg-white">
+    <Card>
+      <CardContent className="p-6">
+        {/* Simplified filter controls */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search transactions..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                {/* FIX: Changed from empty string to "all" to fix the SelectItem empty value error */}
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <DateRangePicker 
-              date={dateRange} 
-              onChange={setDateRange} 
-              className="w-auto bg-white"
-            />
+            
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="purchase">Purchase</SelectItem>
+                <SelectItem value="usage">Usage</SelectItem>
+                <SelectItem value="refund">Refund</SelectItem>
+              </SelectContent>
+            </Select>
+            
             <Button 
               variant="outline" 
-              className="border-blue-200 text-blue-600 hover:bg-blue-50"
-              onClick={() => {
-                setSearch("");
-                setStatus(null);
-                setDateRange(undefined);
-                setSortField("created_at");
-                setSortOrder("desc");
-                setCurrentPage(1);
-              }}
+              size="icon"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              title={`Sort by date ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
-              Reset
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
+        
+        {/* Simplified table */}
         {isLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-2">
+            {Array(5).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No transactions found</p>
           </div>
         ) : (
-          <>
-            <div className="rounded-md border-t">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30 hover:bg-muted/30">
-                    <TableHead 
-                      className="cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => toggleSort('created_at')}
-                    >
-                      <span className="flex items-center">
-                        Date {getSortIcon('created_at')}
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                      </span>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => toggleSort('agents.title')}
-                    >
-                      <span className="flex items-center">
-                        Agent {getSortIcon('agents.title')}
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                      </span>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => toggleSort('profiles.email')}
-                    >
-                      <span className="flex items-center">
-                        Customer {getSortIcon('profiles.email')}
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                      </span>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => toggleSort('amount')}
-                    >
-                      <span className="flex items-center">
-                        Amount {getSortIcon('amount')}
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                      </span>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => toggleSort('status')}
-                    >
-                      <span className="flex items-center">
-                        Status {getSortIcon('status')}
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                      </span>
-                    </TableHead>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell className="font-medium">
+                      {format(new Date(tx.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell>{tx.description}</TableCell>
+                    <TableCell className="capitalize">{tx.type}</TableCell>
+                    <TableCell className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
+                      {tx.amount > 0 ? "+" : ""}{tx.amount} credits
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={cn("capitalize", getStatusColor(tx.status))}>
+                        {tx.status}
+                      </Badge>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data?.transactions && data.transactions.length > 0 ? (
-                    data.transactions.map((transaction) => (
-                      <TableRow 
-                        key={transaction.id}
-                        className="hover:bg-blue-50/30 transition-colors"
-                      >
-                        <TableCell>
-                          <div className="flex items-center">
-                            <CalendarRange className="mr-2 h-4 w-4 text-muted-foreground" />
-                            {formatDate(transaction.created_at)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {transaction.agents?.title || 'Unknown Agent'}
-                        </TableCell>
-                        <TableCell>{transaction.profiles?.email || 'Unknown User'}</TableCell>
-                        <TableCell className="font-semibold">${transaction.amount.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getBadgeVariant(transaction.status)}
-                            className="transition-all hover:scale-105"
-                          >
-                            {transaction.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                        <div className="flex flex-col items-center gap-2">
-                          <Search className="h-10 w-10 text-muted-foreground/50" />
-                          <p className="text-base">No transactions found</p>
-                          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria</p>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-2"
-                            onClick={() => {
-                              setSearch("");
-                              setStatus(null);
-                              setDateRange(undefined);
-                            }}
-                          >
-                            Reset Filters
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            {data?.transactions && data.transactions.length > 0 && (
-              <div className="py-4 px-2">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-                    
-                    {Array.from({ length: Math.min(5, data.totalPages) }, (_, i) => {
-                      // Show first page, last page, current page, and pages around current
-                      let pageToShow: number | null = null;
-                      
-                      if (i === 0) {
-                        pageToShow = 1;
-                      } else if (i === 4 && data.totalPages > 5) {
-                        pageToShow = data.totalPages;
-                      } else if (data.totalPages <= 5) {
-                        pageToShow = i + 1;
-                      } else {
-                        // Middle pages logic
-                        const middleIndex = 2;
-                        if (i === middleIndex) {
-                          pageToShow = currentPage;
-                        } else if (i === middleIndex - 1) {
-                          pageToShow = currentPage > 2 ? currentPage - 1 : null;
-                        } else if (i === middleIndex + 1) {
-                          pageToShow = currentPage < data.totalPages - 1 ? currentPage + 1 : null;
-                        }
-                      }
-                      
-                      if (pageToShow === null) {
-                        return (
-                          <PaginationItem key={`ellipsis-${i}`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        );
-                      }
-                      
-                      return (
-                        <PaginationItem key={pageToShow}>
-                          <PaginationLink 
-                            isActive={currentPage === pageToShow}
-                            onClick={() => setCurrentPage(pageToShow as number)}
-                          >
-                            {pageToShow}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    })}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(p => Math.min(data.totalPages, p + 1))}
-                        className={currentPage === data.totalPages ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
   );
 };
+
+// Simplified TransactionList component for reuse
+export const TransactionList = EnhancedTransactionsList;
