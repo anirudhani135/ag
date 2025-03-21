@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +21,6 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (increased from 5)
       retry: 2, // Increased retry attempts
       refetchOnWindowFocus: false,
-      suspense: true, // Enable React Suspense integration
     },
   },
 });
