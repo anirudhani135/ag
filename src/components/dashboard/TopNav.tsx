@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Menu, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { UserNav } from "@/components/dashboard/UserNav";
