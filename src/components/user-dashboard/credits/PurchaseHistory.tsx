@@ -18,7 +18,8 @@ interface PurchaseData {
   totalPurchases: number;
 }
 
-// Define the query function separately with explicit typing
+// Define the query function without explicit return type annotation
+// to avoid recursive type inference issues
 const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
@@ -46,7 +47,7 @@ const fetchPurchaseHistory = async () => {
 };
 
 export const PurchaseHistory = () => {
-  // Use the predefined query function with explicit type annotation
+  // Use the query function without specifying complex generic types
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
