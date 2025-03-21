@@ -21,7 +21,7 @@ interface PurchaseHistoryData {
 }
 
 // Explicitly define the function without using Promise generics that could cause deep type instantiation
-async function fetchPurchaseHistory() {
+async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
