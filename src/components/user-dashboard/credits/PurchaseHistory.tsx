@@ -9,13 +9,17 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a simplified Transaction interface to avoid deep type instantiation
+// Define a completely simplified Transaction interface without using database types
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  metadata: Record<string, any> | null;
+  metadata: {
+    type?: string;
+    description?: string;
+    [key: string]: any;
+  } | null;
 }
 
 export const PurchaseHistory = () => {
@@ -35,8 +39,9 @@ export const PurchaseHistory = () => {
         .limit(3);
         
       if (error) throw error;
-      // Explicitly cast the result to solve the type issue
-      return (data || []) as Transaction[];
+      
+      // Force type as Transaction[] to avoid deep type instantiation
+      return (data || []) as unknown as Transaction[];
     },
     retry: user ? 2 : 0
   });
