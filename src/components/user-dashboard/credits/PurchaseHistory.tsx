@@ -20,8 +20,8 @@ interface PurchaseHistoryData {
   totalPurchases: number;
 }
 
-// Use a simple function without complex return type annotations
-const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
+// Explicitly define the function without using Promise generics that could cause deep type instantiation
+async function fetchPurchaseHistory() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -41,12 +41,12 @@ const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
-  // Return a simple object with explicit structure
+  // Simply return the object with the correct shape
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
   };
-};
+}
 
 export const PurchaseHistory = () => {
   const navigate = useNavigate();
