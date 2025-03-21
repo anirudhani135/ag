@@ -152,7 +152,8 @@ export const EnhancedTransactionsList = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                {/* FIX: Changed from empty string to "all" to fix the SelectItem empty value error */}
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>

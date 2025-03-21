@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +36,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
 interface Transaction {
   id: string;
@@ -49,6 +49,7 @@ interface Transaction {
 
 export const PurchaseHistory = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -56,10 +57,8 @@ export const PurchaseHistory = () => {
 
   const fetchTransactions = async (): Promise<Transaction[]> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
-        throw new Error('User not authenticated');
+        return [];
       }
       
       const { data, error } = await supabase
@@ -86,7 +85,8 @@ export const PurchaseHistory = () => {
 
   const { data = [], isLoading, refetch } = useQuery({
     queryKey: ['purchase-history'],
-    queryFn: fetchTransactions
+    queryFn: fetchTransactions,
+    retry: user ? 2 : 0
   });
 
   const filteredTransactions = data.filter(transaction => {

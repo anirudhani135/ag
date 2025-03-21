@@ -6,13 +6,17 @@ import { Coins, TrendingUp, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 export const CreditBalance = () => {
+  const { user } = useAuth();
+  
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      if (!user) {
+        return { credit_balance: 0, last_credit_purchase: null };
+      }
 
       const { data, error } = await supabase
         .from('profiles')
@@ -23,6 +27,8 @@ export const CreditBalance = () => {
       if (error) throw error;
       return data;
     },
+    // Don't retry if user isn't authenticated
+    retry: user ? 2 : 0
   });
 
   // Determine color based on balance

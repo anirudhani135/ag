@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface CreditUsageProps {
   showDetailed?: boolean;
@@ -18,11 +18,19 @@ interface UsageBreakdown {
 }
 
 export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
+  const { user } = useAuth();
+  
   const { data, isLoading } = useQuery({
     queryKey: ['credit-usage'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      if (!user) {
+        return {
+          balance: 0,
+          limit: 1000,
+          usage: 0,
+          breakdown: []
+        };
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -57,7 +65,8 @@ export const CreditUsage = ({ showDetailed = false }: CreditUsageProps) => {
         usage: usageData?.amount || 0,
         breakdown: usageBreakdown
       };
-    }
+    },
+    retry: user ? 2 : 0
   });
 
   const usagePercentage = data ? (data.usage / data.limit) * 100 : 0;
