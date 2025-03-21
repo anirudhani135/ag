@@ -1,19 +1,18 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { ResponsiveTable } from '@/components/shared/tables/ResponsiveTable';
 import { useQuery } from '@tanstack/react-query';
-import { formatDistanceToNow, format, parseISO } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { 
   FileDown, 
   Filter, 
   Search, 
   SlidersHorizontal,
-  Info,
   BarChart4,
-  PieChart,
   Eye
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -27,31 +26,17 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRangePicker } from '@/components/shared/filters/DateRangePicker';
 import { DateRange } from 'react-day-picker';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  Legend
-} from 'recharts';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface Transaction {
   id: string;
@@ -62,14 +47,11 @@ interface Transaction {
   user_id: string;
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-
 export const PurchaseHistory = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('list');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const fetchTransactions = async (): Promise<Transaction[]> => {
@@ -127,54 +109,6 @@ export const PurchaseHistory = () => {
     return Array.from(new Set(data.map(item => item.transaction_type)));
   };
 
-  const prepareBarChartData = () => {
-    if (filteredTransactions.length === 0) return [];
-    
-    const monthlyData = filteredTransactions.reduce((acc, transaction) => {
-      const date = new Date(transaction.created_at);
-      const monthYear = format(date, 'MMM yyyy');
-      
-      if (!acc[monthYear]) {
-        acc[monthYear] = { purchases: 0, usage: 0 };
-      }
-      
-      if (transaction.transaction_type === 'purchase') {
-        acc[monthYear].purchases += transaction.amount;
-      } else {
-        acc[monthYear].usage += Math.abs(transaction.amount);
-      }
-      
-      return acc;
-    }, {} as Record<string, { purchases: number; usage: number }>);
-    
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      purchases: data.purchases,
-      usage: data.usage
-    }));
-  };
-
-  const preparePieChartData = () => {
-    if (filteredTransactions.length === 0) return [];
-    
-    const typeData = filteredTransactions.reduce((acc, transaction) => {
-      const type = transaction.transaction_type;
-      
-      if (!acc[type]) {
-        acc[type] = 0;
-      }
-      
-      acc[type] += Math.abs(transaction.amount);
-      
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return Object.entries(typeData).map(([name, value]) => ({
-      name: name as string,
-      value
-    }));
-  };
-
   const downloadTransactions = () => {
     if (filteredTransactions.length === 0) return;
     
@@ -224,7 +158,6 @@ export const PurchaseHistory = () => {
       cell: ({ row }: { row: any }) => {
         const type = row.original.transaction_type;
         let color = '';
-        let icon = null;
         
         switch(type) {
           case 'purchase':
@@ -320,19 +253,6 @@ export const PurchaseHistory = () => {
           <CardTitle className="text-xl">Purchase History</CardTitle>
           
           <div className="flex flex-wrap gap-2">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mr-2">
-              <TabsList className="h-8">
-                <TabsTrigger value="list" className="text-xs px-3">
-                  <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
-                  List
-                </TabsTrigger>
-                <TabsTrigger value="chart" className="text-xs px-3">
-                  <BarChart4 className="h-3.5 w-3.5 mr-1" />
-                  Charts
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
             <Button 
               variant="outline" 
               size="sm" 
@@ -441,123 +361,18 @@ export const PurchaseHistory = () => {
             </div>
           </div>
           
-          <AnimatePresence mode="wait">
-            <TabsContent value="list" className="m-0 mt-2">
-              <motion.div
-                key="list-view"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ResponsiveTable
-                  columns={columns}
-                  data={filteredTransactions}
-                  isLoading={isLoading}
-                  noResultsMessage={
-                    searchTerm || typeFilters.length > 0 || dateRange 
-                      ? "No transactions match your filters" 
-                      : "No purchase history available"
-                  }
-                  onRowClick={(row) => setSelectedTransaction(row)}
-                  keyExtractor={(item) => item.id}
-                />
-              </motion.div>
-            </TabsContent>
-            
-            <TabsContent value="chart" className="m-0 mt-4">
-              <motion.div
-                key="chart-view"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="p-4">
-                    <h3 className="text-sm font-medium mb-4">Monthly Credit Transactions</h3>
-                    <div className="h-[300px]">
-                      {prepareBarChartData().length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={prepareBarChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                            <XAxis 
-                              dataKey="month" 
-                              tick={{ fontSize: 12 }}
-                              angle={-45}
-                              textAnchor="end"
-                              height={60}
-                            />
-                            <YAxis />
-                            <RechartsTooltip 
-                              formatter={(value: any, name: any) => {
-                                if (typeof name === 'string') {
-                                  return [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)];
-                                }
-                                return [`${value} credits`, name];
-                              }}
-                            />
-                            <Bar dataKey="purchases" fill="#3B82F6" name="Purchases" />
-                            <Bar dataKey="usage" fill="#10B981" name="Usage" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <p className="text-muted-foreground">No data to display</p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h3 className="text-sm font-medium mb-4">Transaction Type Breakdown</h3>
-                    <div className="h-[300px]">
-                      {preparePieChartData().length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RechartsPieChart>
-                            <Pie
-                              data={preparePieChartData()}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              outerRadius={80}
-                              fill="#8884d8"
-                              dataKey="value"
-                              nameKey="name"
-                              label={({ name, value }) => `${name}: ${value}`}
-                            >
-                              {preparePieChartData().map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Legend 
-                              formatter={(value) => {
-                                if (typeof value === 'string') {
-                                  return value.charAt(0).toUpperCase() + value.slice(1);
-                                }
-                                return value;
-                              }}
-                            />
-                            <RechartsTooltip 
-                              formatter={(value: any, name: any) => {
-                                if (typeof name === 'string') {
-                                  return [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)];
-                                }
-                                return [`${value} credits`, name];
-                              }}
-                            />
-                          </RechartsPieChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <p className="text-muted-foreground">No data to display</p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-              </motion.div>
-            </TabsContent>
-          </AnimatePresence>
+          <ResponsiveTable
+            columns={columns}
+            data={filteredTransactions}
+            isLoading={isLoading}
+            noResultsMessage={
+              searchTerm || typeFilters.length > 0 || dateRange 
+                ? "No transactions match your filters" 
+                : "No purchase history available"
+            }
+            onRowClick={(row) => setSelectedTransaction(row)}
+            keyExtractor={(item) => item.id}
+          />
         </CardContent>
       </Card>
       

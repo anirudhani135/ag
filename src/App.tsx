@@ -19,9 +19,9 @@ import { NotificationProvider } from "@/components/notifications/NotificationPro
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes (increased from 1)
-      gcTime: 10 * 60 * 1000, // 10 minutes (increased from 5)
-      retry: 2, // Increased retry attempts
+      staleTime: 5 * 60 * 1000, 
+      gcTime: 10 * 60 * 1000, 
+      retry: 2,
       refetchOnWindowFocus: false,
     },
   },
@@ -34,6 +34,7 @@ const Register = lazy(() => import("./pages/auth/Register"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 
+// User pages
 const UserDashboard = lazy(() => import("./pages/dashboard/Overview"));
 const Credits = lazy(() => import("./pages/dashboard/Credits"));
 const Settings = lazy(() => import("./pages/dashboard/Settings"));
@@ -45,6 +46,7 @@ const UserNotifications = lazy(() => import("./pages/dashboard/Notifications"));
 const Reviews = lazy(() => import("@/components/user-reviews/UserReviews"));
 const Support = lazy(() => import("./components/user-support/UserSupport"));
 
+// Developer pages
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
 const AgentManagement = lazy(() => import("./pages/developer/AgentManagement"));
 const AgentTesting = lazy(() => import("./pages/developer/AgentTesting"));
@@ -54,9 +56,7 @@ const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
 const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const ApiIntegrations = lazy(() => import("./pages/developer/ApiIntegrations"));
-const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
 const ExternalSourceDeployment = lazy(() => import("./pages/external-source-deployment/Index"));
-const AgentDetailView = lazy(() => import("./pages/agent-detail/index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
 const DeveloperMonitoring = lazy(() => import("./pages/developer/Monitoring"));
@@ -96,149 +96,51 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        <Route path="/agent-creation" element={<Navigate to="/agent-external-deployment" replace />} />
-
-        {/* Developer routes with consistent layout */}
+        {/* Developer routes */}
         <Route path="/developer" element={<ProtectedRoute />}>
           <Route element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route path="dashboard" element={
-              <DashboardLayout type="developer">
-                <DeveloperOverview />
-              </DashboardLayout>
-            } />
-            <Route path="agents" element={
-              <DashboardLayout type="developer">
-                <AgentManagement />
-              </DashboardLayout>
-            } />
-            <Route path="agents/:agentId/testing" element={
-              <DashboardLayout type="developer">
-                <AgentTesting />
-              </DashboardLayout>
-            } />
+            <Route path="dashboard" element={<DeveloperOverview />} />
+            <Route path="agents" element={<AgentManagement />} />
+            <Route path="agents/:agentId/testing" element={<AgentTesting />} />
             <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
-            <Route path="revenue" element={
-              <DashboardLayout type="developer">
-                <Revenue />
-              </DashboardLayout>
-            } />
-            <Route path="api-integrations" element={
-              <DashboardLayout type="developer">
-                <ApiIntegrations />
-              </DashboardLayout>
-            } />
+            <Route path="revenue" element={<Revenue />} />
+            <Route path="api-integrations" element={<ApiIntegrations />} />
             <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
-            <Route path="analytics" element={
-              <DashboardLayout type="developer">
-                <DeveloperAnalytics />
-              </DashboardLayout>
-            } />
-            <Route path="reviews" element={
-              <DashboardLayout type="developer">
-                <DeveloperReviews />
-              </DashboardLayout>
-            } />
-            <Route path="support" element={
-              <DashboardLayout type="developer">
-                <DeveloperSupport />
-              </DashboardLayout>
-            } />
-            <Route path="settings" element={
-              <DashboardLayout type="developer">
-                <DeveloperSettings />
-              </DashboardLayout>
-            } />
-            <Route path="transactions" element={
-              <DashboardLayout type="developer">
-                <DeveloperTransactions />
-              </DashboardLayout>
-            } />
-            <Route path="monitoring" element={
-              <DashboardLayout type="developer">
-                <DeveloperMonitoring />
-              </DashboardLayout>
-            } />
-            <Route path="agents/external" element={
-              <DashboardLayout type="developer">
-                <ExternalSourceDeployment />
-              </DashboardLayout>
-            } />
+            <Route path="analytics" element={<DeveloperAnalytics />} />
+            <Route path="reviews" element={<DeveloperReviews />} />
+            <Route path="support" element={<DeveloperSupport />} />
+            <Route path="settings" element={<DeveloperSettings />} />
+            <Route path="transactions" element={<DeveloperTransactions />} />
+            <Route path="monitoring" element={<DeveloperMonitoring />} />
+            <Route path="agents/external" element={<ExternalSourceDeployment />} />
           </Route>
         </Route>
 
-        {/* User routes with consistent layout */}
+        {/* User routes */}
         <Route path="/user" element={<ProtectedRoute />}>
           <Route element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route path="dashboard" element={
-              <DashboardLayout type="user">
-                <UserDashboard />
-              </DashboardLayout>
-            } />
-            <Route path="credits" element={
-              <DashboardLayout type="user">
-                <Credits />
-              </DashboardLayout>
-            } />
-            <Route path="settings" element={
-              <DashboardLayout type="user">
-                <Settings />
-              </DashboardLayout>
-            } />
-            <Route path="usage" element={
-              <DashboardLayout type="user">
-                <UsageHistory />
-              </DashboardLayout>
-            } />
-            <Route path="saved" element={
-              <DashboardLayout type="user">
-                <SavedAgents />
-              </DashboardLayout>
-            } />
-            <Route path="analytics" element={
-              <DashboardLayout type="user">
-                <UserAnalytics />
-              </DashboardLayout>
-            } />
-            <Route path="agents" element={
-              <DashboardLayout type="user">
-                <UserAgents />
-              </DashboardLayout>
-            } />
-            <Route path="notifications" element={
-              <DashboardLayout type="user">
-                <UserNotifications />
-              </DashboardLayout>
-            } />
-            <Route path="reviews" element={
-              <DashboardLayout type="user">
-                <Reviews />
-              </DashboardLayout>
-            } />
-            <Route path="support" element={
-              <DashboardLayout type="user">
-                <Support />
-              </DashboardLayout>
-            } />
+            <Route path="dashboard" element={<UserDashboard />} />
+            <Route path="credits" element={<Credits />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="usage" element={<UsageHistory />} />
+            <Route path="saved" element={<SavedAgents />} />
+            <Route path="analytics" element={<UserAnalytics />} />
+            <Route path="agents" element={<UserAgents />} />
+            <Route path="notifications" element={<UserNotifications />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="support" element={<Support />} />
           </Route>
         </Route>
 
-        {/* Marketplace routes with consistent layout */}
+        {/* Marketplace routes */}
         <Route path="/marketplace" element={<ProtectedRoute />}>
-          <Route index element={
-            <DashboardLayout type="user">
-              <Marketplace />
-            </DashboardLayout>
-          } />
+          <Route index element={<Marketplace />} />
         </Route>
 
-        {/* External deployment with consistent layout */}
+        {/* External deployment */}
         <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
           <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={
-              <DashboardLayout type="developer">
-                <ExternalSourceDeployment />
-              </DashboardLayout>
-            } />
+            <Route index element={<ExternalSourceDeployment />} />
           </Route>
         </Route>
 

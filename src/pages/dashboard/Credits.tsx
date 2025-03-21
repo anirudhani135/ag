@@ -5,16 +5,21 @@ import { CreditBalance } from "@/components/user-dashboard/credits/CreditBalance
 import { Button } from "@/components/ui/button";
 import { PurchaseHistory } from "@/components/user-dashboard/credits/PurchaseHistory";
 import { CreditUsage } from "@/components/user-dashboard/credits/CreditUsage";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedTransactionsList } from "@/components/user-dashboard/credits/EnhancedTransactionsList";
 import { CreditsPricingPlan } from "@/components/user-dashboard/credits/CreditsPricingPlan";
 import { PlusCircle, Activity, Clock, CreditCard } from "lucide-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
 
 const Credits = () => {
   const [activeTab, setActiveTab] = useState("transactions");
 
   return (
-    <DashboardLayout>
+    <DashboardLayout type="user">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
