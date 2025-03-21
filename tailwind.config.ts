@@ -22,15 +22,15 @@ export default {
       colors: {
         primary: "#141413",
         secondary: "#828179",
-        accent: "#3B82F6",  // Consistent blue accent color
-        success: "#3B82F6",  // Changed from green to blue for consistency
+        accent: "#3B82F6",  
+        success: "#3B82F6",  
         warning: "#F59E0B",
         error: "#EF4444",
         info: "#3B82F6",
         background: "#FAFAF8",
         surface: "#FFFFFF",
         muted: "#C4C3BB",
-        "muted-foreground": "#6B7280",
+        "muted-foreground": "#4B5563",
         border: "#E6E4DD",
         input: "#F0EFEA",
         foreground: "#141413",
@@ -38,14 +38,30 @@ export default {
         "card-foreground": "#141413",
         "accent-foreground": "#FFFFFF",
         "destructive-foreground": "#FFFFFF",
+        // New blue shades
+        blue: {
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB',
+          700: '#1D4ED8',
+          800: '#1E40AF',
+          900: '#1E3A8A',
+        },
       },
       backgroundImage: {
         'primary-gradient': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
         'background-gradient': 'linear-gradient(180deg, #FAFAF8 0%, #F0EFEA 100%)',
         'dark-gradient': 'linear-gradient(135deg, #141413 0%, #1E1E1C 100%)',
+        'blue-gradient': 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
       },
       boxShadow: {
         'hover': '0 8px 30px rgba(0,0,0,0.12)',
+        'card': '0 4px 16px rgba(0,0,0,0.08)',
+        'button': '0 4px 12px rgba(37, 99, 235, 0.15)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
