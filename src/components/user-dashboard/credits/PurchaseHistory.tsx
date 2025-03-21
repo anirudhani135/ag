@@ -6,6 +6,7 @@ import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Define explicit types for the query result
 interface PurchaseData {
   latest: {
     amount: number;
@@ -15,9 +16,11 @@ interface PurchaseData {
 }
 
 export const PurchaseHistory = () => {
+  // Explicitly provide the generic type parameter to useQuery
   const { data, isLoading } = useQuery<PurchaseData>({
     queryKey: ['purchase-history'],
-    queryFn: async () => {
+    // Define the return type of queryFn to match PurchaseData
+    queryFn: async (): Promise<PurchaseData> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
