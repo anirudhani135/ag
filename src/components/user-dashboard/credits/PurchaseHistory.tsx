@@ -9,13 +9,13 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define interface for transaction with proper typing
+// Define a simplified Transaction interface to avoid deep type instantiation
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  metadata?: Record<string, any> | null;
+  metadata: Record<string, any> | null;
 }
 
 export const PurchaseHistory = () => {
@@ -35,7 +35,8 @@ export const PurchaseHistory = () => {
         .limit(3);
         
       if (error) throw error;
-      return data as Transaction[];
+      // Explicitly cast the result to solve the type issue
+      return (data || []) as Transaction[];
     },
     retry: user ? 2 : 0
   });
