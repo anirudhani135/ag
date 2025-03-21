@@ -29,7 +29,7 @@ const Credits = () => {
             </p>
           </div>
           <Button 
-            variant="primary"
+            variant="default"
             size="lg"
             className="shadow-lg hover:shadow-blue-200/50"
           >
