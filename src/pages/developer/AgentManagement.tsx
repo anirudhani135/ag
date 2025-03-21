@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Bot, Plus, Activity, DollarSign, 
   ChevronRight, BarChart2, Loader2,
-  Layers
+  Layers, Globe, Database, Code, Info
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";

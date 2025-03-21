@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ interface PurchaseHistoryData {
   totalPurchases: number;
 }
 
-// Explicitly define the function without using Promise generics that could cause deep type instantiation
+// Use function declaration with explicit return type to avoid deep type instantiation
 async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
@@ -41,7 +40,6 @@ async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
-  // Simply return the object with the correct shape
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
