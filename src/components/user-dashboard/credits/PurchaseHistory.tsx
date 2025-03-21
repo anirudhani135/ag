@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 // Define types for the transaction data
 interface Transaction {
@@ -18,8 +20,7 @@ interface PurchaseData {
   totalPurchases: number;
 }
 
-// Define the query function without explicit return type annotation
-// to avoid recursive type inference issues
+// Define the query function without using explicit return type annotation
 const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
@@ -47,6 +48,8 @@ const fetchPurchaseHistory = async () => {
 };
 
 export const PurchaseHistory = () => {
+  const navigate = useNavigate();
+  
   // Use the query function without specifying complex generic types
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
@@ -62,6 +65,14 @@ export const PurchaseHistory = () => {
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const handleViewAllPurchases = () => {
+    navigate('/user/credits/transactions');
+  };
+
+  const handlePurchaseCredits = () => {
+    navigate('/user/credits/purchase');
   };
 
   return (
@@ -101,6 +112,7 @@ export const PurchaseHistory = () => {
                 variant="ghost" 
                 size="sm"
                 className="text-xs p-0 h-auto hover:bg-transparent hover:text-blue-600 flex items-center"
+                onClick={handleViewAllPurchases}
               >
                 View all purchases
                 <TrendingUp className="ml-1 h-3 w-3" />
@@ -114,6 +126,7 @@ export const PurchaseHistory = () => {
               variant="outline"
               size="sm"
               className="mt-2 text-xs h-8 border-blue-100 hover:bg-blue-50 hover:border-blue-200"
+              onClick={handlePurchaseCredits}
             >
               Purchase Credits
             </Button>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,6 +48,8 @@ const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const ApiIntegrations = lazy(() => import("./pages/developer/ApiIntegrations"));
 const AgentCreation = lazy(() => import("./pages/agent-creation/Index"));
+const ExternalSourceDeployment = lazy(() => import("./pages/external-source-deployment/Index"));
+const AgentDetailView = lazy(() => import("./pages/agent-detail/Index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
 const DeveloperMonitoring = lazy(() => import("./pages/developer/Monitoring"));
@@ -84,6 +85,8 @@ const AppContent = () => {
             } />
           </Route>
         </Route>
+
+        <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
 
         <Route path="/user" element={<ProtectedRoute />}>
           <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>

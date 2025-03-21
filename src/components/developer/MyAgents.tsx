@@ -1,7 +1,7 @@
 
 import { lazy, Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, Calendar, DollarSign, Plus } from "lucide-react";
+import { Bot, Calendar, DollarSign, Plus, Layers } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -153,6 +153,10 @@ export const MyAgents = () => {
   const handleCreateAgent = () => {
     navigate("/agent-creation");
   };
+  
+  const handleExternalDeploy = () => {
+    navigate("/agent-external-deployment");
+  };
 
   return (
     <DashboardLayout type="developer">
@@ -166,6 +170,13 @@ export const MyAgents = () => {
           </div>
 
           <div className="flex gap-4">
+            <Button 
+              onClick={handleExternalDeploy}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Layers className="mr-2 h-4 w-4" />
+              Connect External Agent
+            </Button>
             <Button 
               onClick={() => setIsDeployModalOpen(true)}
               className="bg-primary hover:bg-primary/90 text-white"
