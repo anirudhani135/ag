@@ -16,7 +16,7 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { userRole, isLoading } = useAuth();
   const location = useLocation();
@@ -56,10 +56,10 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   const handleResize = useCallback(() => {
     const mobile = window.innerWidth < 768;
     setIsMobile(mobile);
-    if (mobile) {
-      setSidebarOpen(false);
-    } else {
+    if (!mobile) {
       setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
     }
   }, []);
 
