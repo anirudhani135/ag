@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { AgentCard } from "@/components/marketplace/AgentCard";
 import { SearchBar } from "@/components/marketplace/SearchBar";
@@ -11,7 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFeatureTour } from "@/components/feature-tours/FeatureTourProvider";
 import { FeatureTourDisplay } from "@/components/feature-tours/FeatureTourDisplay";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Zap, Star, SortDesc, Info } from "lucide-react";
+import { ShoppingBag, Zap, Info } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Removed DashboardLayout - this will be used in the App.tsx route definition instead
 
 const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -123,7 +125,12 @@ const Marketplace = () => {
             query = query.order('rating', { ascending: false });
             break;
           default:
-            query = query.order('downloads', { ascending: false });
+            // Handle downloads not existing error
+            try {
+              query = query.order('popularity', { ascending: false });
+            } catch (error) {
+              console.error("Sorting error:", error);
+            }
         }
 
         const { data, error } = await query;
@@ -159,87 +166,85 @@ const Marketplace = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6 marketplace-container">
-        <div className="bg-gradient-to-r from-primary/5 to-accent/10 p-6 rounded-lg mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center">
-              <ShoppingBag className="h-8 w-8 text-primary mr-3" />
-              <div>
-                <h2 className="text-2xl font-bold">AI Agent Marketplace</h2>
-                <p className="text-muted-foreground">Discover and deploy powerful AI agents for your business</p>
-              </div>
+    <div className="space-y-6 marketplace-container">
+      <div className="bg-gradient-to-r from-primary/5 to-accent/10 p-6 rounded-lg mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center">
+            <ShoppingBag className="h-8 w-8 text-primary mr-3" />
+            <div>
+              <h2 className="text-2xl font-bold">AI Agent Marketplace</h2>
+              <p className="text-muted-foreground">Discover and deploy powerful AI agents for your business</p>
             </div>
-            <Button 
-              variant="default" 
-              className="shadow-lg"
-              onClick={() => startTour("welcome-tour")}
-            >
-              <Info className="mr-2 h-4 w-4" />
-              How It Works
-            </Button>
           </div>
+          <Button 
+            variant="default" 
+            className="shadow-lg"
+            onClick={() => startTour("welcome-tour")}
+          >
+            <Info className="mr-2 h-4 w-4" />
+            How It Works
+          </Button>
         </div>
-
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 bg-background z-10 py-4">
-          <SearchBar onSearch={handleSearch} className="w-full md:w-64" />
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterSystem
-              options={filterOptions}
-              selectedFilters={selectedFilters}
-              onFilterChange={setSelectedFilters}
-              sortOptions={sortOptions}
-              selectedSort={selectedSort}
-              onSortChange={setSelectedSort}
-            />
-            <Button 
-              variant="outline" 
-              className="fixed bottom-8 right-8 shadow-lg z-20 bg-white"
-              size="lg"
-            >
-              <Zap className="mr-2 h-5 w-5 text-primary" />
-              <span className="font-semibold">Buy Credits</span>
-            </Button>
-          </div>
-        </div>
-
-        <CategoryNav
-          categories={categories || []}
-          selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
-        />
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="h-[300px] animate-pulse" />
-            ))}
-          </div>
-        ) : agents && agents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agents.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                title={agent.title}
-                description={agent.description}
-                price={agent.price}
-                category={agent.categories?.name || 'Uncategorized'}
-                rating={agent.rating || 0}
-                onView={() => {/* TODO: Implement agent details view */}}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card className="p-6 text-center">
-            <p className="text-muted-foreground">
-              No agents found matching your criteria.
-            </p>
-          </Card>
-        )}
       </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 bg-background z-10 py-4">
+        <SearchBar onSearch={handleSearch} className="w-full md:w-64" />
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterSystem
+            options={filterOptions}
+            selectedFilters={selectedFilters}
+            onFilterChange={setSelectedFilters}
+            sortOptions={sortOptions}
+            selectedSort={selectedSort}
+            onSortChange={setSelectedSort}
+          />
+          <Button 
+            variant="outline" 
+            className="fixed bottom-8 right-8 shadow-lg z-20 bg-white"
+            size="lg"
+          >
+            <Zap className="mr-2 h-5 w-5 text-primary" />
+            <span className="font-semibold">Buy Credits</span>
+          </Button>
+        </div>
+      </div>
+
+      <CategoryNav
+        categories={categories || []}
+        selectedCategory={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="h-[300px] animate-pulse" />
+          ))}
+        </div>
+      ) : agents && agents.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {agents.map((agent) => (
+            <AgentCard
+              key={agent.id}
+              title={agent.title}
+              description={agent.description}
+              price={agent.price}
+              category={agent.categories?.name || 'Uncategorized'}
+              rating={agent.rating || 0}
+              onView={() => {/* TODO: Implement agent details view */}}
+            />
+          ))}
+        </div>
+      ) : (
+        <Card className="p-6 text-center">
+          <p className="text-muted-foreground">
+            No agents found matching your criteria.
+          </p>
+        </Card>
+      )}
       
       <FeatureTourDisplay />
-    </DashboardLayout>
+    </div>
   );
 };
 

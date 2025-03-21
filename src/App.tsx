@@ -14,17 +14,20 @@ import { initSampleData } from "@/utils/dataInit";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { UserOnboarding } from "@/components/onboarding/UserOnboarding";
 
+// Configure QueryClient with improved caching and performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes (increased from 1)
+      gcTime: 10 * 60 * 1000, // 10 minutes (increased from 5)
+      retry: 2, // Increased retry attempts
       refetchOnWindowFocus: false,
+      suspense: true, // Enable React Suspense integration
     },
   },
 });
 
+// Lazy load pages with better error handling
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
@@ -64,9 +67,22 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Service worker registration function
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered with scope:', registration.scope);
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
+    }
+  }
+};
+
 const AppContent = () => {
   useEffect(() => {
     initSampleData().catch(console.error);
+    registerServiceWorker().catch(console.error);
   }, []);
 
   return (
@@ -74,6 +90,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         
+        {/* Auth routes - No layout */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
@@ -81,90 +98,142 @@ const AppContent = () => {
 
         <Route path="/agent-creation" element={<Navigate to="/agent-external-deployment" replace />} />
 
+        {/* Developer routes - Apply developer layout consistently */}
         <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
           <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<ExternalSourceDeployment />} />
+            <Route index element={
+              <DashboardLayout type="developer">
+                <ExternalSourceDeployment />
+              </DashboardLayout>
+            } />
           </Route>
         </Route>
 
+        {/* User routes - Apply user layout consistently */}
         <Route path="/user" element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<UserDashboard />} />
-          </Route>
-          <Route path="credits" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<Credits />} />
-          </Route>
-          <Route path="settings" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<Settings />} />
-          </Route>
-          <Route path="usage" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<UsageHistory />} />
-          </Route>
-          <Route path="saved" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<SavedAgents />} />
-          </Route>
-          <Route path="analytics" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<UserAnalytics />} />
-          </Route>
-          <Route path="agents" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<UserAgents />} />
-          </Route>
-          <Route path="notifications" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<UserNotifications />} />
-          </Route>
-          <Route path="reviews" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<Reviews />} />
-          </Route>
-          <Route path="support" element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route index element={<Support />} />
+          <Route element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route path="dashboard" element={
+              <DashboardLayout type="user">
+                <UserDashboard />
+              </DashboardLayout>
+            } />
+            <Route path="credits" element={
+              <DashboardLayout type="user">
+                <Credits />
+              </DashboardLayout>
+            } />
+            <Route path="settings" element={
+              <DashboardLayout type="user">
+                <Settings />
+              </DashboardLayout>
+            } />
+            <Route path="usage" element={
+              <DashboardLayout type="user">
+                <UsageHistory />
+              </DashboardLayout>
+            } />
+            <Route path="saved" element={
+              <DashboardLayout type="user">
+                <SavedAgents />
+              </DashboardLayout>
+            } />
+            <Route path="analytics" element={
+              <DashboardLayout type="user">
+                <UserAnalytics />
+              </DashboardLayout>
+            } />
+            <Route path="agents" element={
+              <DashboardLayout type="user">
+                <UserAgents />
+              </DashboardLayout>
+            } />
+            <Route path="notifications" element={
+              <DashboardLayout type="user">
+                <UserNotifications />
+              </DashboardLayout>
+            } />
+            <Route path="reviews" element={
+              <DashboardLayout type="user">
+                <Reviews />
+              </DashboardLayout>
+            } />
+            <Route path="support" element={
+              <DashboardLayout type="user">
+                <Support />
+              </DashboardLayout>
+            } />
           </Route>
         </Route>
 
+        {/* Developer routes - Apply developer layout consistently */}
         <Route path="/developer" element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperOverview />} />
-          </Route>
-          <Route path="agents" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<AgentManagement />} />
-          </Route>
-          <Route path="agents/:agentId/testing" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<AgentTesting />} />
-          </Route>
-          <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<Navigate to="/agent-external-deployment" replace />} />
-          </Route>
-          <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<Revenue />} />
-          </Route>
-          <Route path="api-integrations" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<ApiIntegrations />} />
-          </Route>
-          <Route path="api" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<Navigate to="/developer/api-integrations" replace />} />
-          </Route>
-          <Route path="analytics" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperAnalytics />} />
-          </Route>
-          <Route path="reviews" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperReviews />} />
-          </Route>
-          <Route path="support" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperSupport />} />
-          </Route>
-          <Route path="settings" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperSettings />} />
-          </Route>
-          <Route path="transactions" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperTransactions />} />
-          </Route>
-          <Route path="monitoring" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<DeveloperMonitoring />} />
-          </Route>
-          <Route path="agents/external" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<ExternalSourceDeployment />} />
+          <Route element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route path="dashboard" element={
+              <DashboardLayout type="developer">
+                <DeveloperOverview />
+              </DashboardLayout>
+            } />
+            <Route path="agents" element={
+              <DashboardLayout type="developer">
+                <AgentManagement />
+              </DashboardLayout>
+            } />
+            <Route path="agents/:agentId/testing" element={
+              <DashboardLayout type="developer">
+                <AgentTesting />
+              </DashboardLayout>
+            } />
+            <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
+            <Route path="revenue" element={
+              <DashboardLayout type="developer">
+                <Revenue />
+              </DashboardLayout>
+            } />
+            <Route path="api-integrations" element={
+              <DashboardLayout type="developer">
+                <ApiIntegrations />
+              </DashboardLayout>
+            } />
+            <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
+            <Route path="analytics" element={
+              <DashboardLayout type="developer">
+                <DeveloperAnalytics />
+              </DashboardLayout>
+            } />
+            <Route path="reviews" element={
+              <DashboardLayout type="developer">
+                <DeveloperReviews />
+              </DashboardLayout>
+            } />
+            <Route path="support" element={
+              <DashboardLayout type="developer">
+                <DeveloperSupport />
+              </DashboardLayout>
+            } />
+            <Route path="settings" element={
+              <DashboardLayout type="developer">
+                <DeveloperSettings />
+              </DashboardLayout>
+            } />
+            <Route path="transactions" element={
+              <DashboardLayout type="developer">
+                <DeveloperTransactions />
+              </DashboardLayout>
+            } />
+            <Route path="monitoring" element={
+              <DashboardLayout type="developer">
+                <DeveloperMonitoring />
+              </DashboardLayout>
+            } />
+            <Route path="agents/external" element={
+              <DashboardLayout type="developer">
+                <ExternalSourceDeployment />
+              </DashboardLayout>
+            } />
           </Route>
         </Route>
 
+        {/* Marketplace routes */}
         <Route path="/marketplace" element={<ProtectedRoute />}>
           <Route index element={
             <DashboardLayout type="user">
@@ -173,6 +242,7 @@ const AppContent = () => {
           } />
         </Route>
 
+        {/* Redirects */}
         <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
         <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
