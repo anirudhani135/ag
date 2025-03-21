@@ -19,7 +19,7 @@ interface PurchaseData {
 }
 
 // Define the query function separately with explicit typing
-const fetchPurchaseHistory = async (): Promise<PurchaseData> => {
+const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -46,7 +46,7 @@ const fetchPurchaseHistory = async (): Promise<PurchaseData> => {
 };
 
 export const PurchaseHistory = () => {
-  // Use the predefined query function to avoid complex type inference
+  // Use the predefined query function with explicit type annotation
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
