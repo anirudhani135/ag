@@ -20,7 +20,7 @@ interface PurchaseData {
   totalPurchases: number;
 }
 
-// Define the query function without using explicit return type annotation
+// Define the query function without explicit return type annotation
 const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
