@@ -9,17 +9,23 @@ import { NotificationIcon } from "@/components/notifications/NotificationIcon";
 interface TopNavProps {
   showSearch?: boolean;
   onMenuClick?: () => void;
+  title?: string;
 }
 
-export const TopNav = ({ showSearch = true, onMenuClick }: TopNavProps) => {
+export const TopNav = ({ showSearch = true, onMenuClick, title }: TopNavProps) => {
   return (
-    <div className="flex h-16 items-center px-4 border-b bg-background">
+    <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center px-4 border-b bg-background">
       {onMenuClick && (
         <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </Button>
       )}
+      
+      {title && (
+        <div className="md:hidden font-semibold">{title}</div>
+      )}
+      
       <div className="flex-1">
         {showSearch && (
           <div className="relative hidden md:flex items-center w-full max-w-sm">

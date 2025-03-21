@@ -98,74 +98,7 @@ const AppContent = () => {
 
         <Route path="/agent-creation" element={<Navigate to="/agent-external-deployment" replace />} />
 
-        {/* Developer routes - Apply developer layout consistently */}
-        <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
-          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={
-              <DashboardLayout type="developer">
-                <ExternalSourceDeployment />
-              </DashboardLayout>
-            } />
-          </Route>
-        </Route>
-
-        {/* User routes - Apply user layout consistently */}
-        <Route path="/user" element={<ProtectedRoute />}>
-          <Route element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route path="dashboard" element={
-              <DashboardLayout type="user">
-                <UserDashboard />
-              </DashboardLayout>
-            } />
-            <Route path="credits" element={
-              <DashboardLayout type="user">
-                <Credits />
-              </DashboardLayout>
-            } />
-            <Route path="settings" element={
-              <DashboardLayout type="user">
-                <Settings />
-              </DashboardLayout>
-            } />
-            <Route path="usage" element={
-              <DashboardLayout type="user">
-                <UsageHistory />
-              </DashboardLayout>
-            } />
-            <Route path="saved" element={
-              <DashboardLayout type="user">
-                <SavedAgents />
-              </DashboardLayout>
-            } />
-            <Route path="analytics" element={
-              <DashboardLayout type="user">
-                <UserAnalytics />
-              </DashboardLayout>
-            } />
-            <Route path="agents" element={
-              <DashboardLayout type="user">
-                <UserAgents />
-              </DashboardLayout>
-            } />
-            <Route path="notifications" element={
-              <DashboardLayout type="user">
-                <UserNotifications />
-              </DashboardLayout>
-            } />
-            <Route path="reviews" element={
-              <DashboardLayout type="user">
-                <Reviews />
-              </DashboardLayout>
-            } />
-            <Route path="support" element={
-              <DashboardLayout type="user">
-                <Support />
-              </DashboardLayout>
-            } />
-          </Route>
-        </Route>
-
-        {/* Developer routes - Apply developer layout consistently */}
+        {/* Developer routes with consistent layout */}
         <Route path="/developer" element={<ProtectedRoute />}>
           <Route element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route path="dashboard" element={
@@ -233,13 +166,80 @@ const AppContent = () => {
           </Route>
         </Route>
 
-        {/* Marketplace routes */}
+        {/* User routes with consistent layout */}
+        <Route path="/user" element={<ProtectedRoute />}>
+          <Route element={<WithRoleProtection allowedRoles={["buyer"]} />}>
+            <Route path="dashboard" element={
+              <DashboardLayout type="user">
+                <UserDashboard />
+              </DashboardLayout>
+            } />
+            <Route path="credits" element={
+              <DashboardLayout type="user">
+                <Credits />
+              </DashboardLayout>
+            } />
+            <Route path="settings" element={
+              <DashboardLayout type="user">
+                <Settings />
+              </DashboardLayout>
+            } />
+            <Route path="usage" element={
+              <DashboardLayout type="user">
+                <UsageHistory />
+              </DashboardLayout>
+            } />
+            <Route path="saved" element={
+              <DashboardLayout type="user">
+                <SavedAgents />
+              </DashboardLayout>
+            } />
+            <Route path="analytics" element={
+              <DashboardLayout type="user">
+                <UserAnalytics />
+              </DashboardLayout>
+            } />
+            <Route path="agents" element={
+              <DashboardLayout type="user">
+                <UserAgents />
+              </DashboardLayout>
+            } />
+            <Route path="notifications" element={
+              <DashboardLayout type="user">
+                <UserNotifications />
+              </DashboardLayout>
+            } />
+            <Route path="reviews" element={
+              <DashboardLayout type="user">
+                <Reviews />
+              </DashboardLayout>
+            } />
+            <Route path="support" element={
+              <DashboardLayout type="user">
+                <Support />
+              </DashboardLayout>
+            } />
+          </Route>
+        </Route>
+
+        {/* Marketplace routes with consistent layout */}
         <Route path="/marketplace" element={<ProtectedRoute />}>
           <Route index element={
             <DashboardLayout type="user">
               <Marketplace />
             </DashboardLayout>
           } />
+        </Route>
+
+        {/* External deployment with consistent layout */}
+        <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
+          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={
+              <DashboardLayout type="developer">
+                <ExternalSourceDeployment />
+              </DashboardLayout>
+            } />
+          </Route>
         </Route>
 
         {/* Redirects */}

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 import { useTransitionAnimation } from "@/lib/useTransitionAnimation";
+import { useLocation } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,23 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const { userRole, isLoading } = useAuth();
+  const location = useLocation();
+  
+  // Determine the current page title based on the path
+  const getPageTitle = useCallback(() => {
+    const path = location.pathname;
+    if (path.includes('dashboard')) return 'Dashboard';
+    if (path.includes('analytics')) return 'Analytics';
+    if (path.includes('agents')) return 'Agents';
+    if (path.includes('revenue')) return 'Revenue';
+    if (path.includes('settings')) return 'Settings';
+    if (path.includes('support')) return 'Support';
+    if (path.includes('reviews')) return 'Reviews';
+    if (path.includes('credits')) return 'Credits';
+    if (path.includes('notifications')) return 'Notifications';
+    if (path.includes('api-integrations')) return 'API & Integrations';
+    return type === 'developer' ? 'Developer Portal' : 'User Dashboard';
+  }, [location.pathname, type]);
   
   // Add route transition animations
   useTransitionAnimation('.dashboard-content');
@@ -77,7 +95,10 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNav onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <TopNav 
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+        title={getPageTitle()}
+      />
       <div className="flex h-[calc(100vh-4rem)]">
         <Sidebar 
           isOpen={sidebarOpen} 
