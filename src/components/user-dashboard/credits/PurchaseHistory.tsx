@@ -5,81 +5,68 @@ import { Button } from "@/components/ui/button";
 import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
-// Define types for the transaction data
-interface Transaction {
+// Define simpler types to avoid deep type inference
+type Transaction = {
   amount: number;
   created_at: string;
-}
+};
 
-// Create a simpler interface for our history data
-interface PurchaseHistoryData {
+type PurchaseHistoryData = {
   latest: Transaction | null;
   totalPurchases: number;
-}
+};
 
-// Fetch function separated from component to avoid deep type inference
-async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
-  // Get the current user
-  const userResponse = await supabase.auth.getUser();
-  const user = userResponse.data.user;
-  
-  if (!user) {
-    return { latest: null, totalPurchases: 0 };
-  }
-
-  // Get the latest transaction
-  const { data: latestData, error: latestError } = await supabase
-    .from('transactions')
-    .select('amount, created_at')
-    .eq('user_id', user.id)
-    .eq('type', 'credit_purchase')
-    .order('created_at', { ascending: false })
-    .limit(1);
-  
-  if (latestError) {
-    console.error("Error fetching latest transaction:", latestError);
-    return { latest: null, totalPurchases: 0 };
-  }
-  
-  // Get the transaction count separately
-  const { count, error: countError } = await supabase
-    .from('transactions')
-    .select('amount', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('type', 'credit_purchase');
-  
-  if (countError) {
-    console.error("Error counting transactions:", countError);
-    return { 
-      latest: latestData && latestData.length > 0 ? latestData[0] : null, 
-      totalPurchases: 0 
+// Fetch function with explicit return type to prevent excessive type inference
+const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return { latest: null, totalPurchases: 0 };
+    }
+    
+    // Get latest transaction
+    const latestResponse = await supabase
+      .from('transactions')
+      .select('amount, created_at')
+      .eq('user_id', user.id)
+      .eq('type', 'credit_purchase')
+      .order('created_at', { ascending: false })
+      .limit(1);
+      
+    // Get count of transactions
+    const countResponse = await supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('type', 'credit_purchase');
+    
+    return {
+      latest: latestResponse.data && latestResponse.data.length > 0 
+        ? latestResponse.data[0] as Transaction 
+        : null,
+      totalPurchases: countResponse.count || 0
     };
+  } catch (error) {
+    console.error("Error fetching purchase history:", error);
+    return { latest: null, totalPurchases: 0 };
   }
-  
-  return {
-    latest: latestData && latestData.length > 0 ? latestData[0] : null,
-    totalPurchases: count || 0
-  };
-}
-
-// Simple navigation functions outside component to avoid re-renders
-function navigateToTransactions() {
-  window.location.href = '/user/credits/transactions';
-}
-
-function navigateToPurchase() {
-  window.location.href = '/user/credits/purchase';
-}
+};
 
 export const PurchaseHistory = () => {
+  const navigate = useNavigate();
+  
+  // Use query with explicitly typed function to avoid deep inference
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
-    queryFn: fetchPurchaseHistory
+    queryFn: fetchPurchaseHistory,
+    staleTime: 60 * 1000, // Add caching for 1 minute
+    refetchOnWindowFocus: false,
   });
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string): string => {
     if (!dateString) return 'N/A';
     
     const date = new Date(dateString);
@@ -102,7 +89,7 @@ export const PurchaseHistory = () => {
       </CardHeader>
       <CardContent className="pt-4">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-2" aria-busy="true" aria-live="polite">
             <Skeleton className="h-5 w-3/4" />
             <Skeleton className="h-5 w-1/2" />
             <Skeleton className="h-4 w-24 mt-2" />
@@ -127,7 +114,7 @@ export const PurchaseHistory = () => {
                 variant="ghost" 
                 size="sm"
                 className="text-xs p-0 h-auto hover:bg-transparent hover:text-blue-600 flex items-center"
-                onClick={navigateToTransactions}
+                onClick={() => navigate('/user/credits/transactions')}
               >
                 View all purchases
                 <TrendingUp className="ml-1 h-3 w-3" />
@@ -141,7 +128,7 @@ export const PurchaseHistory = () => {
               variant="outline"
               size="sm"
               className="mt-2 text-xs h-8 border-blue-100 hover:bg-blue-50 hover:border-blue-200"
-              onClick={navigateToPurchase}
+              onClick={() => navigate('/user/credits/purchase')}
             >
               Purchase Credits
             </Button>

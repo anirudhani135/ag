@@ -8,8 +8,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { WithRoleProtection } from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
+import { CacheProvider } from "@/context/CacheContext";
 import { initSampleData } from "@/utils/dataInit";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserOnboarding } from "@/components/onboarding/UserOnboarding";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -176,15 +178,18 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <FeatureTourProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </FeatureTourProvider>
-    </TooltipProvider>
+    <CacheProvider queryClient={queryClient}>
+      <TooltipProvider>
+        <FeatureTourProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <AppContent />
+            <UserOnboarding />
+          </AuthProvider>
+        </FeatureTourProvider>
+      </TooltipProvider>
+    </CacheProvider>
   </QueryClientProvider>
 );
 
