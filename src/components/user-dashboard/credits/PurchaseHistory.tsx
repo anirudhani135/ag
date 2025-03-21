@@ -6,45 +6,50 @@ import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Define types for the transaction data
+interface Transaction {
+  amount: number;
+  created_at: string;
+}
+
 // Define explicit types for the query result
 interface PurchaseData {
-  latest: {
-    amount: number;
-    created_at: string;
-  } | null;
+  latest: Transaction | null;
   totalPurchases: number;
 }
 
+// Define the query function separately with explicit typing
+const fetchPurchaseHistory = async (): Promise<PurchaseData> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No user found');
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('amount, created_at')
+    .eq('user_id', user.id)
+    .eq('type', 'credit_purchase')
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error) throw error;
+  
+  const { count } = await supabase
+    .from('transactions')
+    .select('amount', { count: 'exact' })
+    .eq('user_id', user.id)
+    .eq('type', 'credit_purchase');
+
+  return {
+    latest: data && data.length > 0 ? data[0] : null,
+    totalPurchases: count || 0
+  };
+};
+
 export const PurchaseHistory = () => {
-  // Explicitly provide the generic type parameter to useQuery
-  const { data, isLoading } = useQuery<PurchaseData>({
+  // Use the predefined query function to avoid complex type inference
+  const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
-    // Define the return type of queryFn to match PurchaseData
-    queryFn: async (): Promise<PurchaseData> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('amount, created_at')
-        .eq('user_id', user.id)
-        .eq('type', 'credit_purchase')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) throw error;
-      
-      const { count } = await supabase
-        .from('transactions')
-        .select('amount', { count: 'exact' })
-        .eq('user_id', user.id)
-        .eq('type', 'credit_purchase');
-
-      return {
-        latest: data && data.length > 0 ? data[0] : null,
-        totalPurchases: count || 0
-      };
-    }
+    queryFn: fetchPurchaseHistory
   });
 
   const formatDate = (dateString?: string) => {
