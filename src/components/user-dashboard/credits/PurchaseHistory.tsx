@@ -14,14 +14,14 @@ interface Transaction {
   created_at: string;
 }
 
-// Define a simple interface without nested types
+// Define the purchase history data interface
 interface PurchaseHistoryData {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-// Use a simple function without explicit return type annotation
-const fetchPurchaseHistory = async () => {
+// Use a simple function without complex return type annotations
+const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -41,11 +41,11 @@ const fetchPurchaseHistory = async () => {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
-  // Return as a simple object
+  // Return a simple object with explicit structure
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
-  } as PurchaseHistoryData; // Use type assertion instead of return type
+  };
 };
 
 export const PurchaseHistory = () => {
