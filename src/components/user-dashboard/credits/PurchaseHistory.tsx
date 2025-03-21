@@ -9,23 +9,20 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Updated interface to match the actual transaction data
+// Define interface for transaction with proper typing
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  metadata?: {
-    type?: string;
-    description?: string;
-  };
+  metadata?: Record<string, any> | null;
 }
 
 export const PurchaseHistory = () => {
   const { user } = useAuth();
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ['purchase-history'],
+    queryKey: ['purchase-history', user?.id],
     queryFn: async () => {
       if (!user) return [];
       

@@ -14,6 +14,21 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
+// Interface for transaction data
+interface TransactionData {
+  id: string;
+  user_id: string;
+  agent_id?: string;
+  amount: number;
+  metadata?: Record<string, any> | null;
+  created_at: string;
+  status: string;
+  payment_intent_id?: string;
+  // Virtual properties added in transformation
+  type?: string;
+  description?: string;
+}
+
 // Main component 
 export const EnhancedTransactionsList = () => {
   const { user } = useAuth();
@@ -46,20 +61,23 @@ export const EnhancedTransactionsList = () => {
       if (error) throw error;
       
       // Transform the data to add virtual properties
-      return data.map(tx => ({
-        ...tx,
-        // Extract type from metadata or provide default
-        type: tx.metadata?.type || 'unknown',
-        // Create a description from metadata or provide default
-        description: tx.metadata?.description || `Transaction ${tx.id.substring(0, 8)}`
-      })) || [];
+      return (data || []).map((tx: any): TransactionData => {
+        const metadataObj = typeof tx.metadata === 'object' ? tx.metadata : {};
+        return {
+          ...tx,
+          // Extract type from metadata or provide default
+          type: metadataObj.type || 'unknown',
+          // Create a description from metadata or provide default
+          description: metadataObj.description || `Transaction ${tx.id.substring(0, 8)}`
+        };
+      });
     },
     enabled: !!user
   });
   
   const filteredTransactions = transactions?.filter(tx => 
-    tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tx.id?.toLowerCase().includes(searchQuery.toLowerCase())
+    (tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tx.id?.toLowerCase().includes(searchQuery.toLowerCase()))
   ) || [];
 
   // Get status badge color
@@ -70,11 +88,6 @@ export const EnhancedTransactionsList = () => {
       case "failed": return "bg-red-100 text-red-800 border-red-200";
       default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  };
-
-  // Get transaction type
-  const getTransactionType = (tx: any) => {
-    return tx.type || 'unknown';
   };
 
   return (
@@ -157,7 +170,7 @@ export const EnhancedTransactionsList = () => {
                       {format(new Date(tx.created_at), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>{tx.description}</TableCell>
-                    <TableCell className="capitalize">{getTransactionType(tx)}</TableCell>
+                    <TableCell className="capitalize">{tx.type}</TableCell>
                     <TableCell className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
                       {tx.amount > 0 ? "+" : ""}{tx.amount} credits
                     </TableCell>
