@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a completely simplified Transaction interface without using database types
+// Define a simple standalone interface with no connection to Supabase types
 interface Transaction {
   id: string;
   amount: number;
@@ -40,8 +40,16 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Force type as Transaction[] to avoid deep type instantiation
-      return (data || []) as unknown as Transaction[];
+      // Transform data to our simplified Transaction interface
+      const transactions: Transaction[] = (data || []).map(item => ({
+        id: item.id,
+        amount: item.amount,
+        created_at: item.created_at,
+        status: item.status,
+        metadata: item.metadata
+      }));
+      
+      return transactions;
     },
     retry: user ? 2 : 0
   });
