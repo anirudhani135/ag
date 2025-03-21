@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,13 +14,13 @@ interface Transaction {
   created_at: string;
 }
 
-// Define explicit types for the query result
-interface PurchaseData {
+// Define types for the purchase history data
+interface PurchaseHistory {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-// Use a more simplified approach without complex type annotations
+// Explicitly define the function without return type annotation
 const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
@@ -40,16 +41,17 @@ const fetchPurchaseHistory = async () => {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
+  // Return a plain object
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
-  } as PurchaseData; // Use type assertion instead of return type annotation
+  };
 };
 
 export const PurchaseHistory = () => {
   const navigate = useNavigate();
   
-  // Let TypeScript infer the types automatically
+  // Use the query without explicit types
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
