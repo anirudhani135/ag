@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -108,7 +107,6 @@ export const PurchaseHistory = () => {
     queryFn: fetchTransactions
   });
 
-  // Filter transactions based on search, type, and date range
   const filteredTransactions = data.filter(transaction => {
     const matchesSearch = !searchTerm || 
       (transaction.description && transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -125,12 +123,10 @@ export const PurchaseHistory = () => {
     return matchesSearch && matchesType && matchesDateRange;
   });
 
-  // Get all unique transaction types
   const getTransactionTypes = () => {
     return Array.from(new Set(data.map(item => item.transaction_type)));
   };
 
-  // Prepare data for bar chart (monthly summary)
   const prepareBarChartData = () => {
     if (filteredTransactions.length === 0) return [];
     
@@ -158,7 +154,6 @@ export const PurchaseHistory = () => {
     }));
   };
 
-  // Prepare data for pie chart (transaction type breakdown)
   const preparePieChartData = () => {
     if (filteredTransactions.length === 0) return [];
     
@@ -175,12 +170,11 @@ export const PurchaseHistory = () => {
     }, {} as Record<string, number>);
     
     return Object.entries(typeData).map(([name, value]) => ({
-      name,
+      name: name as string,
       value
     }));
   };
 
-  // Download transactions as CSV
   const downloadTransactions = () => {
     if (filteredTransactions.length === 0) return;
     
@@ -207,7 +201,7 @@ export const PurchaseHistory = () => {
     {
       accessorKey: 'created_at',
       header: 'Date',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: any }) => {
         const created_at = row.original.created_at;
         return (
           <div className="flex flex-col">
@@ -227,7 +221,7 @@ export const PurchaseHistory = () => {
     {
       accessorKey: 'transaction_type',
       header: 'Type',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: any }) => {
         const type = row.original.transaction_type;
         let color = '';
         let icon = null;
@@ -259,7 +253,7 @@ export const PurchaseHistory = () => {
     {
       accessorKey: 'description',
       header: 'Description',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="max-w-[200px] truncate" title={row.original.description || '-'}>
           {row.original.description || '-'}
         </div>
@@ -268,7 +262,7 @@ export const PurchaseHistory = () => {
     {
       accessorKey: 'amount',
       header: 'Amount',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: any }) => {
         const amount = row.original.amount;
         const isPositive = amount > 0 || row.original.transaction_type === 'purchase';
         
@@ -283,7 +277,8 @@ export const PurchaseHistory = () => {
     {
       id: 'actions',
       header: '',
-      cell: ({ row }) => (
+      accessorKey: 'id',
+      cell: ({ row }: { row: any }) => (
         <Button
           variant="ghost"
           size="icon"
@@ -304,7 +299,6 @@ export const PurchaseHistory = () => {
     setDateRange(undefined);
   };
 
-  // Toggle a type filter
   const toggleTypeFilter = (type: string) => {
     setTypeFilters(prev => {
       if (prev.includes(type)) {
@@ -414,7 +408,7 @@ export const PurchaseHistory = () => {
                       checked={typeFilters.includes(type)}
                       onCheckedChange={() => toggleTypeFilter(type)}
                     >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                      {String(type).charAt(0).toUpperCase() + String(type).slice(1)}
                     </DropdownMenuCheckboxItem>
                   ))}
                   {typeFilters.length > 0 && (
@@ -531,10 +525,20 @@ export const PurchaseHistory = () => {
                               ))}
                             </Pie>
                             <Legend 
-                              formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                              formatter={(value) => {
+                                if (typeof value === 'string') {
+                                  return value.charAt(0).toUpperCase() + value.slice(1);
+                                }
+                                return value;
+                              }}
                             />
                             <RechartsTooltip 
-                              formatter={(value, name) => [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                              formatter={(value, name) => {
+                                if (typeof name === 'string') {
+                                  return [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)];
+                                }
+                                return [`${value} credits`, name];
+                              }}
                             />
                           </RechartsPieChart>
                         </ResponsiveContainer>
@@ -552,7 +556,6 @@ export const PurchaseHistory = () => {
         </CardContent>
       </Card>
       
-      {/* Transaction Detail Dialog */}
       <Dialog open={!!selectedTransaction} onOpenChange={(open) => !open && setSelectedTransaction(null)}>
         <DialogContent>
           <DialogHeader>
@@ -606,3 +609,4 @@ export const PurchaseHistory = () => {
 };
 
 export default PurchaseHistory;
+

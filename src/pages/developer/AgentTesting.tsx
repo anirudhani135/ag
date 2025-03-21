@@ -9,6 +9,21 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Define interfaces for the types
+interface AgentVersion {
+  id: string;
+  name: string;
+  created_at: string;
+  version_number: string;
+}
+
+interface Agent {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+}
+
 const AgentTesting = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const { toast } = useToast();
@@ -20,7 +35,7 @@ const AgentTesting = () => {
       
       const { data, error } = await supabase
         .from('agents')
-        .select('*')
+        .select('id, title, description, status')
         .eq('id', agentId)
         .single();
 
@@ -33,7 +48,7 @@ const AgentTesting = () => {
         throw error;
       }
 
-      return data;
+      return data as Agent;
     },
     enabled: !!agentId,
   });
@@ -45,7 +60,7 @@ const AgentTesting = () => {
       
       const { data, error } = await supabase
         .from('agent_versions')
-        .select('id, name, created_at')
+        .select('id, version_number, created_at')
         .eq('agent_id', agentId)
         .order('created_at', { ascending: false });
 
@@ -58,7 +73,12 @@ const AgentTesting = () => {
         throw error;
       }
 
-      return data || [];
+      // Transform data to match expected format
+      return (data || []).map(version => ({
+        id: version.id,
+        name: `Version ${version.version_number}`,
+        createdAt: version.created_at
+      }));
     },
     enabled: !!agentId,
   });
@@ -74,7 +94,7 @@ const AgentTesting = () => {
                   <ArrowLeft className="h-4 w-4" />
                 </Link>
               </Button>
-              <h2 className="text-3xl font-bold tracking-tight">{agent?.name || 'Agent'} Testing</h2>
+              <h2 className="text-3xl font-bold tracking-tight">{agent?.title || 'Agent'} Testing</h2>
             </div>
             <p className="text-muted-foreground mt-1">
               Create and manage A/B tests to optimize your agent's performance

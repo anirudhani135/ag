@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -16,7 +15,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui";
+} from "@/components/ui/button";
 import { 
   Play, 
   PauseCircle, 
@@ -28,7 +27,11 @@ import {
   LayoutDashboard,
   Settings2,
   Lightbulb,
-  FlaskRound
+  FlaskRound,
+  CheckCircle2,
+  Check,
+  Download,
+  CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -621,7 +624,7 @@ export const ABTestingPanel = ({ agentId, versions }: ABTestingPanelProps) => {
                       <div className="space-y-4">
                         {activeVersions.map((version, index) => (
                           <Card key={version.id} className="p-4">
-                            <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+                            <div className="flex flex-wrap justify-between items-center gap-2">
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="bg-blue-100 text-blue-800">
                                   {version.name.split(' ')[0]}
@@ -829,189 +832,3 @@ export const ABTestingPanel = ({ agentId, versions }: ABTestingPanelProps) => {
                           <p className="text-sm text-muted-foreground mb-3">
                             Based on current data, here are the key insights for improving your agent's performance.
                           </p>
-                          
-                          <div className="space-y-3">
-                            {winner && (
-                              <div className="bg-white bg-opacity-60 p-3 rounded-md">
-                                <div className="flex items-start gap-2">
-                                  <div className="mt-0.5">
-                                    <BadgeCheck className="h-5 w-5 text-green-600" />
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">{winner.name} is the current leader</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      With a conversion rate of {winner.metrics.conversionRate}%, this version outperforms others by 
-                                      {activeVersions
-                                        .filter(v => v.id !== winner.id && v.status === 'active')
-                                        .map(v => ((winner.metrics.conversionRate - v.metrics.conversionRate) / v.metrics.conversionRate * 100).toFixed(1))
-                                        .map((diff, i, arr) => 
-                                          i === arr.length - 1 
-                                            ? ` and ${diff}%` 
-                                            : ` ${diff}%`
-                                        )
-                                      }.
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            <div className="bg-white bg-opacity-60 p-3 rounded-md">
-                              <div className="flex items-start gap-2">
-                                <div className="mt-0.5">
-                                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">User engagement correlation</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Versions with higher average session times (like Version B at {activeVersions.find(v => v.id === 'v2')?.metrics.avgSessionTime}s) 
-                                    also show higher conversion rates, suggesting deeper engagement leads to better outcomes.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-white bg-opacity-60 p-3 rounded-md">
-                              <div className="flex items-start gap-2">
-                                <div className="mt-0.5">
-                                  <LineChart className="h-5 w-5 text-yellow-600" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">Statistical significance</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    The test has reached {isRunning ? "92% confidence" : "95% confidence"} level. 
-                                    {isRunning 
-                                      ? " Continue running the test to reach your target confidence level of " + confidenceLevel + "%."
-                                      : " The test has been paused but has already provided statistically significant results."
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card className="p-4">
-                        <h3 className="font-medium text-base mb-3">Recommendations</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-2">
-                            <div className="bg-green-100 p-1 rounded-full mt-0.5">
-                              <Check className="h-4 w-4 text-green-600" />
-                            </div>
-                            <p className="text-sm">
-                              Consider allocating more traffic to {winner?.name || 'the leading variant'} to maximize conversions.
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-start gap-2">
-                            <div className="bg-green-100 p-1 rounded-full mt-0.5">
-                              <Check className="h-4 w-4 text-green-600" />
-                            </div>
-                            <p className="text-sm">
-                              Analyze what makes Version B more engaging and apply those learnings to future versions.
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-start gap-2">
-                            <div className="bg-green-100 p-1 rounded-full mt-0.5">
-                              <Check className="h-4 w-4 text-green-600" />
-                            </div>
-                            <p className="text-sm">
-                              Consider testing a new variant that combines the best elements of Versions A and B.
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                      
-                      <Card className="p-4">
-                        <h3 className="font-medium text-base mb-3">Next Steps</h3>
-                        
-                        <div className="space-y-3">
-                          {isRunning ? (
-                            <Button variant="default" className="w-full justify-start">
-                              <PauseCircle className="mr-2 h-4 w-4" />
-                              Continue test until {confidenceLevel}% confidence
-                            </Button>
-                          ) : (
-                            <Button variant="default" className="w-full justify-start">
-                              <Play className="mr-2 h-4 w-4" />
-                              Resume test
-                            </Button>
-                          )}
-                          
-                          <Button variant="outline" className="w-full justify-start">
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Declare winner and end test
-                          </Button>
-                          
-                          <Button variant="outline" className="w-full justify-start">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export test results
-                          </Button>
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Tabs>
-      </Card>
-    </div>
-  );
-};
-
-// Helper component for check mark icon
-const CheckMark = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
-
-// Helper component for badge check icon
-const BadgeCheck = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-    <path d="m9 12 2 2 4-4"></path>
-  </svg>
-);
-
-// Helper component for trending up icon
-const TrendingUp = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-    <polyline points="17 6 23 6 23 12"></polyline>
-  </svg>
-);
