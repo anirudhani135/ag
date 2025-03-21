@@ -14,13 +14,14 @@ interface Transaction {
   created_at: string;
 }
 
-// Define the explicit return type to avoid TypeScript's excessive type instantiation
+// Define a simple interface without nested types
 interface PurchaseHistoryData {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
+// Use a simple function without explicit return type annotation
+const fetchPurchaseHistory = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No user found');
 
@@ -40,10 +41,11 @@ const fetchPurchaseHistory = async (): Promise<PurchaseHistoryData> => {
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
 
+  // Return as a simple object
   return {
     latest: data && data.length > 0 ? data[0] : null,
     totalPurchases: count || 0
-  };
+  } as PurchaseHistoryData; // Use type assertion instead of return type
 };
 
 export const PurchaseHistory = () => {
