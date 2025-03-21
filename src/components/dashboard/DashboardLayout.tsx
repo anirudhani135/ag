@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
+import { useTransitionAnimation } from "@/lib/useTransitionAnimation";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const { userRole, isLoading } = useAuth();
+  
+  // Add route transition animations
+  useTransitionAnimation('.dashboard-content');
 
   // Prefetch likely routes based on the dashboard type to improve perceived performance
   const routesToPrefetch = type === "developer" 
@@ -83,15 +87,16 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
         />
         <main 
           className={cn(
-            "flex-1 overflow-auto transition-all duration-75",
+            "flex-1 overflow-auto transition-all duration-200",
             sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0",
             "p-4 md:p-6",
-            "pt-20 md:pt-24" // Increased padding to prevent navbar overlap
+            "pt-20 md:pt-24", // Increased padding to prevent navbar overlap
+            "dashboard-content"
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto animate-fade-in">
             <OptimizedSuspense priority="high">
               {children}
             </OptimizedSuspense>

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,6 +44,7 @@ const Support = lazy(() => import("./components/user-support/UserSupport"));
 
 const DeveloperOverview = lazy(() => import("./pages/developer/Overview"));
 const AgentManagement = lazy(() => import("./pages/developer/AgentManagement"));
+const AgentTesting = lazy(() => import("./pages/developer/AgentTesting"));
 const Revenue = lazy(() => import("./pages/developer/Revenue"));
 const DeveloperAnalytics = lazy(() => import("./pages/developer/Analytics"));
 const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
@@ -124,6 +126,9 @@ const AppContent = () => {
           </Route>
           <Route path="agents" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<AgentManagement />} />
+          </Route>
+          <Route path="agents/:agentId/testing" element={<WithRoleProtection allowedRoles={["developer"]} />}>
+            <Route index element={<AgentTesting />} />
           </Route>
           <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<Navigate to="/agent-external-deployment" replace />} />
