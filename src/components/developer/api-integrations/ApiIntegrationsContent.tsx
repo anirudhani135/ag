@@ -141,7 +141,7 @@ export const ApiIntegrationsContent = ({
                         <div>
                           <div className="text-sm font-medium">Events</div>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {webhook.events.map((event, index) => <Badge key={index} variant="secondary">{event}</Badge>)}
+                            {webhook.events.map((event, index) => <Badge key={index} variant="secondary" className="bg-stone-400">{event}</Badge>)}
                           </div>
                         </div>
                         <div>
