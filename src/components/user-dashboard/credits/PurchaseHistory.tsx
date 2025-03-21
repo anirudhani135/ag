@@ -489,7 +489,12 @@ export const PurchaseHistory = () => {
                             />
                             <YAxis />
                             <RechartsTooltip 
-                              formatter={(value, name) => [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                              formatter={(value: any, name: any) => {
+                                if (typeof name === 'string') {
+                                  return [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)];
+                                }
+                                return [`${value} credits`, name];
+                              }}
                             />
                             <Bar dataKey="purchases" fill="#3B82F6" name="Purchases" />
                             <Bar dataKey="usage" fill="#10B981" name="Usage" />
@@ -533,7 +538,7 @@ export const PurchaseHistory = () => {
                               }}
                             />
                             <RechartsTooltip 
-                              formatter={(value, name) => {
+                              formatter={(value: any, name: any) => {
                                 if (typeof name === 'string') {
                                   return [`${value} credits`, name.charAt(0).toUpperCase() + name.slice(1)];
                                 }
@@ -609,4 +614,3 @@ export const PurchaseHistory = () => {
 };
 
 export default PurchaseHistory;
-
