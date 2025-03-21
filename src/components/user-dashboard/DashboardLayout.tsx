@@ -1,39 +1,21 @@
 
-import { memo, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
+import { memo, useEffect } from "react";
+import { DashboardLayout as MainDashboardLayout } from "@/components/dashboard/DashboardLayout";
 
-interface DashboardLayoutProps {
+interface UserDashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => {
-  // Memoized fallback content
-  const renderFallback = useCallback(() => (
-    <div className="animate-pulse space-y-4">
-      <div className="h-8 bg-muted rounded w-1/4"></div>
-      <div className="h-32 bg-muted rounded"></div>
-      <div className="h-32 bg-muted rounded"></div>
-    </div>
-  ), []);
+// This file is now deprecated - just redirects to the main DashboardLayout
+export const UserDashboardLayout = memo(({ children }: UserDashboardLayoutProps) => {
+  useEffect(() => {
+    console.warn('This UserDashboardLayout component is deprecated, use DashboardLayout from @/components/dashboard/DashboardLayout instead');
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <main 
-        className="flex-1 overflow-auto p-4 md:p-6"
-        role="main"
-        aria-label="User Dashboard Main Content"
-      >
-        <div className="max-w-7xl mx-auto">
-          <OptimizedSuspense 
-            priority="high" 
-            fallback={renderFallback()}
-          >
-            {children}
-          </OptimizedSuspense>
-        </div>
-      </main>
-    </div>
+    <MainDashboardLayout type="user">
+      {children}
+    </MainDashboardLayout>
   );
 });
 

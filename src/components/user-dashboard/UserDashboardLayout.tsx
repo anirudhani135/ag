@@ -6,7 +6,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// This component is deprecated - just wraps the main DashboardLayout for compatibility
+// This component simply forwards to the main DashboardLayout to avoid duplicate UIs
 export const UserDashboardLayout = memo(({ children }: DashboardLayoutProps) => {
   useEffect(() => {
     console.warn('UserDashboardLayout is deprecated, use DashboardLayout directly instead');
