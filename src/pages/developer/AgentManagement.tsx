@@ -4,11 +4,11 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Bot, Plus, Activity, DollarSign, 
-  ChevronRight, BarChart2, Loader2
+  ChevronRight, BarChart2, Loader2,
+  Layers
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { AgentStats } from "@/components/agent-management/AgentStats";
 import { AgentFilters } from "@/components/agent-management/AgentFilters";
 import { AgentGrid } from "@/components/agent-management/AgentGrid";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import AgentDetailPanel from "@/components/agent-management/AgentDetailPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AgentManagement = () => {
   const [search, setSearch] = useState("");
@@ -51,11 +52,11 @@ const AgentManagement = () => {
     }
   });
 
-  const handleCreateAgent = () => {
+  const handleDeployAgent = () => {
     setIsDeploying(true);
     setTimeout(() => {
       setIsDeploying(false);
-      navigate("/developer/agents/create");
+      navigate("/agent-external-deployment");
     }, 500);
   };
 
@@ -88,38 +89,67 @@ const AgentManagement = () => {
                   Agent Management
                 </h1>
                 <p className="text-muted-foreground max-w-md">
-                  Create and manage your AI agents with our intuitive interface
+                  Deploy and manage your AI agents easily
                 </p>
               </div>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleCreateAgent}
-                      className="relative bg-primary hover:bg-primary/90 text-white font-medium h-12 px-6 
-                        shadow-lg hover:shadow-xl transition-all duration-200 group animate-in fade-in-0 
-                        hover:scale-105"
-                      disabled={isDeploying}
-                    >
-                      {isDeploying ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
-                      )}
-                      Create New Agent
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Start creating a new AI agent</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                onClick={handleDeployAgent}
+                className="relative bg-primary hover:bg-primary/90 text-white font-medium h-12 px-6 
+                  shadow-lg hover:shadow-xl transition-all duration-200 group animate-in fade-in-0 
+                  hover:scale-105"
+                disabled={isDeploying}
+              >
+                {isDeploying ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Layers className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
+                )}
+                Deploy New Agent
+              </Button>
             </div>
           </div>
 
+          {/* Deployment Methods Guide Card */}
+          <Card className="border border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-lg">Agent Deployment Methods</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex flex-col space-y-2 p-4 border rounded-md">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-500" />
+                  <h3 className="font-medium">API Integration</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Connect your hosted AI agent API endpoint directly to our marketplace
+                </p>
+              </div>
+              
+              <div className="flex flex-col space-y-2 p-4 border rounded-md">
+                <div className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-purple-500" />
+                  <h3 className="font-medium">LangFlow Integration</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Upload a LangFlow JSON configuration to deploy your agent
+                </p>
+              </div>
+              
+              <div className="flex flex-col space-y-2 p-4 border rounded-md">
+                <div className="flex items-center gap-2">
+                  <Code className="h-5 w-5 text-green-500" />
+                  <h3 className="font-medium">Custom Integration</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Use advanced configuration options for complex deployments
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Stats Section */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

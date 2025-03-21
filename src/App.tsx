@@ -75,15 +75,7 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        <Route path="/agent-creation" element={<ProtectedRoute />}>
-          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={
-              <DashboardLayout type="developer">
-                <AgentCreation />
-              </DashboardLayout>
-            } />
-          </Route>
-        </Route>
+        <Route path="/agent-creation" element={<Navigate to="/agent-external-deployment" replace />} />
 
         <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
           <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
@@ -132,11 +124,7 @@ const AppContent = () => {
             <Route index element={<AgentManagement />} />
           </Route>
           <Route path="agents/create" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={
-              <DashboardLayout type="developer">
-                <AgentCreation />
-              </DashboardLayout>
-            } />
+            <Route index element={<Navigate to="/agent-external-deployment" replace />} />
           </Route>
           <Route path="revenue" element={<WithRoleProtection allowedRoles={["developer"]} />}>
             <Route index element={<Revenue />} />
