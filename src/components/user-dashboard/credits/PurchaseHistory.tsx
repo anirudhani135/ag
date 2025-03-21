@@ -1,10 +1,10 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Receipt, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 
 // Define types for the transaction data
@@ -13,27 +13,24 @@ interface Transaction {
   created_at: string;
 }
 
-// Define the purchase history data interface
-type PurchaseHistoryData = {
+// Create a simpler interface for our history data
+interface PurchaseHistoryData {
   latest: Transaction | null;
   totalPurchases: number;
 }
 
-// Create a completely standalone function with explicit return type
-async function fetchPurchaseHistory(): Promise<{
-  latest: Transaction | null;
-  totalPurchases: number;
-}> {
+// Fetch function separated from component to avoid deep type inference
+async function fetchPurchaseHistory(): Promise<PurchaseHistoryData> {
   // Get the current user
   const userResponse = await supabase.auth.getUser();
   const user = userResponse.data.user;
   
   if (!user) {
-    throw new Error('No user found');
+    return { latest: null, totalPurchases: 0 };
   }
 
   // Get the latest transaction
-  const transactionResponse = await supabase
+  const { data: latestData, error: latestError } = await supabase
     .from('transactions')
     .select('amount, created_at')
     .eq('user_id', user.id)
@@ -41,29 +38,42 @@ async function fetchPurchaseHistory(): Promise<{
     .order('created_at', { ascending: false })
     .limit(1);
   
-  if (transactionResponse.error) {
-    throw transactionResponse.error;
+  if (latestError) {
+    console.error("Error fetching latest transaction:", latestError);
+    return { latest: null, totalPurchases: 0 };
   }
   
-  // Get the transaction count
-  const countResponse = await supabase
+  // Get the transaction count separately
+  const { count, error: countError } = await supabase
     .from('transactions')
-    .select('amount', { count: 'exact' })
+    .select('amount', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .eq('type', 'credit_purchase');
   
-  // Build and return the result object
+  if (countError) {
+    console.error("Error counting transactions:", countError);
+    return { 
+      latest: latestData && latestData.length > 0 ? latestData[0] : null, 
+      totalPurchases: 0 
+    };
+  }
+  
   return {
-    latest: transactionResponse.data && transactionResponse.data.length > 0 
-      ? transactionResponse.data[0] 
-      : null,
-    totalPurchases: countResponse.count || 0
+    latest: latestData && latestData.length > 0 ? latestData[0] : null,
+    totalPurchases: count || 0
   };
 }
 
+// Simple navigation functions outside component to avoid re-renders
+function navigateToTransactions() {
+  window.location.href = '/user/credits/transactions';
+}
+
+function navigateToPurchase() {
+  window.location.href = '/user/credits/purchase';
+}
+
 export const PurchaseHistory = () => {
-  const navigate = useNavigate();
-  
   const { data, isLoading } = useQuery({
     queryKey: ['purchase-history'],
     queryFn: fetchPurchaseHistory
@@ -78,14 +88,6 @@ export const PurchaseHistory = () => {
       day: 'numeric',
       year: 'numeric'
     });
-  };
-
-  const handleViewAllPurchases = () => {
-    navigate('/user/credits/transactions');
-  };
-
-  const handlePurchaseCredits = () => {
-    navigate('/user/credits/purchase');
   };
 
   return (
@@ -125,7 +127,7 @@ export const PurchaseHistory = () => {
                 variant="ghost" 
                 size="sm"
                 className="text-xs p-0 h-auto hover:bg-transparent hover:text-blue-600 flex items-center"
-                onClick={handleViewAllPurchases}
+                onClick={navigateToTransactions}
               >
                 View all purchases
                 <TrendingUp className="ml-1 h-3 w-3" />
@@ -139,7 +141,7 @@ export const PurchaseHistory = () => {
               variant="outline"
               size="sm"
               className="mt-2 text-xs h-8 border-blue-100 hover:bg-blue-50 hover:border-blue-200"
-              onClick={handlePurchaseCredits}
+              onClick={navigateToPurchase}
             >
               Purchase Credits
             </Button>
