@@ -20,6 +20,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  clearNotification: (id: string) => Promise<void>; // Add this function
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -119,6 +120,27 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
+  // New clearNotification function
+  const clearNotification = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setNotifications((prev) => 
+        prev.filter((notification) => notification.id !== id)
+      );
+    } catch (error) {
+      console.error('Error clearing notification:', error);
+    }
+  };
+
   // Calculate unread count
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
@@ -127,6 +149,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     unreadCount,
     markAsRead,
     markAllAsRead,
+    clearNotification, // Add the function to the context value
   };
 
   return (

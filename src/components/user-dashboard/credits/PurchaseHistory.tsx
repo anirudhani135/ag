@@ -37,7 +37,7 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Process the data with a more straightforward approach
+      // Safely process the data with a more straightforward approach
       const transactions: Transaction[] = [];
       
       if (data && Array.isArray(data)) {
@@ -51,10 +51,13 @@ export const PurchaseHistory = () => {
           };
           
           // Safely extract metadata properties if they exist
-          if (item.metadata && typeof item.metadata === 'object' && !Array.isArray(item.metadata)) {
-            const metadata = item.metadata as Record<string, unknown>;
-            if ('type' in metadata) transaction.type = String(metadata.type);
-            if ('description' in metadata) transaction.description = String(metadata.description);
+          if (item.metadata && typeof item.metadata === 'object') {
+            // Check if metadata is an object (not an array)
+            if (!Array.isArray(item.metadata)) {
+              const metadata = item.metadata as Record<string, unknown>;
+              if ('type' in metadata) transaction.type = String(metadata.type);
+              if ('description' in metadata) transaction.description = String(metadata.description);
+            }
           }
           
           transactions.push(transaction);

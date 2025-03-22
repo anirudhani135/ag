@@ -15,9 +15,10 @@ import {
 interface StatusBadgeProps {
   status: string;
   className?: string;
+  onStatusChange?: (status: string) => void;
 }
 
-export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, className, onStatusChange }: StatusBadgeProps) => {
   // Define status configurations
   const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
     // Success states
@@ -42,6 +43,7 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
     'paused': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <PauseCircle className="h-3 w-3 mr-1" />, label: 'Paused' },
     'draft': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <Clock className="h-3 w-3 mr-1" />, label: 'Draft' },
     'inactive': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <PauseCircle className="h-3 w-3 mr-1" />, label: 'Inactive' },
+    'loading': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: <RotateCw className="h-3 w-3 mr-1 animate-spin" />, label: 'Loading' },
   };
   
   // Normalize status to lowercase for matching
@@ -62,6 +64,7 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
         config.color,
         className
       )}
+      onClick={() => onStatusChange && onStatusChange(status)}
     >
       {config.icon}
       {config.label}

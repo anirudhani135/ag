@@ -50,6 +50,13 @@ const Analytics = () => {
     }, 800);
   };
 
+  // Handle status change callback
+  const handleStatusChange = (newStatus: string) => {
+    if (newStatus === "loading" || newStatus === "ready" || newStatus === "error") {
+      setDashboardStatus(newStatus);
+    }
+  };
+
   // Handle initial loading
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,7 +75,7 @@ const Analytics = () => {
               <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
               <StatusBadge 
                 status={dashboardStatus} 
-                onStatusChange={setDashboardStatus}
+                onStatusChange={handleStatusChange}
               />
             </div>
             <div className="flex items-center gap-2">

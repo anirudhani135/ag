@@ -94,8 +94,8 @@ export const NotificationIcon = () => {
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">{notification.message}</p>
-                        <time className="text-xs text-muted-foreground" dateTime={notification.timestamp.toISOString()}>
-                          {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
+                        <time className="text-xs text-muted-foreground" dateTime={notification.created_at}>
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                         </time>
                       </div>
                     </div>
