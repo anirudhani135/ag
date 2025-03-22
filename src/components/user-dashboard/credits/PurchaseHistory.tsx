@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a simple Transaction interface without complex nesting
+// Define a simplified Transaction interface without nested types
 interface Transaction {
   id: string;
   amount: number;
@@ -17,7 +18,6 @@ interface Transaction {
   metadata: {
     type?: string;
     description?: string;
-    [key: string]: any;
   } | null;
 }
 
@@ -39,13 +39,16 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Safely transform the data to match our interface
-      return (data || []).map(item => ({
+      // Transform the data with explicit typing to avoid deep type instantiation
+      return (data || []).map((item: any) => ({
         id: item.id,
         amount: item.amount,
         created_at: item.created_at,
         status: item.status,
-        metadata: typeof item.metadata === 'object' ? item.metadata : null
+        metadata: item.metadata ? {
+          type: item.metadata.type,
+          description: item.metadata.description
+        } : null
       })) as Transaction[];
     },
     retry: user ? 2 : 0
