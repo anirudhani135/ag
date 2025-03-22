@@ -31,13 +31,16 @@ export const UserActivityFeed = ({ activities, isLoading }: {
         
       if (error) throw error;
       
-      return (data || []).map(activity => ({
-        id: activity.id,
-        action: activity.activity_type,
-        timestamp: activity.created_at,
-        agentName: activity.metadata?.agent_name || 'Unknown Agent',
-        status: activity.metadata?.status || 'success'
-      })) as UserActivity[];
+      return (data || []).map(activity => {
+        const metadata = typeof activity.metadata === 'object' ? activity.metadata : {};
+        return {
+          id: activity.id,
+          action: activity.activity_type,
+          timestamp: activity.created_at,
+          agentName: metadata?.agent_name || 'Unknown Agent',
+          status: metadata?.status || 'success'
+        } as UserActivity;
+      });
     },
     enabled: !activities && !!user,
     staleTime: 30000,

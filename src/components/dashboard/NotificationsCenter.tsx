@@ -50,7 +50,14 @@ export const NotificationsCenter = ({
       
       if (error) throw error;
       
-      return data as NotificationItem[];
+      return (data || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        message: item.message,
+        type: item.type,
+        timestamp: item.created_at,
+        read: item.read,
+      } as NotificationItem));
     },
     staleTime: 30000,
   });

@@ -67,7 +67,7 @@ const Analytics = () => {
             <div className="flex items-center gap-2">
               <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
               <StatusBadge 
-                initialState={dashboardStatus} 
+                status={dashboardStatus} 
                 onStatusChange={setDashboardStatus}
               />
             </div>

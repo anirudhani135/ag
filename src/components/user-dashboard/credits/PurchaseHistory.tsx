@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a simpler Transaction interface that doesn't cause deep type instantiation
+// Define a simple Transaction interface without complex nesting
 interface Transaction {
   id: string;
   amount: number;
@@ -40,7 +40,7 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Manually transform the data to prevent type instantiation issues
+      // Safely transform the data to match our interface
       const transactions: Transaction[] = [];
       
       for (const item of data || []) {

@@ -1,33 +1,58 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from "@/lib/utils";
 import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
 
 interface StatusBadgeProps {
   status?: string;
   className?: string;
+  initialState?: 'loading' | 'ready' | 'error';
+  onStatusChange?: (status: 'loading' | 'ready' | 'error') => void;
 }
 
-export const StatusBadge = ({ status = 'success', className }: StatusBadgeProps) => {
+export const StatusBadge = ({ 
+  status = 'success', 
+  className,
+  initialState,
+  onStatusChange
+}: StatusBadgeProps) => {
+  const [currentStatus, setCurrentStatus] = useState(initialState || status);
+
+  useEffect(() => {
+    if (initialState && onStatusChange) {
+      setCurrentStatus(initialState);
+    }
+  }, [initialState]);
+
+  useEffect(() => {
+    if (onStatusChange && currentStatus !== status && initialState) {
+      onStatusChange(currentStatus as 'loading' | 'ready' | 'error');
+    }
+  }, [currentStatus, onStatusChange]);
+
   const getStatusConfig = () => {
-    switch (status.toLowerCase()) {
+    const statusToUse = initialState || status;
+    
+    switch (statusToUse.toLowerCase()) {
       case 'success':
+      case 'ready':
         return {
           icon: <CheckCircle className="h-3 w-3" />,
-          text: 'Success',
+          text: initialState === 'ready' ? 'Ready' : 'Success',
           colorClasses: 'bg-green-50 text-green-700 border-green-100'
         };
       case 'warning':
+      case 'loading':
         return {
           icon: <AlertCircle className="h-3 w-3" />,
-          text: 'Warning',
+          text: initialState === 'loading' ? 'Loading' : 'Warning',
           colorClasses: 'bg-yellow-50 text-yellow-700 border-yellow-100'
         };
       case 'error':
       case 'failed':
         return {
           icon: <XCircle className="h-3 w-3" />,
-          text: 'Failed',
+          text: initialState === 'error' ? 'Error' : 'Failed',
           colorClasses: 'bg-red-50 text-red-700 border-red-100'
         };
       default:
