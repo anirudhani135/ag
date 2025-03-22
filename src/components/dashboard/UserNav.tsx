@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
 
 export function UserNav() {
   const { user, signOut } = useAuth();

@@ -19,12 +19,13 @@ interface Transaction {
   type: string;
 }
 
-// Define the raw transaction data structure from Supabase
-interface TransactionMetadata {
+// Define the metadata structure
+type TransactionMetadata = {
   type?: string;
   description?: string;
 }
 
+// Define the raw transaction data structure from Supabase
 interface RawTransaction {
   id: string;
   amount: number;
@@ -52,7 +53,7 @@ export const PurchaseHistory = () => {
       if (error) throw error;
       
       // Transform data with proper typing
-      const transactions = (data as RawTransaction[] || []).map(item => ({
+      const transactions: Transaction[] = (data as RawTransaction[] || []).map(item => ({
         id: item.id,
         amount: item.amount,
         created_at: item.created_at,
