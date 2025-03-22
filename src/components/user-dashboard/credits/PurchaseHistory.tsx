@@ -48,23 +48,14 @@ export const PurchaseHistory = () => {
       if (error) throw error;
       
       // Transform the raw data to our simplified Transaction type
-      return (data || []).map((item: RawTransaction): Transaction => {
-        const transaction: Transaction = {
-          id: item.id,
-          amount: item.amount,
-          created_at: item.created_at,
-          status: item.status,
-        };
-        
-        // Safely extract metadata properties if they exist
-        if (item.metadata && typeof item.metadata === 'object') {
-          const metadata = item.metadata as Record<string, unknown>;
-          if ('type' in metadata) transaction.type = String(metadata.type);
-          if ('description' in metadata) transaction.description = String(metadata.description);
-        }
-        
-        return transaction;
-      });
+      return (data || []).map((item: RawTransaction): Transaction => ({
+        id: item.id,
+        amount: item.amount,
+        created_at: item.created_at,
+        status: item.status,
+        type: item.metadata?.type as string | undefined,
+        description: item.metadata?.description as string | undefined
+      }));
     },
     retry: user ? 2 : 0
   });
