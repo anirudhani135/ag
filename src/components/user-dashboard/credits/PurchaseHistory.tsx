@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a simple standalone interface with no connection to Supabase types
+// Define the Transaction interface with proper typing
 interface Transaction {
   id: string;
   amount: number;
@@ -40,13 +40,13 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Transform data to our simplified Transaction interface
+      // Explicitly transform the data to our Transaction type with proper handling of metadata
       const transactions: Transaction[] = (data || []).map(item => ({
         id: item.id,
         amount: item.amount,
         created_at: item.created_at,
         status: item.status,
-        metadata: item.metadata
+        metadata: (typeof item.metadata === 'object') ? item.metadata : null
       }));
       
       return transactions;
