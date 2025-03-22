@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Simple transaction type without any complex nesting
+// Simple transaction type without complex nesting
 interface Transaction {
   id: string;
   amount: number;
@@ -40,8 +40,9 @@ export const PurchaseHistory = () => {
       // Process the data explicitly to avoid deep type issues
       const transactions: Transaction[] = [];
       
-      if (data) {
+      if (data && Array.isArray(data)) {
         for (const item of data) {
+          // Basic transaction data
           const transaction: Transaction = {
             id: item.id,
             amount: item.amount,
@@ -49,10 +50,11 @@ export const PurchaseHistory = () => {
             status: item.status,
           };
           
-          // Safely extract metadata if it exists
-          if (item.metadata && typeof item.metadata === 'object') {
-            transaction.type = item.metadata.type;
-            transaction.description = item.metadata.description;
+          // Safely extract metadata properties if they exist
+          if (item.metadata && typeof item.metadata === 'object' && !Array.isArray(item.metadata)) {
+            const metadata = item.metadata as Record<string, unknown>;
+            transaction.type = metadata.type as string;
+            transaction.description = metadata.description as string;
           }
           
           transactions.push(transaction);

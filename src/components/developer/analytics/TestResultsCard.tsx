@@ -16,6 +16,7 @@ type TestResult = {
   success_rate: number;
   total_tests: number;
   passed_tests: number;
+  status: string;
 };
 
 export const TestResultsCard = () => {
@@ -42,9 +43,17 @@ export const TestResultsCard = () => {
       if (error) throw error;
       
       return data.map((item) => {
-        const results = item.results || {};
-        const totalTests = results.total || 0;
-        const passedTests = results.passed || 0;
+        // Safely extract results with proper type checking
+        const results = typeof item.results === 'object' ? item.results : {};
+        
+        // Safely extract total and passed tests with fallbacks
+        const totalTests = typeof results === 'object' && results !== null && 'total' in results 
+          ? Number(results.total) || 0 
+          : 0;
+          
+        const passedTests = typeof results === 'object' && results !== null && 'passed' in results 
+          ? Number(results.passed) || 0 
+          : 0;
         
         return {
           id: item.id,
@@ -53,8 +62,8 @@ export const TestResultsCard = () => {
           success_rate: totalTests > 0 ? (passedTests / totalTests) * 100 : 0,
           total_tests: totalTests,
           passed_tests: passedTests,
-          status: item.status
-        };
+          status: item.status || 'ready'
+        } as TestResult;
       });
     },
     staleTime: 5 * 60 * 1000 // 5 minutes
@@ -85,7 +94,7 @@ export const TestResultsCard = () => {
               <div key={result.id} className="p-3 bg-muted/30 rounded-md">
                 <div className="flex justify-between items-center">
                   <div className="font-medium text-sm">{result.agent_name}</div>
-                  <StatusBadge status={result.status || 'ready'} />
+                  <StatusBadge status={result.status} />
                 </div>
                 
                 <div className="mt-2 flex justify-between items-center text-sm">
