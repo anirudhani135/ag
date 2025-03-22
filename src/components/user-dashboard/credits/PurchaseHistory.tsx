@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
+import { StatusBadge } from '@/components/dashboard/StatusBadge';
 
 // Simple transaction type without complex nesting
 interface Transaction {
@@ -17,6 +18,15 @@ interface Transaction {
   status: string;
   description?: string;
   type?: string;
+}
+
+// Raw database transaction type
+interface RawTransaction {
+  id: string;
+  amount: number;
+  created_at: string;
+  status: string;
+  metadata: Record<string, any> | null;
 }
 
 export const PurchaseHistory = () => {
@@ -37,34 +47,24 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Safely process the data with a more straightforward approach
-      const transactions: Transaction[] = [];
-      
-      if (data && Array.isArray(data)) {
-        for (const item of data) {
-          // Create a basic transaction object with required fields
-          const transaction: Transaction = {
-            id: item.id,
-            amount: item.amount,
-            created_at: item.created_at,
-            status: item.status,
-          };
-          
-          // Safely extract metadata properties if they exist
-          if (item.metadata && typeof item.metadata === 'object') {
-            // Check if metadata is an object (not an array)
-            if (!Array.isArray(item.metadata)) {
-              const metadata = item.metadata as Record<string, unknown>;
-              if ('type' in metadata) transaction.type = String(metadata.type);
-              if ('description' in metadata) transaction.description = String(metadata.description);
-            }
-          }
-          
-          transactions.push(transaction);
+      // Transform the raw data to our simplified Transaction type
+      return (data || []).map((item: RawTransaction): Transaction => {
+        const transaction: Transaction = {
+          id: item.id,
+          amount: item.amount,
+          created_at: item.created_at,
+          status: item.status,
+        };
+        
+        // Safely extract metadata properties if they exist
+        if (item.metadata && typeof item.metadata === 'object') {
+          const metadata = item.metadata as Record<string, unknown>;
+          if ('type' in metadata) transaction.type = String(metadata.type);
+          if ('description' in metadata) transaction.description = String(metadata.description);
         }
-      }
-      
-      return transactions;
+        
+        return transaction;
+      });
     },
     retry: user ? 2 : 0
   });
@@ -102,16 +102,7 @@ export const PurchaseHistory = () => {
                     {format(new Date(transaction.created_at), 'MMM d, yyyy')}
                   </p>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className={`
-                    ${transaction.status === 'completed' ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                    ${transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''}
-                    ${transaction.status === 'failed' ? 'bg-red-100 text-red-800 border-red-200' : ''}
-                  `}
-                >
-                  {transaction.status}
-                </Badge>
+                <StatusBadge status={transaction.status} />
               </div>
             ))}
           </div>
