@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +31,7 @@ export const PurchaseHistory = () => {
       
       const { data, error } = await supabase
         .from('transactions')
-        .select('*')
+        .select('id, amount, created_at, status, metadata')
         .eq('user_id', user.id)
         .eq('metadata->type', 'purchase')
         .order('created_at', { ascending: false })
@@ -41,19 +40,13 @@ export const PurchaseHistory = () => {
       if (error) throw error;
       
       // Safely transform the data to match our interface
-      const transactions: Transaction[] = [];
-      
-      for (const item of data || []) {
-        transactions.push({
-          id: item.id,
-          amount: item.amount,
-          created_at: item.created_at,
-          status: item.status,
-          metadata: typeof item.metadata === 'object' ? item.metadata : null
-        });
-      }
-      
-      return transactions;
+      return (data || []).map(item => ({
+        id: item.id,
+        amount: item.amount,
+        created_at: item.created_at,
+        status: item.status,
+        metadata: typeof item.metadata === 'object' ? item.metadata : null
+      })) as Transaction[];
     },
     retry: user ? 2 : 0
   });
