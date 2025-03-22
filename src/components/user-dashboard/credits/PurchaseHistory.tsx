@@ -9,16 +9,14 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define a simplified Transaction interface without nested types
+// Simple transaction type without any complex nesting
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  metadata: {
-    type?: string;
-    description?: string;
-  } | null;
+  description?: string;
+  type?: string;
 }
 
 export const PurchaseHistory = () => {
@@ -39,17 +37,29 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Transform the data with explicit typing to avoid deep type instantiation
-      return (data || []).map((item: any) => ({
-        id: item.id,
-        amount: item.amount,
-        created_at: item.created_at,
-        status: item.status,
-        metadata: item.metadata ? {
-          type: item.metadata.type,
-          description: item.metadata.description
-        } : null
-      })) as Transaction[];
+      // Process the data explicitly to avoid deep type issues
+      const transactions: Transaction[] = [];
+      
+      if (data) {
+        for (const item of data) {
+          const transaction: Transaction = {
+            id: item.id,
+            amount: item.amount,
+            created_at: item.created_at,
+            status: item.status,
+          };
+          
+          // Safely extract metadata if it exists
+          if (item.metadata && typeof item.metadata === 'object') {
+            transaction.type = item.metadata.type;
+            transaction.description = item.metadata.description;
+          }
+          
+          transactions.push(transaction);
+        }
+      }
+      
+      return transactions;
     },
     retry: user ? 2 : 0
   });

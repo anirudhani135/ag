@@ -32,20 +32,25 @@ export const UserActivityFeed = ({ activities, isLoading }: {
       if (error) throw error;
       
       return (data || []).map(activity => {
-        // Safely handle metadata - ensure it's an object before accessing properties
-        const metadata = typeof activity.metadata === 'object' && activity.metadata !== null
-          ? activity.metadata
-          : {};
-          
-        // Type assertion for metadata to help TypeScript understand the structure
-        const typedMetadata = metadata as Record<string, any>;
+        // Safely handle metadata
+        let agentName = 'Unknown Agent';
+        let status = 'success';
+        
+        if (activity.metadata) {
+          // Handle different possible metadata structures
+          if (typeof activity.metadata === 'object') {
+            // If it's an object, try to access properties directly
+            agentName = (activity.metadata as any)?.agent_name || agentName;
+            status = (activity.metadata as any)?.status || status;
+          }
+        }
         
         return {
           id: activity.id,
           action: activity.activity_type,
           timestamp: activity.created_at,
-          agentName: typedMetadata.agent_name || 'Unknown Agent',
-          status: typedMetadata.status || 'success'
+          agentName,
+          status
         } as UserActivity;
       });
     },

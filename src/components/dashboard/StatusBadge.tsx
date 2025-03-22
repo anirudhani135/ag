@@ -36,23 +36,31 @@ export const StatusBadge = ({
     switch (statusToUse.toLowerCase()) {
       case 'success':
       case 'ready':
+      case 'healthy':
+      case 'completed':
         return {
           icon: <CheckCircle className="h-3 w-3" />,
-          text: initialState === 'ready' ? 'Ready' : 'Success',
+          text: initialState === 'ready' ? 'Ready' : 
+                statusToUse === 'healthy' ? 'Healthy' : 'Success',
           colorClasses: 'bg-green-50 text-green-700 border-green-100'
         };
       case 'warning':
       case 'loading':
+      case 'degraded':
+      case 'pending':
         return {
           icon: <AlertCircle className="h-3 w-3" />,
-          text: initialState === 'loading' ? 'Loading' : 'Warning',
+          text: initialState === 'loading' ? 'Loading' : 
+                statusToUse === 'degraded' ? 'Degraded' : 'Warning',
           colorClasses: 'bg-yellow-50 text-yellow-700 border-yellow-100'
         };
       case 'error':
       case 'failed':
+      case 'unhealthy':
         return {
           icon: <XCircle className="h-3 w-3" />,
-          text: initialState === 'error' ? 'Error' : 'Failed',
+          text: initialState === 'error' ? 'Error' : 
+                statusToUse === 'unhealthy' ? 'Unhealthy' : 'Failed',
           colorClasses: 'bg-red-50 text-red-700 border-red-100'
         };
       default:

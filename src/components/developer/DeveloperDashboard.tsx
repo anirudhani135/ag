@@ -12,6 +12,7 @@ const DeveloperDashboardHeader = lazy(() => import("./dashboard/DashboardHeader"
 const QuickStatsGrid = lazy(() => import("./dashboard/QuickStatsGrid").then(mod => ({ default: mod.QuickStatsGrid })));
 const DeveloperActionsSection = lazy(() => import("./dashboard/ActionsSection").then(mod => ({ default: mod.DeveloperActionsSection })));
 const DashboardMetricsSection = lazy(() => import("./dashboard/DashboardMetricsSection").then(mod => ({ default: mod.DashboardMetricsSection })));
+const ActiveUserTrends = lazy(() => import("./ActiveUserTrends").then(mod => ({ default: mod.ActiveUserTrends })));
 
 interface ActivityMetadata {
   agent_name?: string;
@@ -129,6 +130,10 @@ export const DeveloperDashboard = () => {
 
         <OptimizedSuspense fallback={<Skeleton className="h-20 w-full" />} delay={200}>
           <DeveloperActionsSection />
+        </OptimizedSuspense>
+
+        <OptimizedSuspense fallback={<Skeleton className="h-64 w-full" />} delay={250}>
+          <ActiveUserTrends />
         </OptimizedSuspense>
 
         <OptimizedSuspense fallback={<div className="grid gap-6 md:grid-cols-2">
