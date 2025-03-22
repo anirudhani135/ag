@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
+// Define a simpler Transaction interface that doesn't cause deep type instantiation
 interface Transaction {
   id: string;
   amount: number;
@@ -38,13 +40,18 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      const transactions: Transaction[] = (data || []).map(item => ({
-        id: item.id,
-        amount: item.amount,
-        created_at: item.created_at,
-        status: item.status,
-        metadata: typeof item.metadata === 'object' ? item.metadata : null
-      }));
+      // Manually transform the data to prevent type instantiation issues
+      const transactions: Transaction[] = [];
+      
+      for (const item of data || []) {
+        transactions.push({
+          id: item.id,
+          amount: item.amount,
+          created_at: item.created_at,
+          status: item.status,
+          metadata: typeof item.metadata === 'object' ? item.metadata : null
+        });
+      }
       
       return transactions;
     },

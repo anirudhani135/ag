@@ -1,70 +1,56 @@
 
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import React from 'react';
+import { cn } from "@/lib/utils";
+import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
 
 interface StatusBadgeProps {
-  initialState?: "loading" | "ready" | "error";
-  onStatusChange?: (status: "loading" | "ready" | "error") => void;
+  status?: string;
+  className?: string;
 }
 
-export const StatusBadge = ({ initialState = "loading", onStatusChange }: StatusBadgeProps) => {
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(initialState);
-
-  useEffect(() => {
-    // If initially loading, automatically transition to ready after a delay
-    if (initialState === "loading") {
-      const timer = setTimeout(() => {
-        setStatus("ready");
-        onStatusChange?.("ready");
-      }, Math.random() * 1000 + 500); // Random delay between 500-1500ms for realistic feel
-      
-      return () => clearTimeout(timer);
+export const StatusBadge = ({ status = 'success', className }: StatusBadgeProps) => {
+  const getStatusConfig = () => {
+    switch (status.toLowerCase()) {
+      case 'success':
+        return {
+          icon: <CheckCircle className="h-3 w-3" />,
+          text: 'Success',
+          colorClasses: 'bg-green-50 text-green-700 border-green-100'
+        };
+      case 'warning':
+        return {
+          icon: <AlertCircle className="h-3 w-3" />,
+          text: 'Warning',
+          colorClasses: 'bg-yellow-50 text-yellow-700 border-yellow-100'
+        };
+      case 'error':
+      case 'failed':
+        return {
+          icon: <XCircle className="h-3 w-3" />,
+          text: 'Failed',
+          colorClasses: 'bg-red-50 text-red-700 border-red-100'
+        };
+      default:
+        return {
+          icon: <CheckCircle className="h-3 w-3" />,
+          text: 'Success',
+          colorClasses: 'bg-blue-50 text-blue-700 border-blue-100'
+        };
     }
-  }, [initialState, onStatusChange]);
+  };
 
-  let content;
-  
-  switch (status) {
-    case "loading":
-      content = (
-        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1">
-          <Loader2 className="h-3 w-3 animate-spin" />
-          <span>Loading</span>
-        </Badge>
-      );
-      break;
-    case "ready":
-      content = (
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
-          <CheckCircle className="h-3 w-3" />
-          <span>Ready</span>
-        </Badge>
-      );
-      break;
-    case "error":
-      content = (
-        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          <span>Error</span>
-        </Badge>
-      );
-      break;
-  }
+  const { icon, text, colorClasses } = getStatusConfig();
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {content}
-        </TooltipTrigger>
-        <TooltipContent>
-          {status === "loading" && "Dashboard is loading data..."}
-          {status === "ready" && "Dashboard is up-to-date"}
-          {status === "error" && "Error loading some dashboard data"}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <span 
+      className={cn(
+        "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border",
+        colorClasses,
+        className
+      )}
+    >
+      {icon}
+      <span className="hidden sm:inline">{text}</span>
+    </span>
   );
 };
