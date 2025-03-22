@@ -1,9 +1,7 @@
 
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-// import { useLocation, Navigate } from "react-router-dom";
-// import { Loader2 } from "lucide-react";
+import { useAuth } from "@/context/MockAuthContext"; // Updated to use MockAuthContext
 
 export const ProtectedRoute = () => {
   // DEVELOPMENT MODE: Auth check disabled for development

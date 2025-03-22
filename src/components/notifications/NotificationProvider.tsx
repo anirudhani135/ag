@@ -1,10 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/MockAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, Info, AlertTriangle, CheckCircle, X } from 'lucide-react';
-import { Toast } from '@/components/ui/toast';
 
 interface Notification {
   id: string;

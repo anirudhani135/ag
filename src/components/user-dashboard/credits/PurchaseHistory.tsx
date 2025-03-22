@@ -9,14 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 
-// Define separate interfaces to prevent deep instantiation
+// Define a simple interface without nested types
 interface Transaction {
   id: string;
   amount: number;
   created_at: string;
   status: string;
-  description?: string;
-  type?: string;
+  description: string;
+  type: string;
 }
 
 export const PurchaseHistory = () => {
@@ -37,26 +37,21 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Transform data without complex typing
-      return (data || []).map(item => {
-        // Safely access metadata properties
-        const metadata = item.metadata as Record<string, any> || {};
-        
-        return {
-          id: item.id,
-          amount: item.amount,
-          created_at: item.created_at,
-          status: item.status,
-          type: metadata.type || 'purchase',
-          description: metadata.description || `Purchase ${item.id.substring(0, 8)}`
-        } as Transaction;
-      });
+      // Transform data with explicit type casting
+      return (data || []).map(item => ({
+        id: item.id,
+        amount: item.amount,
+        created_at: item.created_at,
+        status: item.status,
+        type: item.metadata?.type || 'purchase',
+        description: item.metadata?.description || `Purchase ${item.id.substring(0, 8)}`
+      } as Transaction));
     },
     retry: user ? 2 : 0
   });
 
   return (
-    <Card className="border border-border overflow-hidden transition-all duration-200 hover:shadow-md group">
+    <Card className="border border-border overflow-hidden transition-all duration-300 hover:shadow-md group animate-fade-in">
       <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-br from-blue-50 to-white">
         <CardTitle className="text-sm font-medium">
           Recent Purchases
