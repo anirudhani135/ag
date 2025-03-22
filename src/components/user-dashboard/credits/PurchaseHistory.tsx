@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 
-// Define clearer type interfaces to avoid deep instantiation issues
+// Define separate interfaces to prevent deep instantiation
 interface Transaction {
   id: string;
   amount: number;
@@ -17,15 +17,6 @@ interface Transaction {
   status: string;
   description?: string;
   type?: string;
-}
-
-// Separate interface for raw database response
-interface RawTransaction {
-  id: string;
-  amount: number;
-  created_at: string;
-  status: string;
-  metadata: Record<string, any> | null;
 }
 
 export const PurchaseHistory = () => {
@@ -46,23 +37,20 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Transform raw data with explicit typing to avoid deep instantiation
-      const transformedData: Transaction[] = [];
-      
-      if (data) {
-        for (const item of data) {
-          transformedData.push({
-            id: item.id,
-            amount: item.amount,
-            created_at: item.created_at,
-            status: item.status,
-            type: item.metadata?.type || undefined,
-            description: item.metadata?.description || undefined
-          });
-        }
-      }
-      
-      return transformedData;
+      // Transform data without complex typing
+      return (data || []).map(item => {
+        // Safely access metadata properties
+        const metadata = item.metadata as Record<string, any> || {};
+        
+        return {
+          id: item.id,
+          amount: item.amount,
+          created_at: item.created_at,
+          status: item.status,
+          type: metadata.type || 'purchase',
+          description: metadata.description || `Purchase ${item.id.substring(0, 8)}`
+        } as Transaction;
+      });
     },
     retry: user ? 2 : 0
   });

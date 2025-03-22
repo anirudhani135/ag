@@ -5,8 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
-// Import AuthProvider but we'll comment it out for development
+// Import real AuthProvider (commented out for development)
 // import { AuthProvider } from "@/context/AuthContext";
+// Import the MockAuthProvider for development
+import { MockAuthProvider } from "@/context/MockAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { WithRoleProtection } from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
@@ -151,14 +153,13 @@ const App = () => (
         <FeatureTourProvider>
           <Toaster />
           <Sonner />
-          {/* DEVELOPMENT MODE: AuthProvider commented out to bypass authentication
-          <AuthProvider>
-          */}
+          {/* DEVELOPMENT MODE: Using MockAuthProvider instead of AuthProvider */}
+          <MockAuthProvider>
             <NotificationProvider>
               <AppContent />
               <UserOnboarding />
             </NotificationProvider>
-          {/* </AuthProvider> */}
+          </MockAuthProvider>
         </FeatureTourProvider>
       </TooltipProvider>
     </CacheProvider>

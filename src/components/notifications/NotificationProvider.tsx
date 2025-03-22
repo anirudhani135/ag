@@ -20,7 +20,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  clearNotification: (id: string) => Promise<void>; // Add this function
+  clearNotification: (id: string) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -44,37 +44,72 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           .limit(50);
         
         if (error) throw error;
-        setNotifications(data as Notification[]);
+        setNotifications(data as Notification[] || []);
       } catch (error) {
         console.error('Error fetching notifications:', error);
+        // In development mode, provide sample notifications
+        if (import.meta.env.DEV) {
+          setNotifications([
+            {
+              id: 'sample1',
+              title: 'Welcome to the platform',
+              message: 'This is a sample notification for development purposes.',
+              type: 'info',
+              created_at: new Date().toISOString(),
+              read: false
+            },
+            {
+              id: 'sample2',
+              title: 'New feature available',
+              message: 'Check out our new dashboard features.',
+              type: 'success',
+              created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+              read: true
+            }
+          ]);
+        }
       }
     };
 
     fetchNotifications();
 
     // Subscribe to new notifications
-    const channel = user ? supabase
-      .channel(`notifications:${user.id}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications',
-        filter: `user_id=eq.${user.id}`
-      }, (payload) => {
-        const newNotification = payload.new as Notification;
-        setNotifications((prev) => [newNotification, ...prev]);
-        
-        // Show toast for new notification
-        toast({
-          title: newNotification.title,
-          description: newNotification.message,
-          duration: 5000,
-        });
-      })
-      .subscribe() : null;
+    let channel: any = null;
+    
+    if (user) {
+      try {
+        channel = supabase
+          .channel(`notifications:${user.id}`)
+          .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          }, (payload) => {
+            const newNotification = payload.new as Notification;
+            setNotifications((prev) => [newNotification, ...prev]);
+            
+            // Show toast for new notification
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+              duration: 5000,
+            });
+          })
+          .subscribe();
+      } catch (error) {
+        console.error('Error subscribing to notifications:', error);
+      }
+    }
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.error('Error removing channel:', error);
+        }
+      }
     };
   }, [user, toast]);
 
@@ -82,6 +117,16 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     if (!user) return;
     
     try {
+      // In development mode, update the local state only
+      if (import.meta.env.DEV) {
+        setNotifications((prev) => 
+          prev.map((notification) => 
+            notification.id === id ? { ...notification, read: true } : notification
+          )
+        );
+        return;
+      }
+      
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
@@ -104,6 +149,14 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     if (!user) return;
     
     try {
+      // In development mode, update the local state only
+      if (import.meta.env.DEV) {
+        setNotifications((prev) => 
+          prev.map((notification) => ({ ...notification, read: true }))
+        );
+        return;
+      }
+      
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
@@ -120,11 +173,18 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
-  // New clearNotification function
   const clearNotification = async (id: string) => {
     if (!user) return;
     
     try {
+      // In development mode, update the local state only
+      if (import.meta.env.DEV) {
+        setNotifications((prev) => 
+          prev.filter((notification) => notification.id !== id)
+        );
+        return;
+      }
+      
       const { error } = await supabase
         .from('notifications')
         .delete()
@@ -149,7 +209,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     unreadCount,
     markAsRead,
     markAllAsRead,
-    clearNotification, // Add the function to the context value
+    clearNotification,
   };
 
   return (
