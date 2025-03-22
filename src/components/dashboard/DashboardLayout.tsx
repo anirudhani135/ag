@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";

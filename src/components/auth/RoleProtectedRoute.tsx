@@ -1,7 +1,7 @@
 
 import React from "react";
 // import { useNavigate } from "react-router-dom";
-// import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
 // import { Loader2 } from "lucide-react";
 
 interface RoleProtectedRouteProps {

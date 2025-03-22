@@ -1,6 +1,6 @@
 
 import { Outlet } from "react-router-dom";
-// import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
 
 interface WithRoleProtectionProps {
   allowedRoles: string[];
