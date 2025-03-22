@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,6 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 
-// Define the Transaction interface with proper typing
 interface Transaction {
   id: string;
   amount: number;
@@ -40,13 +38,12 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Explicitly transform the data to our Transaction type with proper handling of metadata
       const transactions: Transaction[] = (data || []).map(item => ({
         id: item.id,
         amount: item.amount,
         created_at: item.created_at,
         status: item.status,
-        metadata: (typeof item.metadata === 'object') ? item.metadata : null
+        metadata: typeof item.metadata === 'object' ? item.metadata : null
       }));
       
       return transactions;
