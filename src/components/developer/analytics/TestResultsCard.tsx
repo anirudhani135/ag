@@ -19,6 +19,12 @@ type TestResult = {
   status: string;
 };
 
+interface TestResults {
+  total?: number;
+  passed?: number;
+  [key: string]: any;
+}
+
 export const TestResultsCard = () => {
   const { data: testResults, isLoading } = useQuery({
     queryKey: ['agent-test-results'],
@@ -44,16 +50,15 @@ export const TestResultsCard = () => {
       
       return data.map((item) => {
         // Safely extract results with proper type checking
-        const results = typeof item.results === 'object' ? item.results : {};
+        let results: TestResults = {};
+        
+        if (item.results && typeof item.results === 'object') {
+          results = item.results as TestResults;
+        }
         
         // Safely extract total and passed tests with fallbacks
-        const totalTests = typeof results === 'object' && results !== null && 'total' in results 
-          ? Number(results.total) || 0 
-          : 0;
-          
-        const passedTests = typeof results === 'object' && results !== null && 'passed' in results 
-          ? Number(results.passed) || 0 
-          : 0;
+        const totalTests = results.total !== undefined ? Number(results.total) : 0;
+        const passedTests = results.passed !== undefined ? Number(results.passed) : 0;
         
         return {
           id: item.id,

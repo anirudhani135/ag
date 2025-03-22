@@ -1,31 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertCircle, Server, RefreshCw } from "lucide-react";
+import { AlertCircle, Server, Shield, Activity } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Progress } from "@/components/ui/progress";
-import { format } from "date-fns";
-import { toast } from "sonner";
-
-interface DeploymentHealth {
-  id: string;
-  agent_name: string;
-  uptime: number;
-  response_time: number;
-  error_rate: number;
-  status: 'healthy' | 'degraded' | 'unhealthy';
-  last_checked: string;
-}
+import { formatDistanceToNow } from "date-fns";
+import { Badge } from '@/components/ui/badge';
 
 export const DeploymentMonitoring = () => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const { data: deployments, isLoading, refetch } = useQuery({
-    queryKey: ['deployment-health'],
+  const { data: deployments, isLoading } = useQuery({
+    queryKey: ['deployment-monitoring'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
@@ -37,56 +23,22 @@ export const DeploymentMonitoring = () => {
           agent_id,
           status,
           health_status,
-          uptime_percentage,
-          response_time,
           error_rate,
+          response_time,
+          uptime_percentage,
           last_health_check,
-          agents!inner(title)
+          agents(title)
         `)
         .eq('agents.developer_id', user.id)
-        .order('last_health_check', { ascending: false });
+        .order('last_health_check', { ascending: false })
+        .limit(3);
       
       if (error) throw error;
       
-      return data.map(dep => ({
-        id: dep.id,
-        agent_name: dep.agents?.title || 'Unnamed Agent',
-        uptime: dep.uptime_percentage || 0,
-        response_time: dep.response_time || 0,
-        error_rate: dep.error_rate || 0,
-        status: dep.health_status as 'healthy' | 'degraded' | 'unhealthy',
-        last_checked: dep.last_health_check
-      }));
+      return data || [];
     },
-    staleTime: 60 * 1000 // 1 minute
+    staleTime: 30 * 1000, // 30 seconds cache
   });
-  
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refetch();
-      toast.success("Deployment health data refreshed");
-    } catch (error) {
-      toast.error("Failed to refresh deployment health data");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-  
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'text-green-600';
-      case 'degraded': return 'text-amber-600';
-      case 'unhealthy': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-  
-  const getUptimeColor = (uptime: number) => {
-    if (uptime >= 99) return 'bg-green-500';
-    if (uptime >= 95) return 'bg-amber-500';
-    return 'bg-red-500';
-  };
 
   return (
     <Card>
@@ -95,69 +47,63 @@ export const DeploymentMonitoring = () => {
           <Server className="h-4 w-4 text-primary" />
           <span>Deployment Health</span>
         </CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="h-8"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
         ) : !deployments || deployments.length === 0 ? (
-          <div className="text-center py-8 space-y-2">
-            <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground" />
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No active deployments found</p>
-            <p className="text-xs text-muted-foreground">Deploy your first agent to monitor its health</p>
           </div>
         ) : (
           <div className="space-y-4">
             {deployments.map((deployment) => (
-              <div key={deployment.id} className="border border-border rounded-md p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="font-medium">{deployment.agent_name}</div>
-                  <StatusBadge status={deployment.status} />
+              <div key={deployment.id} className="p-3 bg-muted/30 rounded-md">
+                <div className="flex justify-between items-center">
+                  <div className="font-medium text-sm">{deployment.agents?.title || 'Unnamed Agent'}</div>
+                  <Badge 
+                    className={`
+                      ${deployment.health_status === 'healthy' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                      ${deployment.health_status === 'warning' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : ''}
+                      ${deployment.health_status === 'unhealthy' ? 'bg-red-100 text-red-800 border-red-200' : ''}
+                      ${!deployment.health_status ? 'bg-gray-100 text-gray-800 border-gray-200' : ''}
+                    `}
+                  >
+                    {deployment.health_status || 'unknown'}
+                  </Badge>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 mb-2">
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">Uptime</div>
-                    <div className="flex items-center gap-2">
-                      <Progress value={deployment.uptime} className={`h-2 ${getUptimeColor(deployment.uptime)}`} />
-                      <span className="text-sm font-medium">{deployment.uptime.toFixed(1)}%</span>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1">
+                      <Activity className="h-3 w-3 text-muted-foreground" />
+                      <span>Uptime</span>
                     </div>
+                    <span>{deployment.uptime_percentage?.toFixed(2) || 0}%</span>
                   </div>
-                  
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">Response Time</div>
-                    <div className="text-sm font-medium">{deployment.response_time}ms</div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">Error Rate</div>
-                    <div className="text-sm font-medium">{deployment.error_rate.toFixed(2)}%</div>
-                  </div>
+                  <Progress 
+                    value={deployment.uptime_percentage || 0} 
+                    className="h-1.5"
+                    indicatorClassName={`
+                      ${deployment.uptime_percentage >= 99 ? 'bg-green-500' : ''} 
+                      ${deployment.uptime_percentage < 99 && deployment.uptime_percentage >= 95 ? 'bg-yellow-500' : ''}
+                      ${deployment.uptime_percentage < 95 ? 'bg-red-500' : ''}
+                    `}
+                  />
                 </div>
                 
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                <div className="mt-3 flex justify-between items-center text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <Activity className="h-3 w-3" />
-                    <span className={getStatusColor(deployment.status)}>
-                      {deployment.status === 'healthy' ? 'Healthy' : 
-                       deployment.status === 'degraded' ? 'Performance Degraded' : 'Unhealthy'}
-                    </span>
+                    <AlertCircle className="h-3 w-3" />
+                    <span>Error rate: {deployment.error_rate?.toFixed(2) || 0}%</span>
                   </div>
                   <div>
-                    Last checked: {format(new Date(deployment.last_checked), 'MMM d, h:mm a')}
+                    {deployment.last_health_check && 
+                      formatDistanceToNow(new Date(deployment.last_health_check), { addSuffix: true })}
                   </div>
                 </div>
               </div>

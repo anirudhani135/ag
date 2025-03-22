@@ -1,133 +1,151 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "./StatusBadge";
+import { 
+  Activity,
+  ShoppingCart,
+  Code,
+  Settings,
+  User,
+  Download,
+  ExternalLink,
+  ChevronRight
+} from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
-import { UserActivity } from "@/types/dashboard";
-import { Bot, MessageSquare, CreditCard, Clock } from "lucide-react";
+import { Button } from '../ui/button';
 
-export const UserActivityFeed = ({ activities, isLoading }: { 
+export interface UserActivity {
+  id: string;
+  action: string;
+  timestamp: string;
+  agentName?: string;
+  metadata?: Record<string, any>;
+  status?: string;
+}
+
+interface UserActivityFeedProps {
   activities?: UserActivity[];
   isLoading?: boolean;
-}) => {
-  const { user } = useAuth();
+  limit?: number;
+}
+
+export const UserActivityFeed = ({ 
+  activities: propActivities, 
+  isLoading: propLoading,
+  limit = 5
+}: UserActivityFeedProps) => {
+  const { user, userRole } = useAuth();
   
-  const { data = [], isLoading: isLoadingData } = useQuery({
-    queryKey: ['user-activity', user?.id],
+  // Fetch activities if not provided as props
+  const { data: fetchedActivities, isLoading: queryLoading } = useQuery({
+    queryKey: ['user-activities', user?.id, limit],
     queryFn: async () => {
       if (!user) return [];
-      if (activities) return activities;
       
       const { data, error } = await supabase
         .from('user_activity')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
-        
+        .limit(limit);
+      
       if (error) throw error;
       
-      return (data || []).map(activity => {
-        // Safely handle metadata
-        let agentName = 'Unknown Agent';
-        let status = 'success';
-        
-        if (activity.metadata) {
-          // Handle different possible metadata structures
-          if (typeof activity.metadata === 'object') {
-            // If it's an object, try to access properties directly
-            agentName = (activity.metadata as any)?.agent_name || agentName;
-            status = (activity.metadata as any)?.status || status;
-          }
-        }
+      return data.map((activity): UserActivity => {
+        const metadata = activity.metadata as Record<string, any> || {};
         
         return {
           id: activity.id,
           action: activity.activity_type,
           timestamp: activity.created_at,
-          agentName,
-          status
-        } as UserActivity;
+          agentName: metadata.agent_name || '',
+          metadata: metadata,
+          status: metadata.status || 'completed'
+        };
       });
     },
-    enabled: !activities && !!user,
-    staleTime: 30000,
+    enabled: !propActivities && !!user, // Only run if activities not provided via props
+    staleTime: 60 * 1000 // 1 minute
   });
-
-  const loading = isLoading || isLoadingData;
-
+  
+  // Use provided activities or fetched ones
+  const activities = propActivities || fetchedActivities || [];
+  const isLoading = propLoading || queryLoading;
+  
+  // Activity icon mapping
   const getActivityIcon = (action: string) => {
-    switch (action) {
-      case 'agent_interaction':
-        return <Bot className="h-4 w-4 text-blue-500" />;
-      case 'chat':
-        return <MessageSquare className="h-4 w-4 text-green-500" />;
-      case 'purchase':
-        return <CreditCard className="h-4 w-4 text-purple-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
-    }
+    const actionMap: Record<string, React.ReactNode> = {
+      'purchase': <ShoppingCart className="h-3 w-3" />,
+      'deploy': <Code className="h-3 w-3" />,
+      'update': <Settings className="h-3 w-3" />,
+      'login': <User className="h-3 w-3" />,
+      'download': <Download className="h-3 w-3" />,
+      'testing': <Activity className="h-3 w-3" />,
+    };
+    
+    return actionMap[action.toLowerCase()] || <ExternalLink className="h-3 w-3" />;
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(limit)].map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-muted-foreground">No recent activity</p>
+      </div>
+    );
+  }
+
   return (
-    <Card className="overflow-hidden border border-border">
-      <CardHeader className="bg-gradient-to-br from-slate-50 to-white pb-3">
-        <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {loading ? (
-          <div className="p-4 space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex gap-3 items-center">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <div className="space-y-1 flex-1">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              </div>
-            ))}
+    <div className="space-y-3">
+      {activities.map((activity) => (
+        <div key={activity.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+          <div className="flex items-start gap-3">
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mt-0.5">
+              {getActivityIcon(activity.action)}
+            </div>
+            <div>
+              <p className="text-sm font-medium">
+                {activity.action}
+                {activity.agentName && ` - ${activity.agentName}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+              </p>
+            </div>
           </div>
-        ) : data.length === 0 ? (
-          <div className="text-center py-6 px-4">
-            <p className="text-muted-foreground">No recent activity</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-border">
-            {data.map((activity) => (
-              <li key={activity.id} className="p-3 hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    {getActivityIcon(activity.action)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {activity.action === 'agent_interaction'
-                        ? `Interacted with ${activity.agentName}`
-                        : activity.action === 'chat'
-                        ? `New chat session`
-                        : activity.action === 'purchase'
-                        ? `Credits purchased`
-                        : activity.action}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-muted-foreground">
-                        {activity.timestamp 
-                          ? formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true }) 
-                          : 'Just now'}
-                      </p>
-                      <StatusBadge status={activity.status} />
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+          
+          {activity.status && (
+            <StatusBadge status={activity.status} />
+          )}
+        </div>
+      ))}
+      
+      {activities.length > 0 && (
+        <div className="flex justify-center pt-2">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => {/* Navigate to full activity page */}}
+          >
+            View all activity
+            <ChevronRight className="ml-1 h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };

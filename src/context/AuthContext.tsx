@@ -13,6 +13,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,50 +34,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId)
         .single();
 
-      if (error) throw error;
-      setUserRole(data?.role || null);
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+      
+      return data?.role || null;
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole(null);
+      console.error('Error in fetchUserRole:', error);
+      return null;
     }
   };
 
+  const refreshUserRole = async () => {
+    if (!user) return;
+    const role = await fetchUserRole(user.id);
+    setUserRole(role);
+  };
+
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        const role = await fetchUserRole(session.user.id);
+        setUserRole(role);
+        
+        // Log activity if login event
+        if (event === 'SIGNED_IN') {
+          try {
+            await supabase.from('user_activity').insert({
+              user_id: session.user.id,
+              activity_type: 'Login',
+              metadata: {
+                timestamp: new Date().toISOString(),
+                status: 'completed'
+              }
+            });
+          } catch (error) {
+            console.error('Error logging login activity:', error);
+          }
+        }
+      } else {
+        setUserRole(null);
       }
+      
       setIsLoading(false);
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // THEN check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        const role = await fetchUserRole(session.user.id);
+        setUserRole(role);
       }
+      
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
       if (error) throw error;
-      navigate("/dashboard");
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
+      
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -84,21 +125,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: error.message,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
       });
+      
       if (error) throw error;
-      navigate("/auth/verify");
+      
       toast({
         title: "Registration successful",
         description: "Please check your email to verify your account.",
       });
+      
+      navigate("/auth/verify");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -106,25 +153,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: error.message,
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
+      
+      if (user) {
+        // Log logout activity
+        try {
+          await supabase.from('user_activity').insert({
+            user_id: user.id,
+            activity_type: 'Logout',
+            metadata: {
+              timestamp: new Date().toISOString(),
+              status: 'completed'
+            }
+          });
+        } catch (error) {
+          console.error('Error logging logout activity:', error);
+        }
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
       setUserRole(null);
-      navigate("/auth/login");
+      setUser(null);
+      setSession(null);
+      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
+      
+      navigate("/auth/login");
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error signing out",
         description: error.message,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,6 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
+    refreshUserRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

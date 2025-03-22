@@ -1,89 +1,70 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { 
+  CheckCircle, 
+  Clock, 
+  AlertTriangle, 
+  XCircle, 
+  RotateCw, 
+  PlayCircle,
+  PauseCircle
+} from "lucide-react";
 
 interface StatusBadgeProps {
-  status?: string;
+  status: string;
   className?: string;
-  initialState?: 'loading' | 'ready' | 'error';
-  onStatusChange?: (status: 'loading' | 'ready' | 'error') => void;
 }
 
-export const StatusBadge = ({ 
-  status = 'success', 
-  className,
-  initialState,
-  onStatusChange
-}: StatusBadgeProps) => {
-  const [currentStatus, setCurrentStatus] = useState(initialState || status);
-
-  useEffect(() => {
-    if (initialState && onStatusChange) {
-      setCurrentStatus(initialState);
-    }
-  }, [initialState]);
-
-  useEffect(() => {
-    if (onStatusChange && currentStatus !== status && initialState) {
-      onStatusChange(currentStatus as 'loading' | 'ready' | 'error');
-    }
-  }, [currentStatus, onStatusChange]);
-
-  const getStatusConfig = () => {
-    const statusToUse = initialState || status;
+export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
+  // Define status configurations
+  const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
+    // Success states
+    'completed': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Completed' },
+    'success': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Success' },
+    'healthy': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Healthy' },
+    'live': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Live' },
+    'active': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Active' },
+    'ready': { color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="h-3 w-3 mr-1" />, label: 'Ready' },
     
-    switch (statusToUse.toLowerCase()) {
-      case 'success':
-      case 'ready':
-      case 'healthy':
-      case 'completed':
-        return {
-          icon: <CheckCircle className="h-3 w-3" />,
-          text: initialState === 'ready' ? 'Ready' : 
-                statusToUse === 'healthy' ? 'Healthy' : 'Success',
-          colorClasses: 'bg-green-50 text-green-700 border-green-100'
-        };
-      case 'warning':
-      case 'loading':
-      case 'degraded':
-      case 'pending':
-        return {
-          icon: <AlertCircle className="h-3 w-3" />,
-          text: initialState === 'loading' ? 'Loading' : 
-                statusToUse === 'degraded' ? 'Degraded' : 'Warning',
-          colorClasses: 'bg-yellow-50 text-yellow-700 border-yellow-100'
-        };
-      case 'error':
-      case 'failed':
-      case 'unhealthy':
-        return {
-          icon: <XCircle className="h-3 w-3" />,
-          text: initialState === 'error' ? 'Error' : 
-                statusToUse === 'unhealthy' ? 'Unhealthy' : 'Failed',
-          colorClasses: 'bg-red-50 text-red-700 border-red-100'
-        };
-      default:
-        return {
-          icon: <CheckCircle className="h-3 w-3" />,
-          text: 'Success',
-          colorClasses: 'bg-blue-50 text-blue-700 border-blue-100'
-        };
-    }
+    // Warning states
+    'warning': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: <AlertTriangle className="h-3 w-3 mr-1" />, label: 'Warning' },
+    'pending': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: <Clock className="h-3 w-3 mr-1" />, label: 'Pending' },
+    'processing': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: <RotateCw className="h-3 w-3 mr-1" />, label: 'Processing' },
+    
+    // Error states
+    'failed': { color: 'bg-red-100 text-red-800 border-red-200', icon: <XCircle className="h-3 w-3 mr-1" />, label: 'Failed' },
+    'error': { color: 'bg-red-100 text-red-800 border-red-200', icon: <XCircle className="h-3 w-3 mr-1" />, label: 'Error' },
+    'unhealthy': { color: 'bg-red-100 text-red-800 border-red-200', icon: <XCircle className="h-3 w-3 mr-1" />, label: 'Unhealthy' },
+    
+    // Neutral states
+    'paused': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <PauseCircle className="h-3 w-3 mr-1" />, label: 'Paused' },
+    'draft': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <Clock className="h-3 w-3 mr-1" />, label: 'Draft' },
+    'inactive': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: <PauseCircle className="h-3 w-3 mr-1" />, label: 'Inactive' },
   };
-
-  const { icon, text, colorClasses } = getStatusConfig();
-
+  
+  // Normalize status to lowercase for matching
+  const normalizedStatus = status.toLowerCase();
+  
+  // Get configuration or use default
+  const config = statusConfig[normalizedStatus] || {
+    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    icon: <Clock className="h-3 w-3 mr-1" />,
+    label: status
+  };
+  
   return (
-    <span 
+    <Badge 
+      variant="outline" 
       className={cn(
-        "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border",
-        colorClasses,
+        "flex items-center text-xs font-medium px-2 py-0.5",
+        config.color,
         className
       )}
     >
-      {icon}
-      <span className="hidden sm:inline">{text}</span>
-    </span>
+      {config.icon}
+      {config.label}
+    </Badge>
   );
 };

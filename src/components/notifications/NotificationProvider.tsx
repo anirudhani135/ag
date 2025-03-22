@@ -1,158 +1,145 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { subscribeToHealthUpdates, subscribeToRevenue } from "@/lib/realtimeSubscriptions";
-import { Bell, Check, X, AlertTriangle, Info } from "lucide-react";
-
-type NotificationType = 'success' | 'error' | 'warning' | 'info';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Bell, Info, AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { Toast } from '@/components/ui/toast';
 
 interface Notification {
   id: string;
   title: string;
   message: string;
-  type: NotificationType;
-  timestamp: Date;
+  type: 'info' | 'success' | 'warning' | 'error';
+  created_at: string;
   read: boolean;
-  data?: any;
 }
 
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  clearNotification: (id: string) => void;
-  clearAllNotifications: () => void;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
-  notifications: [],
-  unreadCount: 0,
-  markAsRead: () => {},
-  markAllAsRead: () => {},
-  clearNotification: () => {},
-  clearAllNotifications: () => {},
-});
-
-export const useNotifications = () => useContext(NotificationContext);
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  
-  // Calculate unread count
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  // Mark a single notification as read
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
-
-  // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-  };
-
-  // Clear a specific notification
-  const clearNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
-
-  // Clear all notifications
-  const clearAllNotifications = () => {
-    setNotifications([]);
-  };
-
-  // Function to add a new notification
-  const addNotification = (title: string, message: string, type: NotificationType = 'info', data?: any) => {
-    const newNotification: Notification = {
-      id: Date.now().toString(),
-      title,
-      message,
-      type,
-      timestamp: new Date(),
-      read: false,
-      data
-    };
-    
-    setNotifications(prev => [newNotification, ...prev]);
-    
-    // Also show a toast for immediate visibility
-    toast[type]?.(title, {
-      description: message,
-      action: {
-        label: "View",
-        onClick: () => markAsRead(newNotification.id)
-      },
-    });
-  };
-
-  // WebSocket subscriptions for real-time updates
   useEffect(() => {
-    // Subscribe to deployment health status changes
-    const healthChannel = subscribeToHealthUpdates((payload) => {
-      if (payload.new) {
-        const { agent_id, health_status, alert_status } = payload.new;
+    // Fetch initial notifications
+    const fetchNotifications = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
         
-        // Generate notification based on health status change
-        if (health_status === 'unhealthy') {
-          addNotification(
-            'Agent Health Alert', 
-            `Agent ${agent_id} is experiencing issues.`, 
-            'error',
-            payload.new
-          );
-        } else if (alert_status === 'warning') {
-          addNotification(
-            'Agent Performance Warning', 
-            `Agent ${agent_id} has degraded performance.`, 
-            'warning',
-            payload.new
-          );
-        }
+        if (error) throw error;
+        setNotifications(data as Notification[]);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
       }
-    });
-
-    // Subscribe to revenue updates
-    const revenueChannel = subscribeToRevenue((payload) => {
-      if (payload.new) {
-        const { total_revenue, daily_active_users, successful_transactions } = payload.new;
-        
-        // Generate notification for significant revenue changes
-        if (successful_transactions > 10) {
-          addNotification(
-            'Revenue Milestone', 
-            `Reached ${successful_transactions} transactions!`, 
-            'success',
-            payload.new
-          );
-        }
-      }
-    });
-
-    // Cleanup function
-    return () => {
-      supabase.removeChannel(healthChannel);
-      supabase.removeChannel(revenueChannel);
     };
-  }, []);
+
+    fetchNotifications();
+
+    // Subscribe to new notifications
+    const channel = user ? supabase
+      .channel(`notifications:${user.id}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`
+      }, (payload) => {
+        const newNotification = payload.new as Notification;
+        setNotifications((prev) => [newNotification, ...prev]);
+        
+        // Show toast for new notification
+        toast({
+          title: newNotification.title,
+          description: newNotification.message,
+          duration: 5000,
+        });
+      })
+      .subscribe() : null;
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [user, toast]);
+
+  const markAsRead = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setNotifications((prev) => 
+        prev.map((notification) => 
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      
+      if (error) throw error;
+      
+      setNotifications((prev) => 
+        prev.map((notification) => ({ ...notification, read: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  // Calculate unread count
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
+
+  const value = {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+  };
 
   return (
-    <NotificationContext.Provider value={{ 
-      notifications, 
-      unreadCount, 
-      markAsRead, 
-      markAllAsRead, 
-      clearNotification, 
-      clearAllNotifications 
-    }}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );
+};
+
+export const useNotifications = () => {
+  const context = useContext(NotificationContext);
+  if (context === undefined) {
+    throw new Error('useNotifications must be used within a NotificationProvider');
+  }
+  return context;
 };

@@ -1,17 +1,27 @@
 
-import { Navigate, Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export const ProtectedRoute = () => {
-  // During development, always bypass authentication check
-  const isDevelopment = true; // DEVELOPMENT MODE: Set to true for testing, set to false in production
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
 
-  // If authenticated or in development mode, render the outlet
-  if (user || isDevelopment) {
+  // Show loading state while auth state is being determined
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If authenticated, render the outlet
+  if (user) {
     return <Outlet />;
   }
 
-  // If not authenticated and not in development mode, redirect to login
-  return <Navigate to="/auth/login" />;
+  // If not authenticated, redirect to login with return path
+  return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
 };

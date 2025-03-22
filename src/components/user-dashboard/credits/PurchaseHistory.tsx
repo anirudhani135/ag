@@ -37,12 +37,12 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Process the data explicitly to avoid deep type issues
+      // Process the data with a more straightforward approach
       const transactions: Transaction[] = [];
       
       if (data && Array.isArray(data)) {
         for (const item of data) {
-          // Basic transaction data
+          // Create a basic transaction object with required fields
           const transaction: Transaction = {
             id: item.id,
             amount: item.amount,
@@ -53,8 +53,8 @@ export const PurchaseHistory = () => {
           // Safely extract metadata properties if they exist
           if (item.metadata && typeof item.metadata === 'object' && !Array.isArray(item.metadata)) {
             const metadata = item.metadata as Record<string, unknown>;
-            transaction.type = metadata.type as string;
-            transaction.description = metadata.description as string;
+            if ('type' in metadata) transaction.type = String(metadata.type);
+            if ('description' in metadata) transaction.description = String(metadata.description);
           }
           
           transactions.push(transaction);
