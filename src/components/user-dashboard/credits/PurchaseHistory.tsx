@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/context/AuthContext';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 
-// Simple transaction type without complex nesting
+// Define clearer type interfaces to avoid deep instantiation issues
 interface Transaction {
   id: string;
   amount: number;
@@ -20,7 +19,7 @@ interface Transaction {
   type?: string;
 }
 
-// Raw database transaction type
+// Separate interface for raw database response
 interface RawTransaction {
   id: string;
   amount: number;
@@ -47,15 +46,23 @@ export const PurchaseHistory = () => {
         
       if (error) throw error;
       
-      // Transform the raw data to our simplified Transaction type
-      return (data || []).map((item: RawTransaction): Transaction => ({
-        id: item.id,
-        amount: item.amount,
-        created_at: item.created_at,
-        status: item.status,
-        type: item.metadata?.type as string | undefined,
-        description: item.metadata?.description as string | undefined
-      }));
+      // Transform raw data with explicit typing to avoid deep instantiation
+      const transformedData: Transaction[] = [];
+      
+      if (data) {
+        for (const item of data) {
+          transformedData.push({
+            id: item.id,
+            amount: item.amount,
+            created_at: item.created_at,
+            status: item.status,
+            type: item.metadata?.type || undefined,
+            description: item.metadata?.description || undefined
+          });
+        }
+      }
+      
+      return transformedData;
     },
     retry: user ? 2 : 0
   });
@@ -70,21 +77,24 @@ export const PurchaseHistory = () => {
           <CreditCard className="h-4 w-4 text-blue-600" />
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 px-5">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
         ) : data.length === 0 ? (
-          <div className="text-center py-6">
+          <div className="text-center py-8">
             <p className="text-muted-foreground">No purchase history</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {data.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+              <div 
+                key={transaction.id} 
+                className="flex items-center justify-between py-2 border-b border-border last:border-0 hover:bg-muted/10 px-2 rounded-md transition-colors"
+              >
                 <div>
                   <p className="text-sm font-medium">
                     {transaction.amount} credits

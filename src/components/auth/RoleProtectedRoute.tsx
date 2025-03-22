@@ -1,8 +1,8 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react";
+import React from "react";
+// import { useNavigate } from "react-router-dom";
+// import { useAuth } from "@/context/AuthContext";
+// import { Loader2 } from "lucide-react";
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
@@ -10,6 +10,10 @@ interface RoleProtectedRouteProps {
 }
 
 const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps) => {
+  // DEVELOPMENT MODE: Role protection disabled for development
+  // Uncomment the below code for production use
+  
+  /*
   const { user, isLoading, userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -31,6 +35,10 @@ const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps)
   }
 
   return user && userRole && allowedRoles.includes(userRole) ? <>{children}</> : null;
+  */
+  
+  console.log("DEVELOPMENT MODE: Role protection bypassed for", allowedRoles);
+  return <>{children}</>;
 };
 
 export default RoleProtectedRoute;

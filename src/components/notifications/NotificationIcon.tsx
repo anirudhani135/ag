@@ -37,10 +37,15 @@ export const NotificationIcon = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative transition-all hover:bg-muted/80"
+          aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+        >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+            <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center animate-pulse">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -57,12 +62,12 @@ export const NotificationIcon = () => {
         </div>
         
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
-            No notifications
+          <div className="p-6 text-center text-muted-foreground">
+            <p>No notifications</p>
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[300px]">
+            <ScrollArea className="h-[320px]">
               <div className="divide-y">
                 {notifications.map((notification) => (
                   <div 

@@ -5,7 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
-import { AuthProvider } from "@/context/AuthContext";
+// Import AuthProvider but we'll comment it out for development
+// import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { WithRoleProtection } from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
@@ -96,53 +97,43 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        {/* Developer routes */}
-        <Route path="/developer" element={<ProtectedRoute />}>
-          <Route element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route path="dashboard" element={<DeveloperOverview />} />
-            <Route path="agents" element={<AgentManagement />} />
-            <Route path="agents/:agentId/testing" element={<AgentTesting />} />
-            <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
-            <Route path="revenue" element={<Revenue />} />
-            <Route path="api-integrations" element={<ApiIntegrations />} />
-            <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
-            <Route path="analytics" element={<DeveloperAnalytics />} />
-            <Route path="reviews" element={<DeveloperReviews />} />
-            <Route path="support" element={<DeveloperSupport />} />
-            <Route path="settings" element={<DeveloperSettings />} />
-            <Route path="transactions" element={<DeveloperTransactions />} />
-            <Route path="monitoring" element={<DeveloperMonitoring />} />
-            <Route path="agents/external" element={<ExternalSourceDeployment />} />
-          </Route>
+        {/* Developer routes - Auth check disabled for development */}
+        <Route path="/developer">
+          <Route path="dashboard" element={<DeveloperOverview />} />
+          <Route path="agents" element={<AgentManagement />} />
+          <Route path="agents/:agentId/testing" element={<AgentTesting />} />
+          <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
+          <Route path="revenue" element={<Revenue />} />
+          <Route path="api-integrations" element={<ApiIntegrations />} />
+          <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
+          <Route path="analytics" element={<DeveloperAnalytics />} />
+          <Route path="reviews" element={<DeveloperReviews />} />
+          <Route path="support" element={<DeveloperSupport />} />
+          <Route path="settings" element={<DeveloperSettings />} />
+          <Route path="transactions" element={<DeveloperTransactions />} />
+          <Route path="monitoring" element={<DeveloperMonitoring />} />
+          <Route path="agents/external" element={<ExternalSourceDeployment />} />
         </Route>
 
-        {/* User routes */}
-        <Route path="/user" element={<ProtectedRoute />}>
-          <Route element={<WithRoleProtection allowedRoles={["buyer"]} />}>
-            <Route path="dashboard" element={<UserDashboard />} />
-            <Route path="credits" element={<Credits />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="usage" element={<UsageHistory />} />
-            <Route path="saved" element={<SavedAgents />} />
-            <Route path="analytics" element={<UserAnalytics />} />
-            <Route path="agents" element={<UserAgents />} />
-            <Route path="notifications" element={<UserNotifications />} />
-            <Route path="reviews" element={<Reviews />} />
-            <Route path="support" element={<Support />} />
-          </Route>
+        {/* User routes - Auth check disabled for development */}
+        <Route path="/user">
+          <Route path="dashboard" element={<UserDashboard />} />
+          <Route path="credits" element={<Credits />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="usage" element={<UsageHistory />} />
+          <Route path="saved" element={<SavedAgents />} />
+          <Route path="analytics" element={<UserAnalytics />} />
+          <Route path="agents" element={<UserAgents />} />
+          <Route path="notifications" element={<UserNotifications />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="support" element={<Support />} />
         </Route>
 
-        {/* Marketplace routes */}
-        <Route path="/marketplace" element={<ProtectedRoute />}>
-          <Route index element={<Marketplace />} />
-        </Route>
+        {/* Marketplace routes - Auth check disabled for development */}
+        <Route path="/marketplace" element={<Marketplace />} />
 
-        {/* External deployment */}
-        <Route path="/agent-external-deployment" element={<ProtectedRoute />}>
-          <Route path="" element={<WithRoleProtection allowedRoles={["developer"]} />}>
-            <Route index element={<ExternalSourceDeployment />} />
-          </Route>
-        </Route>
+        {/* External deployment - Auth check disabled for development */}
+        <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
 
         {/* Redirects */}
         <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
@@ -160,12 +151,14 @@ const App = () => (
         <FeatureTourProvider>
           <Toaster />
           <Sonner />
+          {/* DEVELOPMENT MODE: AuthProvider commented out to bypass authentication
           <AuthProvider>
+          */}
             <NotificationProvider>
               <AppContent />
               <UserOnboarding />
             </NotificationProvider>
-          </AuthProvider>
+          {/* </AuthProvider> */}
         </FeatureTourProvider>
       </TooltipProvider>
     </CacheProvider>
