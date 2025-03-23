@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -37,8 +36,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/MockAuthContext";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -64,7 +64,9 @@ export function ExternalSourceDeployment() {
   const [deploymentProgress, setDeploymentProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedConfig, setUploadedConfig] = useState<any>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -125,11 +127,10 @@ export function ExternalSourceDeployment() {
     setIsDeploying(true);
     setDeploymentStep(1);
     setDeploymentProgress(10);
+    setAuthError(null);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      // Check if user is authenticated
       if (!user) {
         throw new Error('Authentication required');
       }
@@ -212,48 +213,70 @@ export function ExternalSourceDeployment() {
       
       // Simulate deployment completion
       setTimeout(async () => {
-        // Update deployment to completed
-        const { error: updateError } = await supabase
-          .from('deployments')
-          .update({
-            status: 'running',
-            metrics: {
-              deployment_type: values.externalType,
-              progress: 100,
-              current_stage: 'completed'
-            }
-          })
-          .eq('id', deployment.id);
+        try {
+          // Update deployment to completed
+          const { error: updateError } = await supabase
+            .from('deployments')
+            .update({
+              status: 'running',
+              metrics: {
+                deployment_type: values.externalType,
+                progress: 100,
+                current_stage: 'completed'
+              }
+            })
+            .eq('id', deployment.id);
+            
+          if (updateError) throw updateError;
           
-        if (updateError) throw updateError;
-        
-        // Update agent status to active
-        await supabase
-          .from('agents')
-          .update({
-            deployment_status: 'live',
-            status: values.isPublic ? 'active' : 'pending_review'
-          })
-          .eq('id', agent.id);
-        
-        setDeploymentProgress(100);
-        
-        toast({
-          title: "Deployment successful",
-          description: "Your agent has been successfully deployed and is now available.",
-        });
-        
-        setTimeout(() => {
-          navigate(`/agent-detail?id=${agent.id}`);
-        }, 1500);
+          // Update agent status to active
+          await supabase
+            .from('agents')
+            .update({
+              deployment_status: 'live',
+              status: values.isPublic ? 'active' : 'pending_review'
+            })
+            .eq('id', agent.id);
+          
+          setDeploymentProgress(100);
+          
+          toast({
+            title: "Deployment successful",
+            description: "Your agent has been successfully deployed and is now available.",
+          });
+          
+          setTimeout(() => {
+            navigate(`/agent-detail?id=${agent.id}`);
+          }, 1500);
+        } catch (error) {
+          console.error('Deployment completion error:', error);
+          toast({
+            variant: "destructive",
+            title: "Deployment failed at final stage",
+            description: error instanceof Error ? error.message : "An unexpected error occurred during completion",
+          });
+          setIsDeploying(false);
+        }
       }, 2000);
     } catch (error) {
       console.error('Deployment error:', error);
-      toast({
-        variant: "destructive",
-        title: "Deployment failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-      });
+      
+      // Handle authentication error specifically
+      if (error instanceof Error && error.message === 'Authentication required') {
+        setAuthError('You need to be signed in to deploy an agent. Please sign in and try again.');
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "You need to be signed in to deploy an agent",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Deployment failed",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+        });
+      }
+      
       setIsDeploying(false);
     }
   }
@@ -322,6 +345,16 @@ export function ExternalSourceDeployment() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {authError && (
+          <div className="mb-6 p-4 border border-red-200 bg-red-50 rounded-md flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-700">Authentication Required</p>
+              <p className="text-sm text-red-600">{authError}</p>
+            </div>
+          </div>
+        )}
+        
         {renderDeploymentStatus()}
         
         {!isDeploying && (
@@ -559,7 +592,11 @@ export function ExternalSourceDeployment() {
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={isDeploying}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isDeploying || !user}
+              >
                 {isDeploying ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -572,6 +609,12 @@ export function ExternalSourceDeployment() {
                   </>
                 )}
               </Button>
+              
+              {!user && (
+                <p className="text-sm text-red-500 text-center mt-2">
+                  You must be signed in to deploy an agent
+                </p>
+              )}
             </form>
           </Form>
         )}
