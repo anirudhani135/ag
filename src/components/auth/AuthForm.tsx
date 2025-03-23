@@ -42,9 +42,10 @@ const authSchema = z.object({
 interface AuthFormProps {
   type: "signin" | "signup";
   onSubmit?: (email: string, password: string) => void;
+  disabled?: boolean;
 }
 
-const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
+const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
@@ -62,7 +63,7 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
       setIsLoading(true);
       if (onSubmit) {
         // Use the provided onSubmit function if available
-        onSubmit(values.email, values.password);
+        await onSubmit(values.email, values.password);
       } else {
         // Use actual auth functions if no custom onSubmit is provided
         if (type === "signin") {
@@ -92,8 +93,9 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
                 <Input
                   type="email"
                   placeholder="Enter your email"
+                  autoComplete={type === "signin" ? "username" : "email"}
                   {...field}
-                  disabled={isLoading}
+                  disabled={isLoading || disabled}
                 />
               </FormControl>
               <FormMessage />
@@ -111,8 +113,9 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder={type === "signup" ? "Create a strong password" : "Enter your password"}
+                    autoComplete={type === "signin" ? "current-password" : "new-password"}
                     {...field}
-                    disabled={isLoading}
+                    disabled={isLoading || disabled}
                     className="pr-10"
                   />
                   <button
@@ -120,6 +123,7 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     tabIndex={-1}
+                    disabled={isLoading || disabled}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -137,9 +141,9 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
         <Button 
           type="submit" 
           className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-sm" 
-          disabled={isLoading}
+          disabled={isLoading || disabled}
         >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {(isLoading || disabled) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {type === "signin" ? "Sign In" : "Sign Up"}
         </Button>
       </form>

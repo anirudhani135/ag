@@ -13,17 +13,26 @@ const Login = () => {
   const location = useLocation();
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Get the return path from location state or default to dashboard
   const from = location.state?.from || "/user/dashboard";
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
+    setFormError(null);
+    
     try {
       await signIn(email, password);
       // Navigation handled in signIn function based on user role
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      setFormError(error.message);
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -40,9 +49,16 @@ const Login = () => {
         </p>
       </div>
 
+      {formError && (
+        <div className="p-3 my-2 text-sm border rounded-md bg-destructive/10 border-destructive/20 text-destructive">
+          {formError}
+        </div>
+      )}
+
       <AuthForm
         type="signin"
         onSubmit={handleLogin}
+        disabled={isLoading}
       />
 
       <div className="mt-4 text-center">

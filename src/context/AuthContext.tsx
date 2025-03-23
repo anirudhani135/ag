@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log("Fetching role for user ID:", userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
       
+      console.log("Fetched role data:", data);
       return data?.role || null;
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
@@ -121,7 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Auth state change will trigger role fetch and redirect
       const currentUser = (await supabase.auth.getUser()).data.user;
-      if (!currentUser) return;
+      if (!currentUser) {
+        throw new Error("Failed to retrieve user after sign in");
+      }
       
       const { data } = await supabase
         .from('user_roles')
@@ -135,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         navigate("/user/dashboard");
       }
     } catch (error: any) {
+      console.error("Sign-in error:", error);
       toast({
         variant: "destructive",
         title: "Error signing in",
@@ -168,9 +173,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               role: 'buyer'
             });
           
-          if (roleError) console.error("Error assigning role:", roleError);
-        } catch (e) {
+          if (roleError) {
+            console.error("Error assigning role:", roleError);
+            throw roleError;
+          }
+        } catch (e: any) {
           console.error("Error inserting role:", e);
+          throw new Error(`Failed to assign user role: ${e.message}`);
         }
       }
       
@@ -181,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       navigate("/auth/verify");
     } catch (error: any) {
+      console.error("Sign-up error:", error);
       toast({
         variant: "destructive",
         title: "Error signing up",

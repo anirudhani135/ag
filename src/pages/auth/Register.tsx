@@ -14,14 +14,18 @@ const Register = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleRegister = async (email: string, password: string) => {
     setIsLoading(true);
+    setFormError(null);
+    
     try {
       await signUp(email, password);
       // Navigation to verify email page is handled in signUp function
     } catch (error: any) {
       console.error("Registration error:", error);
+      setFormError(error.message);
       toast({
         variant: "destructive",
         title: "Registration failed",
@@ -34,13 +38,14 @@ const Register = () => {
 
   const handleDeveloperRegister = async () => {
     setIsLoading(true);
+    setFormError(null);
     
     try {
       // Generate a random email with dev_ prefix
-      const randomEmail = `dev_${Math.random().toString(36).substring(2, 8)}@example.com`;
+      const randomEmail = `dev_${Math.random().toString(36).substring(2, 10)}@example.com`;
       
       // Create a strong password that meets validation requirements
-      const randomPassword = `Dev${Math.random().toString(36).substring(2, 8)}1`;
+      const randomPassword = `Dev${Math.random().toString(36).substring(2, 8)}!1Ab`;
       
       // First register the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -65,6 +70,7 @@ const Register = () => {
           title: "Developer account created",
           description: `Your developer account has been registered with email: ${randomEmail} and password: ${randomPassword}. Please save these credentials.`,
           variant: "default",
+          duration: 10000, // Longer duration to ensure user sees credentials
         });
         
         // Auto sign in with the new developer credentials
@@ -78,12 +84,13 @@ const Register = () => {
         navigate("/developer/dashboard");
       }
     } catch (error: any) {
+      console.error("Developer registration error:", error);
+      setFormError(error.message);
       toast({
         variant: "destructive",
         title: "Developer registration failed",
         description: error.message,
       });
-      console.error("Developer registration error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -100,9 +107,16 @@ const Register = () => {
         </p>
       </div>
 
+      {formError && (
+        <div className="p-3 my-2 text-sm border rounded-md bg-destructive/10 border-destructive/20 text-destructive">
+          {formError}
+        </div>
+      )}
+
       <AuthForm
         type="signup"
         onSubmit={handleRegister}
+        disabled={isLoading}
       />
 
       <div className="mt-4 space-y-2">
