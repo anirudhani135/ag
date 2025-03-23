@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
