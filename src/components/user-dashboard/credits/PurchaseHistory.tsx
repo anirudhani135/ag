@@ -1,111 +1,112 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, CreditCard, DollarSign, Package } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from '@/context/MockAuthContext';
-import { StatusBadge } from '@/components/dashboard/StatusBadge';
+import { useAuth } from "@/context/AuthContext";
 
-// Define the transaction interface
-interface Transaction {
-  id: string;
-  amount: number;
-  created_at: string;
+// Define simpler type for metadata to avoid the circular reference
+interface TransactionMetadata {
+  timestamp: string;
+  paymentMethod?: string;
   status: string;
-  description: string;
-  type: string;
+  package?: string;
+  [key: string]: any;
 }
 
-// Define the raw transaction data structure from Supabase
 interface RawTransaction {
   id: string;
+  user_id: string;
+  transaction_type: string;
   amount: number;
   created_at: string;
-  status: string;
-  metadata: {
-    type?: string;
-    description?: string;
-  } | null;
+  metadata: TransactionMetadata;
 }
 
-export const PurchaseHistory = () => {
+export function PurchaseHistory() {
+  const [transactions, setTransactions] = useState<RawTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['purchase-history', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return;
       
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('id, amount, created_at, status, metadata')
-        .eq('user_id', user.id)
-        .eq('metadata->type', 'purchase')
-        .order('created_at', { ascending: false })
-        .limit(3);
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
         
-      if (error) throw error;
-      
-      // Transform data with proper typing
-      const transactions: Transaction[] = (data as RawTransaction[] || []).map(item => ({
-        id: item.id,
-        amount: item.amount,
-        created_at: item.created_at,
-        status: item.status,
-        type: item.metadata?.type || 'purchase',
-        description: item.metadata?.description || `Purchase ${item.id.substring(0, 8)}`
-      }));
-      
-      return transactions;
-    },
-    retry: user ? 2 : 0
-  });
+        if (error) throw error;
+        setTransactions(data || []);
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [user]);
 
   return (
-    <Card className="border border-border overflow-hidden transition-all duration-300 hover:shadow-md group animate-fade-in">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 bg-gradient-to-br from-blue-50 to-white">
-        <CardTitle className="text-sm font-medium">
-          Recent Purchases
-        </CardTitle>
-        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-          <CreditCard className="h-4 w-4 text-blue-600" />
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Purchase History</CardTitle>
+        <CardDescription>View your past transactions and credit purchases.</CardDescription>
       </CardHeader>
-      <CardContent className="pt-4 px-5">
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : data.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No purchase history</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {data.map((transaction) => (
-              <div 
-                key={transaction.id} 
-                className="flex items-center justify-between py-2 border-b border-border last:border-0 hover:bg-muted/10 px-2 rounded-md transition-colors"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {transaction.amount} credits
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(transaction.created_at), 'MMM d, yyyy')}
-                  </p>
-                </div>
-                <StatusBadge status={transaction.status} />
+      <CardContent className="p-4">
+        <Tabs defaultValue="credits" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="credits" className="inline-flex items-center space-x-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Credit Purchases</span>
+            </TabsTrigger>
+            <TabsTrigger value="agent-usage" className="inline-flex items-center space-x-2">
+              <Package className="h-4 w-4" />
+              <span>Agent Usage</span>
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="credits" className="space-y-4">
+            {isLoading ? (
+              <p>Loading transactions...</p>
+            ) : transactions.length === 0 ? (
+              <p>No credit purchases found.</p>
+            ) : (
+              <div className="grid gap-4">
+                {transactions.map((transaction) => (
+                  <div key={transaction.id} className="border rounded-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">
+                          <DollarSign className="mr-2 inline-block h-4 w-4" />
+                          {transaction.amount} Credits
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <Calendar className="mr-2 inline-block h-3 w-3" />
+                          {new Date(transaction.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">{transaction.metadata?.paymentMethod || 'Credit Card'}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Status: {transaction.metadata?.status || 'Completed'}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
+          </TabsContent>
+          <TabsContent value="agent-usage">
+            <p>No agent usage history available yet.</p>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
-};
+}

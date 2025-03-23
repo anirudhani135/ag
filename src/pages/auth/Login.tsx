@@ -1,42 +1,32 @@
 
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthForm from "@/components/auth/AuthForm";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (email: string, password: string) => {
-    // For development purposes, allow direct access
-    toast({
-      title: "Development mode",
-      description: "Bypassing authentication for development. Welcome!",
-      variant: "default",
-    });
-    navigate("/user/dashboard");
-  };
+  // Get the return path from location state or default to dashboard
+  const from = location.state?.from || "/user/dashboard";
 
-  const handleDeveloperLogin = () => {
-    // For development purposes, allow direct access to developer dashboard
-    toast({
-      title: "Developer access granted",
-      description: "Accessing developer dashboard in development mode.",
-      variant: "default",
-    });
-    navigate("/developer/dashboard");
-  };
-
-  const handleAgentCreationAccess = () => {
-    // For development purposes, allow direct access to agent creation
-    toast({
-      title: "Agent Creation Access",
-      description: "Accessing agent creation page in development mode.",
-      variant: "default",
-    });
-    navigate("/developer/agents/create");
+  const handleLogin = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+      // Navigation handled in signIn function based on user role
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,22 +45,18 @@ const Login = () => {
         onSubmit={handleLogin}
       />
 
-      <div className="mt-4 space-y-2">
-        <Button
-          variant="outline"
-          className="w-full bg-white text-black border-gray-200 hover:bg-gray-50"
-          onClick={handleDeveloperLogin}
-        >
-          Developer Dashboard (Dev Mode)
-        </Button>
-        
-        <Button
-          variant="outline"
-          className="w-full bg-black text-white hover:bg-black/90"
-          onClick={handleAgentCreationAccess}
-        >
-          Agent Creation (Dev Mode)
-        </Button>
+      <div className="mt-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link to="/auth/register" className="text-primary hover:underline">
+            Register
+          </Link>
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          <Link to="/auth/reset-password" className="text-primary hover:underline">
+            Forgot your password?
+          </Link>
+        </p>
       </div>
     </AuthLayout>
   );

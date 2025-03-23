@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,9 +37,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2, AlertCircle, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/MockAuthContext";
+import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -242,11 +243,11 @@ export function ExternalSourceDeployment() {
           
           toast({
             title: "Deployment successful",
-            description: "Your agent has been successfully deployed and is now available.",
+            description: "Your agent has been successfully deployed and is now available in the marketplace.",
           });
           
           setTimeout(() => {
-            navigate(`/agent-detail?id=${agent.id}`);
+            navigate(`/marketplace`);
           }, 1500);
         } catch (error) {
           console.error('Deployment completion error:', error);
@@ -280,6 +281,10 @@ export function ExternalSourceDeployment() {
       setIsDeploying(false);
     }
   }
+
+  const handleLogin = () => {
+    navigate("/auth/login", { state: { from: "/agent-external-deployment" } });
+  };
 
   const renderDeploymentStatus = () => {
     if (!isDeploying) return null;
@@ -348,9 +353,18 @@ export function ExternalSourceDeployment() {
         {authError && (
           <div className="mb-6 p-4 border border-red-200 bg-red-50 rounded-md flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <p className="font-medium text-red-700">Authentication Required</p>
               <p className="text-sm text-red-600">{authError}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogin} 
+                className="mt-2 bg-red-100 text-red-700 hover:bg-red-200 border-red-300"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
             </div>
           </div>
         )}
@@ -611,9 +625,19 @@ export function ExternalSourceDeployment() {
               </Button>
               
               {!user && (
-                <p className="text-sm text-red-500 text-center mt-2">
-                  You must be signed in to deploy an agent
-                </p>
+                <div className="text-center mt-2">
+                  <p className="text-sm text-red-500 mb-2">
+                    You must be signed in to deploy an agent
+                  </p>
+                  <Button 
+                    variant="outline"
+                    onClick={handleLogin}
+                    className="bg-primary/10 text-primary hover:bg-primary/20"
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Sign In to Deploy
+                  </Button>
+                </div>
               )}
             </form>
           </Form>

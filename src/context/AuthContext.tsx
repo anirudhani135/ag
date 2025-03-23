@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -117,7 +117,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "You have successfully signed in.",
       });
       
-      navigate("/dashboard");
+      // Redirect based on user role
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (data?.role === 'developer') {
+        navigate("/developer/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

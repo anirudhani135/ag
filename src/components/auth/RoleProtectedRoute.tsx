@@ -1,8 +1,8 @@
 
-import React from "react";
-// import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
-// import { Loader2 } from "lucide-react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
+import { Loader2 } from "lucide-react";
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
@@ -10,10 +10,6 @@ interface RoleProtectedRouteProps {
 }
 
 const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps) => {
-  // DEVELOPMENT MODE: Role protection disabled for development
-  // Uncomment the below code for production use
-  
-  /*
   const { user, isLoading, userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -29,16 +25,12 @@ const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps)
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
       </div>
     );
   }
 
   return user && userRole && allowedRoles.includes(userRole) ? <>{children}</> : null;
-  */
-  
-  console.log("DEVELOPMENT MODE: Role protection bypassed for", allowedRoles);
-  return <>{children}</>;
 };
 
 export default RoleProtectedRoute;

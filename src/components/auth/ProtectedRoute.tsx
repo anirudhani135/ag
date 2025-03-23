@@ -1,22 +1,10 @@
 
 import React from "react";
-import { Outlet } from "react-router-dom";
-import { useAuth } from "@/context/MockAuthContext"; // Updated to use MockAuthContext
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
+import { Loader2 } from "lucide-react";
 
 export const ProtectedRoute = () => {
-  // DEVELOPMENT MODE: Auth check disabled for development
-  // Using MockAuthProvider during development
-  const { user } = useAuth();
-  
-  // Log authentication status but proceed regardless in development mode
-  console.log("DEVELOPMENT MODE: Authentication check bypassed", { 
-    userAuthenticated: !!user,
-    userId: user?.id 
-  });
-  
-  return <Outlet />;
-  
-  /* PRODUCTION CODE (commented out during development)
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -36,5 +24,4 @@ export const ProtectedRoute = () => {
 
   // If not authenticated, redirect to login with return path
   return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />;
-  */
 };

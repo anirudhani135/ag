@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
+import { useAuth } from "@/context/AuthContext"; // Using real AuthContext now
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -30,7 +30,7 @@ const authSchema = z.object({
 
 interface AuthFormProps {
   type: "signin" | "signup";
-  onSubmit: (email: string, password: string) => void;
+  onSubmit?: (email: string, password: string) => void;
 }
 
 const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
@@ -48,15 +48,20 @@ const AuthForm = ({ type, onSubmit }: AuthFormProps) => {
   const handleSubmit = async (values: z.infer<typeof authSchema>) => {
     try {
       setIsLoading(true);
-      if (type === "signin") {
-        // Use the provided onSubmit function instead of auth context
+      if (onSubmit) {
+        // Use the provided onSubmit function if available (for development mode)
         onSubmit(values.email, values.password);
       } else {
-        // Use the provided onSubmit function instead of auth context
-        onSubmit(values.email, values.password);
+        // Use actual auth functions if no custom onSubmit is provided
+        if (type === "signin") {
+          await signIn(values.email, values.password);
+        } else {
+          await signUp(values.email, values.password);
+        }
       }
     } catch (error) {
       // Error is handled in the auth context
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

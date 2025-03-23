@@ -10,19 +10,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/context/MockAuthContext"; // Changed from AuthContext to MockAuthContext
+import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
+import { Link } from "react-router-dom";
 
 export function UserNav() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, userRole } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatar.png" alt="User" />
+            <AvatarImage src="/avatar.png" alt={user?.email || "User"} />
             <AvatarFallback>
-              {user?.email?.substring(0, 2) || "U"}
+              {user?.email?.substring(0, 2).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -30,7 +35,9 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">User</p>
+            <p className="text-sm font-medium leading-none">
+              {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : "User"}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || "user@example.com"}
             </p>
@@ -39,17 +46,19 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            Profile
+            <Link to="/user/profile" className="w-full">Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Settings
+            <Link to="/user/settings" className="w-full">Settings</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            Billing
-          </DropdownMenuItem>
+          {userRole === "developer" && (
+            <DropdownMenuItem>
+              <Link to="/developer/dashboard" className="w-full">Developer Dashboard</Link>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
+        <DropdownMenuItem onClick={handleSignOut}>
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

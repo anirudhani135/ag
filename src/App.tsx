@@ -5,10 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
-// Import real AuthProvider (commented out for development)
-// import { AuthProvider } from "@/context/AuthContext";
-// Import the MockAuthProvider for development
-import { MockAuthProvider } from "@/context/MockAuthContext";
+// Import real AuthProvider
+import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { WithRoleProtection } from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
@@ -99,48 +97,52 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        {/* Developer routes - Auth check disabled for development */}
-        <Route path="/developer">
-          <Route path="dashboard" element={<DeveloperOverview />} />
-          <Route path="agents" element={<AgentManagement />} />
-          <Route path="agents/:agentId/testing" element={<AgentTesting />} />
-          <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
-          <Route path="revenue" element={<Revenue />} />
-          <Route path="api-integrations" element={<ApiIntegrations />} />
-          <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
-          <Route path="analytics" element={<DeveloperAnalytics />} />
-          <Route path="reviews" element={<DeveloperReviews />} />
-          <Route path="support" element={<DeveloperSupport />} />
-          <Route path="settings" element={<DeveloperSettings />} />
-          <Route path="transactions" element={<DeveloperTransactions />} />
-          <Route path="monitoring" element={<DeveloperMonitoring />} />
-          <Route path="agents/external" element={<ExternalSourceDeployment />} />
+        {/* Protected developer routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<WithRoleProtection allowedRoles={['developer', 'admin']} />}>
+            <Route path="/developer">
+              <Route path="dashboard" element={<DeveloperOverview />} />
+              <Route path="agents" element={<AgentManagement />} />
+              <Route path="agents/:agentId/testing" element={<AgentTesting />} />
+              <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
+              <Route path="revenue" element={<Revenue />} />
+              <Route path="api-integrations" element={<ApiIntegrations />} />
+              <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
+              <Route path="analytics" element={<DeveloperAnalytics />} />
+              <Route path="reviews" element={<DeveloperReviews />} />
+              <Route path="support" element={<DeveloperSupport />} />
+              <Route path="settings" element={<DeveloperSettings />} />
+              <Route path="transactions" element={<DeveloperTransactions />} />
+              <Route path="monitoring" element={<DeveloperMonitoring />} />
+              <Route path="agents/external" element={<ExternalSourceDeployment />} />
+            </Route>
+            <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
+          </Route>
         </Route>
 
-        {/* User routes - Auth check disabled for development */}
-        <Route path="/user">
-          <Route path="dashboard" element={<UserDashboard />} />
-          <Route path="credits" element={<Credits />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="usage" element={<UsageHistory />} />
-          <Route path="saved" element={<SavedAgents />} />
-          <Route path="analytics" element={<UserAnalytics />} />
-          <Route path="agents" element={<UserAgents />} />
-          <Route path="notifications" element={<UserNotifications />} />
-          <Route path="reviews" element={<Reviews />} />
-          <Route path="support" element={<Support />} />
+        {/* Protected user routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/user">
+            <Route path="dashboard" element={<UserDashboard />} />
+            <Route path="credits" element={<Credits />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="usage" element={<UsageHistory />} />
+            <Route path="saved" element={<SavedAgents />} />
+            <Route path="analytics" element={<UserAnalytics />} />
+            <Route path="agents" element={<UserAgents />} />
+            <Route path="notifications" element={<UserNotifications />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="support" element={<Support />} />
+          </Route>
         </Route>
 
-        {/* Marketplace routes - Auth check disabled for development */}
+        {/* Marketplace - publicly accessible */}
         <Route path="/marketplace" element={<Marketplace />} />
-
-        {/* External deployment - Auth check disabled for development */}
-        <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
 
         {/* Redirects */}
         <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
         <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );
@@ -153,13 +155,13 @@ const App = () => (
         <FeatureTourProvider>
           <Toaster />
           <Sonner />
-          {/* DEVELOPMENT MODE: Using MockAuthProvider instead of AuthProvider */}
-          <MockAuthProvider>
+          {/* Use real AuthProvider instead of MockAuthProvider */}
+          <AuthProvider>
             <NotificationProvider>
               <AppContent />
               <UserOnboarding />
             </NotificationProvider>
-          </MockAuthProvider>
+          </AuthProvider>
         </FeatureTourProvider>
       </TooltipProvider>
     </CacheProvider>
