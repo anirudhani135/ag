@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
-// Interface for transaction data
+// Interface for transaction data with all optional fields except id
 interface TransactionData {
   id: string;
   user_id: string;
@@ -52,8 +52,9 @@ export const EnhancedTransactionsList = () => {
         query = query.eq("status", statusFilter);
       }
       
-      if (typeFilter !== "all") {
-        query = query.eq("metadata->type", typeFilter);
+      // Modified type filter to check metadata->type safely
+      if (typeFilter !== "all" && typeFilter) {
+        query = query.eq("metadata->>type", typeFilter);
       }
       
       const { data, error } = await query;
@@ -75,10 +76,16 @@ export const EnhancedTransactionsList = () => {
     enabled: !!user
   });
   
-  const filteredTransactions = transactions?.filter(tx => 
-    (tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tx.id?.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) || [];
+  // Simplified search filter to avoid deep recursion
+  const filteredTransactions = transactions?.filter(tx => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      (tx.description && tx.description.toLowerCase().includes(query)) ||
+      (tx.id && tx.id.toLowerCase().includes(query))
+    );
+  }) || [];
 
   // Get status badge color
   const getStatusColor = (status: string) => {
@@ -140,7 +147,7 @@ export const EnhancedTransactionsList = () => {
           </div>
         </div>
         
-        {/* Simplified table */}
+        {/* Table */}
         {isLoading ? (
           <div className="space-y-2">
             {Array(5).fill(0).map((_, i) => (

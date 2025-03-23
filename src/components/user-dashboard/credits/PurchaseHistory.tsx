@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,22 +8,26 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-// Define simpler type for metadata to avoid the circular reference
+// Updated to make all fields optional except id, user_id, and amount
 interface TransactionMetadata {
-  timestamp: string;
+  timestamp?: string;
   paymentMethod?: string;
-  status: string;
+  status?: string;
   package?: string;
+  type?: string;
   [key: string]: any;
 }
 
 interface RawTransaction {
   id: string;
   user_id: string;
-  transaction_type: string;
+  transaction_type?: string; // Made optional to accommodate database schema
   amount: number;
   created_at: string;
-  metadata: TransactionMetadata;
+  metadata?: TransactionMetadata;
+  agent_id?: string;
+  status?: string;
+  payment_intent_id?: string;
 }
 
 export function PurchaseHistory() {
@@ -43,7 +48,14 @@ export function PurchaseHistory() {
           .order('created_at', { ascending: false });
         
         if (error) throw error;
-        setTransactions(data || []);
+        
+        // Transform the data to match our RawTransaction type
+        const transformedData = data?.map((item: any) => ({
+          ...item,
+          transaction_type: item.metadata?.type || 'purchase' // Add missing transaction_type
+        })) || [];
+        
+        setTransactions(transformedData);
       } catch (error) {
         console.error('Error fetching transactions:', error);
       } finally {
@@ -95,7 +107,7 @@ export function PurchaseHistory() {
                       <Badge variant="secondary">{transaction.metadata?.paymentMethod || 'Credit Card'}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Status: {transaction.metadata?.status || 'Completed'}
+                      Status: {transaction.metadata?.status || transaction.status || 'Completed'}
                     </p>
                   </div>
                 ))}
