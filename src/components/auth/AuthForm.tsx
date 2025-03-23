@@ -34,7 +34,12 @@ const passwordSchema = z
     "Password must contain at least one number"
   );
 
-const authSchema = z.object({
+const signinSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: passwordSchema,
 });
@@ -50,15 +55,19 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
 
-  const form = useForm<z.infer<typeof authSchema>>({
-    resolver: zodResolver(authSchema),
+  const schema = type === "signin" ? signinSchema : signupSchema;
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof authSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof schema>) => {
+    if (disabled) return;
+    
     try {
       setIsLoading(true);
       if (onSubmit) {

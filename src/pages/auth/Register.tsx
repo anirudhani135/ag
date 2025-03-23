@@ -66,6 +66,21 @@ const Register = () => {
         
         if (roleError) throw roleError;
         
+        // Create a basic profile for the developer
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            email: randomEmail,
+            name: `Developer ${randomEmail.split('@')[0].substring(4)}`,
+            role: 'developer'
+          });
+          
+        if (profileError) {
+          console.error("Error creating developer profile:", profileError);
+          // Don't throw here as we've already created the user and role
+        }
+        
         toast({
           title: "Developer account created",
           description: `Your developer account has been registered with email: ${randomEmail} and password: ${randomPassword}. Please save these credentials.`,

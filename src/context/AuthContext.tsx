@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Register the user
+      // First try to register the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -177,9 +177,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Error assigning role:", roleError);
             throw roleError;
           }
+          
+          // Create a basic profile entry for the user
+          // This no longer tries to use full_name which doesn't exist
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: email,
+              name: email.split('@')[0] // Use part of email as initial name
+            });
+            
+          if (profileError) {
+            console.error("Error creating profile:", profileError);
+            // Don't throw here, as the user and role are already created
+          }
         } catch (e: any) {
-          console.error("Error inserting role:", e);
-          throw new Error(`Failed to assign user role: ${e.message}`);
+          console.error("Error in signup process:", e);
+          throw new Error(`Registration error: ${e.message}`);
         }
       }
       
