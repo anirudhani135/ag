@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const Register = () => {
   const { toast } = useToast();
@@ -19,8 +20,13 @@ const Register = () => {
     try {
       await signUp(email, password);
       // Navigation to verify email page is handled in signUp function
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: error.message,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -28,11 +34,18 @@ const Register = () => {
 
   const handleDeveloperRegister = async () => {
     setIsLoading(true);
+    
     try {
+      // Generate a random email with dev_ prefix
+      const randomEmail = `dev_${Math.random().toString(36).substring(2, 8)}@example.com`;
+      
+      // Create a strong password that meets validation requirements
+      const randomPassword = `Dev${Math.random().toString(36).substring(2, 8)}1`;
+      
       // First register the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: `dev_${Math.random().toString(36).substring(2, 8)}@example.com`,
-        password: "Password123",
+        email: randomEmail,
+        password: randomPassword,
       });
       
       if (authError) throw authError;
@@ -50,16 +63,24 @@ const Register = () => {
         
         toast({
           title: "Developer account created",
-          description: "Your developer account has been registered. Please check your email to verify.",
+          description: `Your developer account has been registered with email: ${randomEmail} and password: ${randomPassword}. Please save these credentials.`,
           variant: "default",
         });
         
-        navigate("/auth/verify");
+        // Auto sign in with the new developer credentials
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: randomEmail,
+          password: randomPassword,
+        });
+        
+        if (signInError) throw signInError;
+        
+        navigate("/developer/dashboard");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration failed",
+        title: "Developer registration failed",
         description: error.message,
       });
       console.error("Developer registration error:", error);
@@ -91,7 +112,14 @@ const Register = () => {
           onClick={handleDeveloperRegister}
           disabled={isLoading}
         >
-          Register as Developer
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Register as Developer"
+          )}
         </Button>
         
         <div className="text-center mt-4">

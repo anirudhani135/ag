@@ -55,11 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         const role = await fetchUserRole(session.user.id);
+        console.log("User role:", role);
         setUserRole(role);
         
         // Log activity if login event
@@ -117,11 +119,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "You have successfully signed in.",
       });
       
-      // Redirect based on user role
+      // Auth state change will trigger role fetch and redirect
+      const currentUser = (await supabase.auth.getUser()).data.user;
+      if (!currentUser) return;
+      
       const { data } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', currentUser.id)
         .single();
       
       if (data?.role === 'developer') {
@@ -144,12 +149,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signUp({
+      
+      // Register the user
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       
       if (error) throw error;
+      
+      // By default, assign buyer role to new users
+      if (data.user) {
+        try {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: data.user.id,
+              role: 'buyer'
+            });
+          
+          if (roleError) console.error("Error assigning role:", roleError);
+        } catch (e) {
+          console.error("Error inserting role:", e);
+        }
+      }
       
       toast({
         title: "Registration successful",
