@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/MockAuthContext';
+import { useAuth } from '@/context/AuthContext'; // Changed from MockAuthContext to AuthContext
 import { useToast } from '@/hooks/use-toast';
 import { Bell, Info, AlertTriangle, CheckCircle, X } from 'lucide-react';
 

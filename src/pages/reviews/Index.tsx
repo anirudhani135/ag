@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Review } from '@/types';
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/AuthContext"; // Changed to real AuthContext
 import {
   Table,
   TableBody,
@@ -30,11 +32,20 @@ const Index = () => {
     comment: '',
     user_id: '',
   });
-  const { toast } = useToast()
+  const { toast } = useToast();
+  const { user } = useAuth(); // Get the current user
 
   useEffect(() => {
     fetchReviews();
-  }, []);
+    
+    // Set user ID from authenticated user if available
+    if (user) {
+      setNewReview(prev => ({
+        ...prev,
+        user_id: user.id
+      }));
+    }
+  }, [user]);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -55,8 +66,14 @@ const Index = () => {
 
   const handleSubmitReview = async (): Promise<void> => {
     try {
+      // Use the current user's ID if available
+      const reviewData = {
+        ...newReview,
+        user_id: user?.id || newReview.user_id
+      };
+      
       // Basic validation
-      if (!newReview.agent_id || !newReview.user_id) {
+      if (!reviewData.agent_id || !reviewData.user_id) {
         toast({
           title: "Error",
           description: "Agent ID and User ID are required.",
@@ -67,7 +84,7 @@ const Index = () => {
   
       const { data, error } = await supabase
         .from('reviews')
-        .insert([newReview]);
+        .insert([reviewData]);
   
       if (error) {
         console.error('Error submitting review:', error);
@@ -86,7 +103,7 @@ const Index = () => {
           agent_id: '',
           rating: 5,
           comment: '',
-          user_id: '',
+          user_id: user?.id || '', // Keep the user ID if available
         }); // Reset form
       }
     } catch (error) {
@@ -118,14 +135,16 @@ const Index = () => {
               onChange={(e) => setNewReview({ ...newReview, agent_id: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="user-id">User ID</Label>
-            <Input
-              id="user-id"
-              value={newReview.user_id}
-              onChange={(e) => setNewReview({ ...newReview, user_id: e.target.value })}
-            />
-          </div>
+          {!user && (
+            <div className="grid gap-2">
+              <Label htmlFor="user-id">User ID</Label>
+              <Input
+                id="user-id"
+                value={newReview.user_id}
+                onChange={(e) => setNewReview({ ...newReview, user_id: e.target.value })}
+              />
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="rating">Rating</Label>
             <Slider

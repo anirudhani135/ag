@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext"; // Added import
 
 interface UsageData {
   date: string;
@@ -10,12 +11,13 @@ interface UsageData {
 }
 
 export const UsageMetrics = () => {
+  const { user } = useAuth(); // Use the real Auth context
+  
   const { data: usageData } = useQuery({
-    queryKey: ['usage-metrics'],
+    queryKey: ['usage-metrics', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
+      if (!user) return [];
+      
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -32,7 +34,8 @@ export const UsageMetrics = () => {
         date: new Date(d.created_at).toLocaleDateString(),
         usage: Math.round(d.session_duration / 60) // Convert to minutes
       }));
-    }
+    },
+    enabled: !!user
   });
 
   return (

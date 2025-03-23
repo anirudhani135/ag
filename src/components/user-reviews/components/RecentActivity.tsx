@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { LoadingSpinner } from './LoadingSpinner';
+import { useAuth } from '@/context/AuthContext'; // Added import for AuthContext
 
 interface Activity {
   id: string;
@@ -13,20 +14,23 @@ interface Activity {
 }
 
 const RecentActivity = () => {
+  const { user } = useAuth(); // Use the real Auth context
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['review-activities'],
+    queryKey: ['review-activities', user?.id],
     queryFn: async () => {
-      const user = await supabase.auth.getUser();
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from('reviews')
         .select('id, created_at, agents(title)')
-        .eq('user_id', user.data.user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   if (isLoading) return <LoadingSpinner />;

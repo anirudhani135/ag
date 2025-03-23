@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
+import { useAuth } from "@/context/AuthContext"; // Changed from MockAuthContext to AuthContext
 import { Link } from "react-router-dom";
 
 export function UserNav() {
