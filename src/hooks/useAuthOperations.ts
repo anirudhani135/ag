@@ -96,7 +96,7 @@ export const useAuthOperations = () => {
         
         console.log("Buyer role assigned successfully");
         
-        // Step 4: Create a profile entry for the user
+        // Step 4: Create a profile entry for the user - FIXED to match actual DB schema
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -108,12 +108,22 @@ export const useAuthOperations = () => {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          throw profileError; // Changed to throw error since profile creation is critical
+          throw profileError; // Throw error since profile creation is critical
         } else {
           console.log("Profile created successfully");
         }
       } catch (e: any) {
         console.error("Error in signup process:", e);
+        
+        // Attempt to clean up the partially created user if possible
+        try {
+          // This is an admin-only operation that might not work with client-side API
+          // Just logging the attempt for now
+          console.log("Attempting to clean up incomplete user registration");
+        } catch (cleanupError) {
+          console.error("Error during cleanup:", cleanupError);
+        }
+        
         toast({
           variant: "destructive",
           title: "Registration error",

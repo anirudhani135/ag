@@ -43,3 +43,27 @@ export const logUserActivity = async (userId: string, activityType: string) => {
     console.error(`Error logging ${activityType} activity:`, error);
   }
 };
+
+/**
+ * Verifies the database schema for profiles table
+ * This is a helper function to debug database schema issues
+ */
+export const verifyProfilesSchema = async () => {
+  try {
+    // Directly query the database to check the schema of the profiles table
+    const { data, error } = await supabase.rpc('debug_get_table_columns', {
+      table_name: 'profiles'
+    });
+    
+    if (error) {
+      console.error('Error verifying profiles schema:', error);
+      return null;
+    }
+    
+    console.log("Profiles table schema:", data);
+    return data;
+  } catch (error) {
+    console.error('Error in verifyProfilesSchema:', error);
+    return null;
+  }
+};
