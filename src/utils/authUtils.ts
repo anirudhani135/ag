@@ -50,18 +50,22 @@ export const logUserActivity = async (userId: string, activityType: string) => {
  */
 export const verifyProfilesSchema = async () => {
   try {
-    // Directly query the database to check the schema of the profiles table
-    const { data, error } = await supabase.rpc('debug_get_table_columns', {
-      table_name: 'profiles'
-    });
+    // Use direct query instead of RPC to get table information
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .limit(1);
     
     if (error) {
       console.error('Error verifying profiles schema:', error);
       return null;
     }
     
-    console.log("Profiles table schema:", data);
-    return data;
+    // Get the column names from the first row
+    const columnNames = data && data.length > 0 ? Object.keys(data[0]) : [];
+    console.log("Profiles table columns:", columnNames);
+    
+    return columnNames;
   } catch (error) {
     console.error('Error in verifyProfilesSchema:', error);
     return null;
