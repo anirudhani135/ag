@@ -70,6 +70,8 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
     
     try {
       setIsLoading(true);
+      console.log(`Attempting to ${type === "signin" ? "sign in" : "sign up"} with email:`, values.email);
+      
       if (onSubmit) {
         // Use the provided onSubmit function if available
         await onSubmit(values.email, values.password);
@@ -83,7 +85,7 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
       }
     } catch (error) {
       // Error is handled in the auth context
-      console.error(error);
+      console.error("Form submission error:", error);
     } finally {
       setIsLoading(false);
     }

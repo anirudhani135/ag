@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          // We don't throw here since user and role are already created
+          throw profileError; // Changed to throw error since profile creation is critical
         } else {
           console.log("Profile created successfully");
         }

@@ -92,7 +92,7 @@ const Register = () => {
           
         if (profileError) {
           console.error("Error creating developer profile:", profileError);
-          // Don't throw here as we've already created the user and role
+          throw profileError; // Changed to throw since profile creation is critical
         } else {
           console.log("Developer profile created successfully");
         }
