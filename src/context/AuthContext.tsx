@@ -156,20 +156,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // First register the user
+      console.log("Starting sign up process for email:", email);
+      
+      // Step 1: Register the user with Supabase auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Auth signup error:", error);
+        throw error;
+      }
       
-      // Check if user was created successfully
+      // Step 2: Check if user was created successfully
       if (!data.user) {
+        console.error("No user data returned from signup");
         throw new Error("Failed to create user account");
       }
       
-      // Assign buyer role to new users
+      console.log("User created successfully:", data.user.id);
+      
+      // Step 3: Assign buyer role to new user
       try {
         const { error: roleError } = await supabase
           .from('user_roles')
@@ -183,7 +191,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw roleError;
         }
         
-        // Create a profile entry for the user - this no longer uses full_name
+        console.log("Buyer role assigned successfully");
+        
+        // Step 4: Create a profile entry for the user
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -196,9 +206,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (profileError) {
           console.error("Error creating profile:", profileError);
           // We don't throw here since user and role are already created
+        } else {
+          console.log("Profile created successfully");
         }
       } catch (e: any) {
         console.error("Error in signup process:", e);
+        toast({
+          variant: "destructive",
+          title: "Registration error",
+          description: e.message,
+        });
         throw new Error(`Registration error: ${e.message}`);
       }
       

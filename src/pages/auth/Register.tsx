@@ -21,6 +21,7 @@ const Register = () => {
     setFormError(null);
     
     try {
+      console.log("Regular registration attempt for:", email);
       await signUp(email, password);
       // Navigation to verify email page is handled in signUp function
     } catch (error: any) {
@@ -47,18 +48,24 @@ const Register = () => {
       // Create a strong password that meets validation requirements
       const randomPassword = `Dev${Math.random().toString(36).substring(2, 8)}!1Ab`;
       
-      // First register the user
+      console.log("Starting developer registration with generated email:", randomEmail);
+      
+      // Step 1: Register the user with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: randomEmail,
         password: randomPassword,
       });
       
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Developer auth signup error:", authError);
+        throw authError;
+      }
       
+      // Step 2: Check if user was created successfully
       if (authData.user) {
-        console.log("Developer user created:", authData.user.id);
+        console.log("Developer user created with ID:", authData.user.id);
         
-        // Then assign developer role
+        // Step 3: Assign developer role
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
@@ -73,7 +80,7 @@ const Register = () => {
         
         console.log("Developer role assigned successfully");
         
-        // Create a profile for the developer - fixed to use name, not full_name
+        // Step 4: Create a profile for the developer
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -97,7 +104,7 @@ const Register = () => {
           duration: 10000, // Longer duration to ensure user sees credentials
         });
         
-        // Auto sign in with the new developer credentials
+        // Step 5: Auto sign in with the new developer credentials
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: randomEmail,
           password: randomPassword,
@@ -108,8 +115,10 @@ const Register = () => {
           throw signInError;
         }
         
+        console.log("Developer automatically signed in, redirecting to dashboard");
         navigate("/developer/dashboard");
       } else {
+        console.error("No user data returned from developer signup");
         throw new Error("Failed to create developer account");
       }
     } catch (error: any) {
