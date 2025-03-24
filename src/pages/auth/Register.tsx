@@ -56,6 +56,8 @@ const Register = () => {
       if (authError) throw authError;
       
       if (authData.user) {
+        console.log("Developer user created:", authData.user.id);
+        
         // Then assign developer role
         const { error: roleError } = await supabase
           .from('user_roles')
@@ -64,9 +66,14 @@ const Register = () => {
             role: 'developer'
           });
         
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error("Role assignment error:", roleError);
+          throw roleError;
+        }
         
-        // Create a basic profile for the developer
+        console.log("Developer role assigned successfully");
+        
+        // Create a profile for the developer - fixed to use name, not full_name
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -79,6 +86,8 @@ const Register = () => {
         if (profileError) {
           console.error("Error creating developer profile:", profileError);
           // Don't throw here as we've already created the user and role
+        } else {
+          console.log("Developer profile created successfully");
         }
         
         toast({
@@ -94,9 +103,14 @@ const Register = () => {
           password: randomPassword,
         });
         
-        if (signInError) throw signInError;
+        if (signInError) {
+          console.error("Developer auto sign-in error:", signInError);
+          throw signInError;
+        }
         
         navigate("/developer/dashboard");
+      } else {
+        throw new Error("Failed to create developer account");
       }
     } catch (error: any) {
       console.error("Developer registration error:", error);

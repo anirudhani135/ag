@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { handleSupabaseError } from "@/utils/errorHandling";
 
 interface AuthContextType {
   user: User | null;
@@ -155,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // First try to register the user
+      // First register the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -163,39 +164,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) throw error;
       
-      // By default, assign buyer role to new users
-      if (data.user) {
-        try {
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({
-              user_id: data.user.id,
-              role: 'buyer'
-            });
-          
-          if (roleError) {
-            console.error("Error assigning role:", roleError);
-            throw roleError;
-          }
-          
-          // Create a basic profile entry for the user
-          // This no longer tries to use full_name which doesn't exist
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              email: email,
-              name: email.split('@')[0] // Use part of email as initial name
-            });
-            
-          if (profileError) {
-            console.error("Error creating profile:", profileError);
-            // Don't throw here, as the user and role are already created
-          }
-        } catch (e: any) {
-          console.error("Error in signup process:", e);
-          throw new Error(`Registration error: ${e.message}`);
+      // Check if user was created successfully
+      if (!data.user) {
+        throw new Error("Failed to create user account");
+      }
+      
+      // Assign buyer role to new users
+      try {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: data.user.id,
+            role: 'buyer'
+          });
+        
+        if (roleError) {
+          console.error("Error assigning role:", roleError);
+          throw roleError;
         }
+        
+        // Create a profile entry for the user - this no longer uses full_name
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: email,
+            name: email.split('@')[0], // Use part of email as initial name
+            role: 'buyer' // Set role in profile too
+          });
+          
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          // We don't throw here since user and role are already created
+        }
+      } catch (e: any) {
+        console.error("Error in signup process:", e);
+        throw new Error(`Registration error: ${e.message}`);
       }
       
       toast({
