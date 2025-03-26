@@ -1,8 +1,6 @@
 
 import { Session, User } from "@supabase/supabase-js";
 
-export type UserRole = string | null;
-
 export interface AuthContextType {
   user: User | null;
   session: Session | null;

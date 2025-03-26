@@ -1,13 +1,8 @@
 
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Outlet } from "react-router-dom";
 
 export const WithRoleProtection = () => {
-  const { user } = useAuth();
-
-  if (!user) {
-    return <Navigate to="/auth/login" />;
-  }
-  
+  // During development, we're bypassing all role protection
+  // All users can access all routes without authentication
   return <Outlet />;
 };
