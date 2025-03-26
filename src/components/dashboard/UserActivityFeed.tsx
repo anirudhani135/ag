@@ -38,7 +38,7 @@ export const UserActivityFeed = ({
   isLoading: propLoading,
   limit = 5
 }: UserActivityFeedProps) => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
   
   // Fetch activities if not provided as props
   const { data: fetchedActivities, isLoading: queryLoading } = useQuery({

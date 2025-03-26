@@ -3,16 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-
-// Define the authentication context type
-type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-};
+import { AuthContextType } from "@/types/auth";
 
 // Create the context with undefined default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

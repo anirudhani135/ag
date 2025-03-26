@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
-import { useAuth } from "@/context/AuthContext"; // Changed from MockAuthContext to AuthContext
+import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation";
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
@@ -18,7 +18,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { userRole, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const location = useLocation();
   
   // Determine the current page title based on the path
