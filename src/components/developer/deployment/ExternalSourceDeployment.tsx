@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -39,7 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2, AlertCircle, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext"; // Using real AuthContext
+import { useAuth } from "@/context/AuthContext";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -131,12 +130,10 @@ export function ExternalSourceDeployment() {
     setAuthError(null);
 
     try {
-      // Check if user is authenticated
       if (!user) {
         throw new Error('Authentication required');
       }
 
-      // Step 1: Create the agent record
       setDeploymentProgress(20);
       const { data: agent, error: agentError } = await supabase
         .from('agents')
@@ -159,7 +156,6 @@ export function ExternalSourceDeployment() {
 
       if (agentError) throw agentError;
       
-      // Step 2: Create agent version
       setDeploymentProgress(40);
       setDeploymentStep(2);
       
@@ -179,7 +175,6 @@ export function ExternalSourceDeployment() {
         
       if (versionError) throw versionError;
       
-      // Step 3: Set up deployment
       setDeploymentProgress(60);
       setDeploymentStep(3);
       
@@ -208,14 +203,11 @@ export function ExternalSourceDeployment() {
         
       if (deploymentError) throw deploymentError;
       
-      // Final step: Update deployment status
       setDeploymentProgress(80);
       setDeploymentStep(4);
       
-      // Simulate deployment completion
       setTimeout(async () => {
         try {
-          // Update deployment to completed
           const { error: updateError } = await supabase
             .from('deployments')
             .update({
@@ -230,7 +222,6 @@ export function ExternalSourceDeployment() {
             
           if (updateError) throw updateError;
           
-          // Update agent status to active
           await supabase
             .from('agents')
             .update({
@@ -262,7 +253,6 @@ export function ExternalSourceDeployment() {
     } catch (error) {
       console.error('Deployment error:', error);
       
-      // Handle authentication error specifically
       if (error instanceof Error && error.message === 'Authentication required') {
         setAuthError('You need to be signed in to deploy an agent. Please sign in and try again.');
         toast({
@@ -369,7 +359,7 @@ export function ExternalSourceDeployment() {
           </div>
         )}
         
-        {renderDeploymentStatus()}
+        {renderDeploymentStatus && renderDeploymentStatus()}
         
         {!isDeploying && (
           <Form {...form}>

@@ -74,7 +74,7 @@ const ReviewModal = ({ isOpen, onClose }: ReviewModalProps) => {
               <SelectValue placeholder="Select an agent" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="[Coming Soon]" disabled>Coming Soon</SelectItem>
+              <SelectItem value="coming-soon">Coming Soon</SelectItem>
             </SelectContent>
           </Select>
 

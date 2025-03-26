@@ -15,7 +15,7 @@ interface AgentFiltersProps {
   onSortChange: (value: string) => void;
   onViewChange: (value: 'grid' | 'list') => void;
   view: 'grid' | 'list';
-  className?: string; // Added className as optional prop
+  className?: string; 
 }
 
 export const AgentFilters = ({
@@ -23,7 +23,7 @@ export const AgentFilters = ({
   onSortChange,
   onViewChange,
   view,
-  className = '' // Added default empty string
+  className = ''
 }: AgentFiltersProps) => {
   return (
     <div className={`flex flex-col sm:flex-row gap-4 ${className}`}>
@@ -36,7 +36,7 @@ export const AgentFilters = ({
         />
       </div>
       <div className="flex gap-4">
-        <Select onValueChange={onSortChange}>
+        <Select onValueChange={onSortChange} defaultValue="name">
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
