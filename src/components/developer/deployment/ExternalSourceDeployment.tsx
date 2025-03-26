@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -29,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -74,7 +74,7 @@ export function ExternalSourceDeployment() {
       name: "",
       description: "",
       price: 0,
-      categoryId: "",
+      categoryId: "productivity",
       externalType: "api",
       apiEndpoint: "",
       isPublic: false,
@@ -359,7 +359,7 @@ export function ExternalSourceDeployment() {
           </div>
         )}
         
-        {renderDeploymentStatus && renderDeploymentStatus()}
+        {renderDeploymentStatus()}
         
         {!isDeploying && (
           <Form {...form}>
