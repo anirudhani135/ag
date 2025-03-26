@@ -30,7 +30,7 @@ const Register = () => {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -45,7 +45,7 @@ const Register = () => {
       // Generate a random email with dev_ prefix
       const randomEmail = `dev_${Math.random().toString(36).substring(2, 10)}@example.com`;
       
-      // Create a strong password that meets validation requirements
+      // Create a strong password
       const randomPassword = `Dev${Math.random().toString(36).substring(2, 8)}!1Ab`;
       
       console.log("Starting developer registration with generated email:", randomEmail);
@@ -61,11 +61,10 @@ const Register = () => {
         throw authError;
       }
       
-      // Step 2: Check if user was created successfully
       if (authData.user) {
         console.log("Developer user created with ID:", authData.user.id);
         
-        // Step 3: Assign developer role
+        // Step 2: Assign developer role
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
@@ -80,7 +79,7 @@ const Register = () => {
         
         console.log("Developer role assigned successfully");
         
-        // Step 4: Create a profile for the developer - Match actual DB schema
+        // Step 3: Create a profile for the developer
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -92,19 +91,19 @@ const Register = () => {
           
         if (profileError) {
           console.error("Error creating developer profile:", profileError);
-          throw profileError; // Changed to throw since profile creation is critical
-        } else {
-          console.log("Developer profile created successfully");
+          throw profileError;
         }
+        
+        console.log("Developer profile created successfully");
         
         toast({
           title: "Developer account created",
           description: `Your developer account has been registered with email: ${randomEmail} and password: ${randomPassword}. Please save these credentials.`,
           variant: "default",
-          duration: 10000, // Longer duration to ensure user sees credentials
+          duration: 10000,
         });
         
-        // Step 5: Auto sign in with the new developer credentials
+        // Step 4: Auto sign in with new developer credentials
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: randomEmail,
           password: randomPassword,
@@ -127,7 +126,7 @@ const Register = () => {
       toast({
         variant: "destructive",
         title: "Developer registration failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
     } finally {
       setIsLoading(false);

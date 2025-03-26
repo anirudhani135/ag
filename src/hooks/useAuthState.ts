@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchUserRole, logUserActivity } from "@/utils/authUtils";
 import { UserRole } from "@/types/auth";
 
 export const useAuthState = () => {
@@ -13,8 +12,24 @@ export const useAuthState = () => {
 
   const refreshUserRole = async () => {
     if (!user) return;
-    const role = await fetchUserRole(user.id);
-    setUserRole(role);
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
+      
+      setUserRole(data?.role || null);
+      console.log("User role refreshed:", data?.role);
+    } catch (error) {
+      console.error('Error in refreshUserRole:', error);
+    }
   };
 
   useEffect(() => {
@@ -25,13 +40,40 @@ export const useAuthState = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const role = await fetchUserRole(session.user.id);
-        console.log("User role:", role);
-        setUserRole(role);
-        
-        // Log activity if login event
-        if (event === 'SIGNED_IN') {
-          await logUserActivity(session.user.id, 'Login');
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching user role during auth change:', error);
+            setUserRole(null);
+          } else {
+            console.log("User role fetched:", data?.role);
+            setUserRole(data?.role);
+          }
+          
+          // Log the activity if login event
+          if (event === 'SIGNED_IN') {
+            try {
+              await supabase.from('user_activity').insert({
+                user_id: session.user.id,
+                activity_type: 'Login',
+                metadata: {
+                  timestamp: new Date().toISOString(),
+                  status: 'completed'
+                }
+              });
+              console.log("Login activity logged successfully");
+            } catch (activityError) {
+              console.error("Error logging login activity:", activityError);
+            }
+          }
+        } catch (roleError) {
+          console.error("Error fetching role:", roleError);
+          setUserRole(null);
         }
       } else {
         setUserRole(null);
@@ -46,8 +88,24 @@ export const useAuthState = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const role = await fetchUserRole(session.user.id);
-        setUserRole(role);
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching initial user role:', error);
+            setUserRole(null);
+          } else {
+            console.log("Initial user role fetched:", data?.role);
+            setUserRole(data?.role);
+          }
+        } catch (roleError) {
+          console.error("Error fetching initial role:", roleError);
+          setUserRole(null);
+        }
       }
       
       setIsLoading(false);

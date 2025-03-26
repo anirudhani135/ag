@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchUserRole, logUserActivity } from "@/utils/authUtils";
 
 export const useAuthOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,31 +12,36 @@ export const useAuthOperations = () => {
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      
+      console.log("Attempting to sign in with email:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
       
+      console.log("Sign-in successful:", data.user?.id);
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
       
-      // Auth state change will trigger role fetch and redirect
-      const currentUser = (await supabase.auth.getUser()).data.user;
-      if (!currentUser) {
-        throw new Error("Failed to retrieve user after sign in");
-      }
-      
-      const { data } = await supabase
+      // Fetch user role to determine redirect destination
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', data.user.id)
         .single();
       
-      if (data?.role === 'developer') {
+      if (roleError) {
+        console.error("Error fetching user role:", roleError);
+        navigate("/user/dashboard"); // Default redirect
+        return;
+      }
+      
+      if (roleData?.role === 'developer') {
         navigate("/developer/dashboard");
       } else {
         navigate("/user/dashboard");
@@ -47,7 +51,7 @@ export const useAuthOperations = () => {
       toast({
         variant: "destructive",
         title: "Error signing in",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
       throw error;
     } finally {
@@ -59,9 +63,7 @@ export const useAuthOperations = () => {
     try {
       setIsLoading(true);
       
-      console.log("Starting sign up process for email:", email);
-      
-      // Step 1: Register the user with Supabase auth
+      // Step 1: Register user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -72,16 +74,15 @@ export const useAuthOperations = () => {
         throw error;
       }
       
-      // Step 2: Check if user was created successfully
       if (!data.user) {
         console.error("No user data returned from signup");
         throw new Error("Failed to create user account");
       }
       
-      console.log("User created successfully:", data.user.id);
+      console.log("User registered successfully:", data.user.id);
       
-      // Step 3: Assign buyer role to new user
       try {
+        // Step 2: Assign buyer role
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
@@ -96,30 +97,49 @@ export const useAuthOperations = () => {
         
         console.log("Buyer role assigned successfully");
         
-        // Step 4: Create a profile entry for the user - Match actual DB schema
+        // Step 3: Create profile record
+        // Inspect the profiles table schema
+        const { data: profilesSchema, error: schemaError } = await supabase
+          .from('profiles')
+          .select('*')
+          .limit(1);
+          
+        if (schemaError) {
+          console.error("Error fetching profiles schema:", schemaError);
+        } else {
+          console.log("Profiles table schema:", profilesSchema);
+        }
+        
+        // Step 4: Create profile
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: data.user.id,
             email: email,
-            name: email.split('@')[0], // Use part of email as initial name
-            role: 'buyer' // Set role in profile too
+            name: email.split('@')[0],
+            role: 'buyer'
           });
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          throw profileError; // Throw error since profile creation is critical
-        } else {
-          console.log("Profile created successfully");
+          throw profileError;
         }
-      } catch (e: any) {
-        console.error("Error in signup process:", e);
         
-        // Attempt to clean up the partially created user if possible
+        console.log("Profile created successfully");
+        
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account.",
+        });
+        
+        navigate("/auth/verify");
+      } catch (dbError: any) {
+        console.error("Database error during signup:", dbError);
+        
+        // Try to clean up the auth user if possible
         try {
-          // This is an admin-only operation that might not work with client-side API
-          // Just logging the attempt for now
-          console.log("Attempting to clean up incomplete user registration");
+          console.log("Attempting to clean up failed registration");
+          // Note: This requires admin rights and may not work client-side
         } catch (cleanupError) {
           console.error("Error during cleanup:", cleanupError);
         }
@@ -127,23 +147,16 @@ export const useAuthOperations = () => {
         toast({
           variant: "destructive",
           title: "Registration error",
-          description: e.message,
+          description: dbError.message || "Failed to complete registration",
         });
-        throw new Error(`Registration error: ${e.message}`);
+        throw dbError;
       }
-      
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account.",
-      });
-      
-      navigate("/auth/verify");
     } catch (error: any) {
       console.error("Sign-up error:", error);
       toast({
         variant: "destructive",
         title: "Error signing up",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
       throw error;
     } finally {
@@ -151,13 +164,28 @@ export const useAuthOperations = () => {
     }
   };
 
-  const signOut = async (userId: string | undefined) => {
+  const signOut = async () => {
     try {
       setIsLoading(true);
       
-      if (userId) {
+      // Get current user ID before signing out
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
         // Log logout activity
-        await logUserActivity(userId, 'Logout');
+        try {
+          await supabase.from('user_activity').insert({
+            user_id: user.id,
+            activity_type: 'Logout',
+            metadata: {
+              timestamp: new Date().toISOString(),
+              status: 'completed'
+            }
+          });
+          console.log("Logout activity logged successfully");
+        } catch (activityError) {
+          console.error("Error logging logout activity:", activityError);
+        }
       }
       
       const { error } = await supabase.auth.signOut();
@@ -170,10 +198,11 @@ export const useAuthOperations = () => {
       
       navigate("/auth/login");
     } catch (error: any) {
+      console.error("Sign-out error:", error);
       toast({
         variant: "destructive",
         title: "Error signing out",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsLoading(false);

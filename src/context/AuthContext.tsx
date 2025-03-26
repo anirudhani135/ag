@@ -8,12 +8,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, session, isLoading, userRole, refreshUserRole } = useAuthState();
-  const { signIn, signUp, signOut: signOutOperation } = useAuthOperations();
-  
-  // Wrap signOut to provide the user ID
-  const signOut = async () => {
-    await signOutOperation(user?.id);
-  };
+  const { signIn, signUp, signOut } = useAuthOperations();
 
   const value = {
     user,
