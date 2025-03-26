@@ -54,7 +54,7 @@ const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
 const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const ApiIntegrations = lazy(() => import("./pages/developer/ApiIntegrations"));
-const ExternalSourceDeployment = lazy(() => import("./pages/external-source-deployment/Index"));
+const ExternalSourceDeployment = lazy(() => import("./pages/external-source-deployment/index"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
 const DeveloperMonitoring = lazy(() => import("./pages/developer/Monitoring"));
