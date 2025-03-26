@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { useAuth } from "@/context/AuthContext"; 
 
 // Simplified password schema with better error messages
 const passwordSchema = z
@@ -46,14 +45,12 @@ const signupSchema = z.object({
 
 interface AuthFormProps {
   type: "signin" | "signup";
-  onSubmit?: (email: string, password: string) => void;
+  onSubmit: (email: string, password: string) => void;
   disabled?: boolean;
 }
 
 const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, signUp } = useAuth();
 
   const schema = type === "signin" ? signinSchema : signupSchema;
 
@@ -67,28 +64,7 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
 
   const handleSubmit = async (values: z.infer<typeof schema>) => {
     if (disabled) return;
-    
-    try {
-      setIsLoading(true);
-      console.log(`Attempting to ${type === "signin" ? "sign in" : "sign up"} with email:`, values.email);
-      
-      if (onSubmit) {
-        // Use the provided onSubmit function if available
-        await onSubmit(values.email, values.password);
-      } else {
-        // Use actual auth functions if no custom onSubmit is provided
-        if (type === "signin") {
-          await signIn(values.email, values.password);
-        } else {
-          await signUp(values.email, values.password);
-        }
-      }
-    } catch (error) {
-      // Error is handled in the auth context
-      console.error("Form submission error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(values.email, values.password);
   };
 
   return (
@@ -106,7 +82,7 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
                   placeholder="Enter your email"
                   autoComplete={type === "signin" ? "username" : "email"}
                   {...field}
-                  disabled={isLoading || disabled}
+                  disabled={disabled}
                 />
               </FormControl>
               <FormMessage />
@@ -126,7 +102,7 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
                     placeholder={type === "signup" ? "Create a strong password" : "Enter your password"}
                     autoComplete={type === "signin" ? "current-password" : "new-password"}
                     {...field}
-                    disabled={isLoading || disabled}
+                    disabled={disabled}
                     className="pr-10"
                   />
                   <button
@@ -134,7 +110,7 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     tabIndex={-1}
-                    disabled={isLoading || disabled}
+                    disabled={disabled}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -152,9 +128,9 @@ const AuthForm = ({ type, onSubmit, disabled = false }: AuthFormProps) => {
         <Button 
           type="submit" 
           className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-sm" 
-          disabled={isLoading || disabled}
+          disabled={disabled}
         >
-          {(isLoading || disabled) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {disabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {type === "signin" ? "Sign In" : "Sign Up"}
         </Button>
       </form>

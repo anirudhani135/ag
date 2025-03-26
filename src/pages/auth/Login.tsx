@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthForm from "@/components/auth/AuthForm";
 import AuthLayout from "@/components/auth/AuthLayout";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,7 +23,7 @@ const Login = () => {
     
     try {
       await signIn(email, password);
-      // Navigation handled in signIn function based on user role
+      navigate("/user/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       setFormError(error.message);

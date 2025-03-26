@@ -8,12 +8,9 @@ import { lazy, Suspense, useEffect } from "react";
 // Import real AuthProvider
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { WithRoleProtection } from "@/components/auth/WithRoleProtection";
 import { FeatureTourProvider } from "@/components/feature-tours/FeatureTourProvider";
 import { CacheProvider } from "@/context/CacheContext";
 import { initSampleData } from "@/utils/dataInit";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { UserOnboarding } from "@/components/onboarding/UserOnboarding";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 
 // Configure QueryClient with improved caching and performance
@@ -97,29 +94,6 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/verify" element={<VerifyEmail />} />
 
-        {/* Protected developer routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<WithRoleProtection allowedRoles={['developer', 'admin']} />}>
-            <Route path="/developer">
-              <Route path="dashboard" element={<DeveloperOverview />} />
-              <Route path="agents" element={<AgentManagement />} />
-              <Route path="agents/:agentId/testing" element={<AgentTesting />} />
-              <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
-              <Route path="revenue" element={<Revenue />} />
-              <Route path="api-integrations" element={<ApiIntegrations />} />
-              <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
-              <Route path="analytics" element={<DeveloperAnalytics />} />
-              <Route path="reviews" element={<DeveloperReviews />} />
-              <Route path="support" element={<DeveloperSupport />} />
-              <Route path="settings" element={<DeveloperSettings />} />
-              <Route path="transactions" element={<DeveloperTransactions />} />
-              <Route path="monitoring" element={<DeveloperMonitoring />} />
-              <Route path="agents/external" element={<ExternalSourceDeployment />} />
-            </Route>
-            <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
-          </Route>
-        </Route>
-
         {/* Protected user routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/user">
@@ -134,6 +108,27 @@ const AppContent = () => {
             <Route path="reviews" element={<Reviews />} />
             <Route path="support" element={<Support />} />
           </Route>
+        </Route>
+
+        {/* Protected developer routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/developer">
+            <Route path="dashboard" element={<DeveloperOverview />} />
+            <Route path="agents" element={<AgentManagement />} />
+            <Route path="agents/:agentId/testing" element={<AgentTesting />} />
+            <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
+            <Route path="revenue" element={<Revenue />} />
+            <Route path="api-integrations" element={<ApiIntegrations />} />
+            <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
+            <Route path="analytics" element={<DeveloperAnalytics />} />
+            <Route path="reviews" element={<DeveloperReviews />} />
+            <Route path="support" element={<DeveloperSupport />} />
+            <Route path="settings" element={<DeveloperSettings />} />
+            <Route path="transactions" element={<DeveloperTransactions />} />
+            <Route path="monitoring" element={<DeveloperMonitoring />} />
+            <Route path="agents/external" element={<ExternalSourceDeployment />} />
+          </Route>
+          <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
         </Route>
 
         {/* Marketplace - publicly accessible */}
@@ -155,11 +150,10 @@ const App = () => (
         <FeatureTourProvider>
           <Toaster />
           <Sonner />
-          {/* Use real AuthProvider instead of MockAuthProvider */}
+          {/* Use our new AuthProvider */}
           <AuthProvider>
             <NotificationProvider>
               <AppContent />
-              <UserOnboarding />
             </NotificationProvider>
           </AuthProvider>
         </FeatureTourProvider>
