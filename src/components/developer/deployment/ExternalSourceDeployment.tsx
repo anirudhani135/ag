@@ -143,7 +143,7 @@ export function ExternalSourceDeployment() {
           price: values.price,
           category_id: values.categoryId,
           developer_id: user.id,
-          status: 'pending_review',
+          status: values.isPublic ? 'active' : 'pending_review',
           technical_requirements: {
             integration_type: values.externalType,
             api_endpoint: values.apiEndpoint,
@@ -222,6 +222,7 @@ export function ExternalSourceDeployment() {
             
           if (updateError) throw updateError;
           
+          // Update agent status to make it immediately available in marketplace
           await supabase
             .from('agents')
             .update({
