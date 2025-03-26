@@ -96,7 +96,7 @@ export const useAuthOperations = () => {
         
         console.log("Buyer role assigned successfully");
         
-        // Step 4: Create a profile entry for the user - FIXED to match actual DB schema
+        // Step 4: Create a profile entry for the user - Match actual DB schema
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({

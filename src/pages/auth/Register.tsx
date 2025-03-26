@@ -80,7 +80,7 @@ const Register = () => {
         
         console.log("Developer role assigned successfully");
         
-        // Step 4: Create a profile for the developer - FIXED to match actual DB schema
+        // Step 4: Create a profile for the developer - Match actual DB schema
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
