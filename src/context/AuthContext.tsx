@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,37 +35,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   // Sign in function - in development mode, just return success
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<void> => {
     try {
       toast({
         title: "Development mode",
         description: "Authentication is bypassed in development mode",
       });
       
-      return { user: MOCK_USER, session: MOCK_SESSION };
+      // We don't return anything here as per the interface
     } catch (error: any) {
       console.log("Sign-in bypassed in development mode");
-      return { user: MOCK_USER, session: MOCK_SESSION };
     }
   };
 
   // Sign up function - in development mode, just return success
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<void> => {
     try {
       toast({
         title: "Development mode",
         description: "Registration is bypassed in development mode",
       });
       
-      return { user: MOCK_USER, session: MOCK_SESSION };
+      // We don't return anything here as per the interface
     } catch (error: any) {
       console.log("Sign-up bypassed in development mode");
-      return { user: MOCK_USER, session: MOCK_SESSION };
     }
   };
 
   // Sign out function - in development mode, does nothing
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     try {
       toast({
         title: "Development mode",
@@ -84,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
   */
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     isLoading,
