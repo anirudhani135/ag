@@ -75,6 +75,7 @@ const ReviewModal = ({ isOpen, onClose }: ReviewModalProps) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="coming-soon">Coming Soon</SelectItem>
+              {/* Fixed: Removed the empty value SelectItem */}
             </SelectContent>
           </Select>
 

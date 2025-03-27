@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -79,9 +80,15 @@ const BasicInfoStep = ({
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {isLoading ? <SelectItem value="loading">Loading categories...</SelectItem> : categories?.map(category => <SelectItem key={category.id} value={category.id}>
+                {isLoading ? (
+                  <SelectItem value="loading">Loading categories...</SelectItem>
+                ) : (
+                  categories?.map(category => (
+                    <SelectItem key={category.id} value={category.id}>
                       {category.name}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
