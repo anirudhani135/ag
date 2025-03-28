@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,6 +29,60 @@ interface TransactionData {
   description?: string;
 }
 
+// Optimized table row component
+const TransactionRow = memo(({ transaction, getStatusColor }: { 
+  transaction: TransactionData;
+  getStatusColor: (status: string) => string;
+}) => (
+  <TableRow key={transaction.id}>
+    <TableCell className="font-medium">
+      {format(new Date(transaction.created_at), "MMM d, yyyy")}
+    </TableCell>
+    <TableCell>{transaction.description}</TableCell>
+    <TableCell className="capitalize">{transaction.type}</TableCell>
+    <TableCell className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+      {transaction.amount > 0 ? "+" : ""}{transaction.amount} credits
+    </TableCell>
+    <TableCell>
+      <Badge variant="outline" className={cn("capitalize", getStatusColor(transaction.status))}>
+        {transaction.status}
+      </Badge>
+    </TableCell>
+  </TableRow>
+));
+
+TransactionRow.displayName = 'TransactionRow';
+
+// Mobile card component
+const TransactionCard = memo(({ transaction, getStatusColor }: {
+  transaction: TransactionData;
+  getStatusColor: (status: string) => string;
+}) => (
+  <Card className="mb-3">
+    <CardContent className="p-4">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <p className="font-medium">{transaction.description}</p>
+          <p className="text-sm text-muted-foreground">
+            {format(new Date(transaction.created_at), "MMM d, yyyy")}
+          </p>
+        </div>
+        <Badge variant="outline" className={cn("capitalize", getStatusColor(transaction.status))}>
+          {transaction.status}
+        </Badge>
+      </div>
+      <div className="flex justify-between items-center mt-2">
+        <span className="text-sm capitalize">{transaction.type}</span>
+        <span className={transaction.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+          {transaction.amount > 0 ? "+" : ""}{transaction.amount} credits
+        </span>
+      </div>
+    </CardContent>
+  </Card>
+));
+
+TransactionCard.displayName = 'TransactionCard';
+
 // Main component 
 export const EnhancedTransactionsList = () => {
   const { user } = useAuth();
@@ -44,7 +98,7 @@ export const EnhancedTransactionsList = () => {
       
       let query = supabase
         .from("transactions")
-        .select("*")
+        .select("id, user_id, agent_id, amount, metadata, created_at, status, payment_intent_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: sortOrder === "asc" });
       
@@ -56,6 +110,9 @@ export const EnhancedTransactionsList = () => {
       if (typeFilter !== "all" && typeFilter) {
         query = query.eq("metadata->>type", typeFilter);
       }
+      
+      // Limit results for better performance
+      query = query.limit(100);
       
       const { data, error } = await query;
       
@@ -73,34 +130,47 @@ export const EnhancedTransactionsList = () => {
         };
       });
     },
-    enabled: !!user
+    keepPreviousData: true,
+    enabled: !!user,
+    staleTime: 30000 // 30 seconds before refetching
   });
   
-  // Simplified search filter to avoid deep recursion
-  const filteredTransactions = transactions?.filter(tx => {
-    if (!searchQuery) return true;
+  // Optimized search filter
+  const filteredTransactions = useCallback(() => {
+    if (!transactions) return [];
+    if (!searchQuery) return transactions;
     
     const query = searchQuery.toLowerCase();
-    return (
+    return transactions.filter(tx => 
       (tx.description && tx.description.toLowerCase().includes(query)) ||
       (tx.id && tx.id.toLowerCase().includes(query))
     );
-  }) || [];
+  }, [transactions, searchQuery]);
 
   // Get status badge color
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-800 border-green-200";
       case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "failed": return "bg-red-100 text-red-800 border-red-200";
       default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  };
+  }, []);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const toggleSortOrder = useCallback(() => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+  }, []);
+
+  const filtered = filteredTransactions();
 
   return (
     <Card>
-      <CardContent className="p-6">
-        {/* Simplified filter controls */}
+      <CardContent className="p-4 md:p-6">
+        {/* Responsive filter controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -108,12 +178,12 @@ export const EnhancedTransactionsList = () => {
               placeholder="Search transactions..."
               className="pl-8"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -125,7 +195,7 @@ export const EnhancedTransactionsList = () => {
             </Select>
             
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
@@ -139,7 +209,7 @@ export const EnhancedTransactionsList = () => {
             <Button 
               variant="outline" 
               size="icon"
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              onClick={toggleSortOrder}
               title={`Sort by date ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -147,50 +217,54 @@ export const EnhancedTransactionsList = () => {
           </div>
         </div>
         
-        {/* Table */}
+        {/* Loading state */}
         {isLoading ? (
           <div className="space-y-2">
             {Array(5).fill(0).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
-        ) : filteredTransactions.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No transactions found</p>
           </div>
         ) : (
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(tx.created_at), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell>{tx.description}</TableCell>
-                    <TableCell className="capitalize">{tx.type}</TableCell>
-                    <TableCell className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
-                      {tx.amount > 0 ? "+" : ""}{tx.amount} credits
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={cn("capitalize", getStatusColor(tx.status))}>
-                        {tx.status}
-                      </Badge>
-                    </TableCell>
+          <>
+            {/* Mobile view */}
+            <div className="md:hidden">
+              {filtered.map(transaction => (
+                <TransactionCard 
+                  key={transaction.id} 
+                  transaction={transaction} 
+                  getStatusColor={getStatusColor}
+                />
+              ))}
+            </div>
+            
+            {/* Desktop view */}
+            <div className="hidden md:block rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(transaction => (
+                    <TransactionRow 
+                      key={transaction.id} 
+                      transaction={transaction} 
+                      getStatusColor={getStatusColor}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
@@ -198,4 +272,5 @@ export const EnhancedTransactionsList = () => {
 };
 
 // Simplified TransactionList component for reuse
-export const TransactionList = EnhancedTransactionsList;
+export const TransactionList = memo(EnhancedTransactionsList);
+TransactionList.displayName = 'TransactionList';

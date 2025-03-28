@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   Table,
   TableBody,
@@ -26,6 +26,88 @@ interface ResponsiveTableProps<T> {
   onRowClick?: (row: T) => void;
   keyExtractor: (item: T) => string;
 }
+
+// Memoized row component for better performance
+const MemoizedTableRow = memo(<T extends unknown>({ 
+  row, 
+  columns, 
+  keyExtractor, 
+  onRowClick 
+}: { 
+  row: T; 
+  columns: Column<T>[]; 
+  keyExtractor: (item: T) => string; 
+  onRowClick?: (row: T) => void;
+}) => (
+  <TableRow
+    key={keyExtractor(row)}
+    className={onRowClick ? "cursor-pointer hover:bg-muted" : ""}
+    onClick={() => onRowClick && onRowClick(row)}
+  >
+    {columns.map((column) => (
+      <TableCell key={`${keyExtractor(row)}-${String(column.accessorKey)}`} className={column.className}>
+        {column.cell
+          ? column.cell({
+              row: {
+                original: row,
+                getValue: (key: string) => {
+                  // Handle nested keys like "user.name"
+                  if (key.includes('.')) {
+                    return key.split('.').reduce((obj, key) => obj && obj[key as keyof typeof obj], row as any);
+                  }
+                  return (row as any)[key];
+                }
+              }
+            })
+          : (row as any)[column.accessorKey]}
+      </TableCell>
+    ))}
+  </TableRow>
+));
+
+MemoizedTableRow.displayName = 'MemoizedTableRow';
+
+// Memoized card row for mobile view
+const MemoizedCardRow = memo(<T extends unknown>({ 
+  row, 
+  columns, 
+  keyExtractor, 
+  onRowClick 
+}: { 
+  row: T; 
+  columns: Column<T>[]; 
+  keyExtractor: (item: T) => string; 
+  onRowClick?: (row: T) => void;
+}) => (
+  <Card
+    key={keyExtractor(row)}
+    className={`p-4 ${onRowClick ? "cursor-pointer hover:border-primary" : ""}`}
+    onClick={() => onRowClick && onRowClick(row)}
+  >
+    {columns.map((column) => (
+      <div key={`${keyExtractor(row)}-${String(column.accessorKey)}`} className="flex justify-between py-2 border-b last:border-0">
+        <span className="font-medium text-sm text-muted-foreground">{column.header}</span>
+        <span className="text-sm">
+          {column.cell
+            ? column.cell({
+                row: {
+                  original: row,
+                  getValue: (key: string) => {
+                    if (key.includes('.')) {
+                      return key.split('.').reduce((obj, key) => obj && obj[key as keyof typeof obj], row as any);
+                    }
+                    return (row as any)[key];
+                  }
+                }
+              })
+            : (row as any)[column.accessorKey]}
+        </span>
+      </div>
+    ))}
+  </Card>
+));
+
+MemoizedCardRow.displayName = 'MemoizedCardRow';
 
 export function ResponsiveTable<T>({
   columns,
@@ -55,12 +137,12 @@ export function ResponsiveTable<T>({
 
   // Desktop view (normal table)
   const renderDesktopTable = () => (
-    <div className="hidden md:block overflow-auto">
+    <div className="hidden md:block overflow-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
             {columns.map((column) => (
-              <TableHead key={column.accessorKey.toString()} className={column.className}>
+              <TableHead key={String(column.accessorKey)} className={column.className}>
                 {column.header}
               </TableHead>
             ))}
@@ -68,30 +150,13 @@ export function ResponsiveTable<T>({
         </TableHeader>
         <TableBody>
           {data.map((row) => (
-            <TableRow
-              key={keyExtractor(row)}
-              className={onRowClick ? "cursor-pointer hover:bg-muted" : ""}
-              onClick={() => onRowClick && onRowClick(row)}
-            >
-              {columns.map((column) => (
-                <TableCell key={`${keyExtractor(row)}-${column.accessorKey.toString()}`} className={column.className}>
-                  {column.cell
-                    ? column.cell({
-                        row: {
-                          original: row,
-                          getValue: (key: string) => {
-                            // Handle nested keys like "user.name"
-                            if (key.includes('.')) {
-                              return key.split('.').reduce((obj, key) => obj && obj[key], row as any);
-                            }
-                            return (row as any)[key];
-                          }
-                        }
-                      })
-                    : (row as any)[column.accessorKey]}
-                </TableCell>
-              ))}
-            </TableRow>
+            <MemoizedTableRow 
+              key={keyExtractor(row)} 
+              row={row} 
+              columns={columns} 
+              keyExtractor={keyExtractor} 
+              onRowClick={onRowClick} 
+            />
           ))}
         </TableBody>
       </Table>
@@ -102,40 +167,24 @@ export function ResponsiveTable<T>({
   const renderMobileRows = () => (
     <div className="grid grid-cols-1 gap-4 md:hidden">
       {data.map((row) => (
-        <Card
-          key={keyExtractor(row)}
-          className={`p-4 ${onRowClick ? "cursor-pointer hover:border-primary" : ""}`}
-          onClick={() => onRowClick && onRowClick(row)}
-        >
-          {columns.map((column) => (
-            <div key={`${keyExtractor(row)}-${column.accessorKey.toString()}`} className="flex justify-between py-2 border-b last:border-0">
-              <span className="font-medium text-sm text-muted-foreground">{column.header}</span>
-              <span className="text-sm">
-                {column.cell
-                  ? column.cell({
-                      row: {
-                        original: row,
-                        getValue: (key: string) => {
-                          if (key.includes('.')) {
-                            return key.split('.').reduce((obj, key) => obj && obj[key], row as any);
-                          }
-                          return (row as any)[key];
-                        }
-                      }
-                    })
-                  : (row as any)[column.accessorKey]}
-              </span>
-            </div>
-          ))}
-        </Card>
+        <MemoizedCardRow 
+          key={keyExtractor(row)} 
+          row={row} 
+          columns={columns} 
+          keyExtractor={keyExtractor} 
+          onRowClick={onRowClick} 
+        />
       ))}
     </div>
   );
 
   return (
-    <>
+    <div className="w-full">
       {renderDesktopTable()}
       {renderMobileRows()}
-    </>
+    </div>
   );
 }
+
+// Export a memoized version for better performance
+export const MemoizedResponsiveTable = memo(ResponsiveTable) as typeof ResponsiveTable;

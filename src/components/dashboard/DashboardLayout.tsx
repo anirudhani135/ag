@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
@@ -34,6 +34,7 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
     if (path.includes('credits')) return 'Credits';
     if (path.includes('notifications')) return 'Notifications';
     if (path.includes('api-integrations')) return 'API & Integrations';
+    if (path.includes('usage-history')) return 'Usage History';
     return type === 'developer' ? 'Developer Portal' : 'User Dashboard';
   }, [location.pathname, type]);
   
@@ -56,17 +57,34 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   const handleResize = useCallback(() => {
     const mobile = window.innerWidth < 768;
     setIsMobile(mobile);
-    if (!mobile) {
+    if (!mobile && !sidebarOpen) {
+      // Only set sidebar open if it's not already open
       setSidebarOpen(true);
-    } else {
+    } else if (mobile && sidebarOpen) {
+      // Only close sidebar on mobile if it's currently open
       setSidebarOpen(false);
     }
-  }, []);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    // Throttle resize events for better performance
+    let resizeTimer: number;
+    const throttledResize = () => {
+      if (!resizeTimer) {
+        resizeTimer = window.setTimeout(() => {
+          resizeTimer = 0;
+          handleResize();
+        }, 100);
+      }
+    };
+    
+    window.addEventListener('resize', throttledResize);
+    return () => {
+      window.removeEventListener('resize', throttledResize);
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+    };
   }, [handleResize]);
 
   if (isLoading) {
@@ -77,11 +95,11 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
         </div>
         <div className="flex h-[calc(100vh-4rem)]">
           <Skeleton className="w-60 hidden md:block" />
-          <main className="flex-1 p-6 pt-24">
+          <main className="flex-1 p-4 md:p-6 pt-20 md:pt-24">
             <div className="space-y-4 max-w-7xl mx-auto">
               <Skeleton className="h-8 w-[200px]" />
               <Skeleton className="h-4 w-[300px]" />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-28" />
                 ))}
@@ -117,10 +135,15 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
         >
-          <div className="max-w-7xl mx-auto animate-fade-in">
-            <OptimizedSuspense priority="high">
+          <div className="max-w-7xl mx-auto animate-fade-in w-full">
+            <Suspense fallback={
+              <div className="space-y-4 w-full">
+                <Skeleton className="h-8 w-[200px]" />
+                <Skeleton className="h-[200px] w-full" />
+              </div>
+            }>
               {children}
-            </OptimizedSuspense>
+            </Suspense>
           </div>
         </main>
       </div>

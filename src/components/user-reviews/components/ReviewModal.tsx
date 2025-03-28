@@ -61,7 +61,7 @@ const ReviewModal = ({ isOpen, onClose }: ReviewModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-w-[90vw] mx-auto">
         <DialogHeader>
           <DialogTitle>Submit Review</DialogTitle>
         </DialogHeader>
@@ -70,23 +70,24 @@ const ReviewModal = ({ isOpen, onClose }: ReviewModalProps) => {
             value={selectedAgent}
             onValueChange={setSelectedAgent}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px]">
               <SelectValue placeholder="Select an agent" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="coming-soon">Coming Soon</SelectItem>
-              {/* Fixed: Removed the empty value SelectItem */}
+              <SelectItem value="placeholder-agent">Available Agent</SelectItem>
             </SelectContent>
           </Select>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setRating(value)}
-                  className="focus:outline-none"
+                  className="focus:outline-none p-1 min-h-[44px] min-w-[44px]"
+                  aria-label={`Rate ${value} stars`}
                 >
                   <Star
                     className={`h-6 w-6 ${
@@ -103,11 +104,16 @@ const ReviewModal = ({ isOpen, onClose }: ReviewModalProps) => {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
+            className="min-h-[100px]"
           />
         </div>
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isSubmitting}
+            className="w-full sm:w-auto"
+          >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </Button>
         </div>
