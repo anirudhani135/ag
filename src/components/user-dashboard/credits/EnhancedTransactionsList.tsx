@@ -21,6 +21,8 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
+import { handleSupabaseError } from '@/utils/errorHandling';
+import { useToast } from '@/hooks/use-toast';
 
 interface Transaction {
   id: string;
@@ -46,6 +48,7 @@ export function TransactionList() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [transactionType, setTransactionType] = useState<string>('all');
   const [totalCount, setTotalCount] = useState(0);
+  const { toast } = useToast();
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -82,7 +85,10 @@ export function TransactionList() {
 
         const { data, error, count } = await query;
 
-        if (error) throw error;
+        if (error) {
+          handleSupabaseError(error, { operation: 'fetchTransactions', resource: 'transactions' });
+          throw error;
+        }
 
         if (count !== null) {
           setTotalCount(count);
@@ -135,17 +141,28 @@ export function TransactionList() {
           setTransactions(mockTransactions);
           setTotalCount(mockTransactions.length);
         } else {
-          setTransactions(data);
+          // Convert string status to Transaction status type
+          const typedTransactions = data.map(tx => ({
+            ...tx,
+            status: (tx.status as 'pending' | 'completed' | 'failed') || 'pending'
+          })) as Transaction[];
+          
+          setTransactions(typedTransactions);
         }
       } catch (error) {
         console.error('Error fetching transactions:', error);
+        toast({
+          title: "Failed to load transactions",
+          description: "There was a problem loading your transaction history. Please try again later.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTransactions();
-  }, [currentPage, statusFilter, transactionType]);
+  }, [currentPage, statusFilter, transactionType, toast]);
 
   // Filter transactions by search query
   const filteredTransactions = useMemo(() => {
@@ -153,7 +170,7 @@ export function TransactionList() {
 
     const normalizedQuery = searchQuery.toLowerCase().trim();
     return transactions.filter(transaction => 
-      transaction.agent?.title.toLowerCase().includes(normalizedQuery) ||
+      transaction.agent?.title?.toLowerCase().includes(normalizedQuery) ||
       transaction.id.toLowerCase().includes(normalizedQuery) ||
       (transaction.payment_intent_id && transaction.payment_intent_id.toLowerCase().includes(normalizedQuery))
     );
@@ -186,6 +203,11 @@ export function TransactionList() {
     } else {
       return 'Other';
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -289,10 +311,16 @@ export function TransactionList() {
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handlePageChange(currentPage - 1)} 
                     disabled={currentPage === 1}
-                  />
+                    className="h-9 w-9"
+                    aria-label="Previous page"
+                  >
+                    <PaginationPrevious className="h-4 w-4" />
+                  </Button>
                 </PaginationItem>
                 
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
@@ -309,21 +337,30 @@ export function TransactionList() {
                   
                   return (
                     <PaginationItem key={pageNumber}>
-                      <PaginationLink
-                        isActive={currentPage === pageNumber}
-                        onClick={() => setCurrentPage(pageNumber)}
+                      <Button
+                        variant={currentPage === pageNumber ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handlePageChange(pageNumber)}
+                        className="h-9 w-9"
+                        aria-label={`Page ${pageNumber}`}
                       >
                         {pageNumber}
-                      </PaginationLink>
+                      </Button>
                     </PaginationItem>
                   );
                 })}
                 
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handlePageChange(currentPage + 1)} 
                     disabled={currentPage === totalPages}
-                  />
+                    className="h-9 w-9"
+                    aria-label="Next page"
+                  >
+                    <PaginationNext className="h-4 w-4" />
+                  </Button>
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
