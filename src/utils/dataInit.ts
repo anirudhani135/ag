@@ -1,98 +1,122 @@
 
-import { supabase } from "@/integrations/supabase/client";
+// Mock data for categories
+export const CATEGORIES_MOCK = [
+  {
+    id: "cat-1",
+    name: "Customer Support",
+    icon: "headset",
+    description: "AI agents that can handle customer inquiries and support tickets"
+  },
+  {
+    id: "cat-2",
+    name: "Data Analysis",
+    icon: "bar-chart",
+    description: "Agents specialized in analyzing and visualizing data"
+  },
+  {
+    id: "cat-3",
+    name: "Content Creation",
+    icon: "pen-tool",
+    description: "AI tools for generating and optimizing content"
+  },
+  {
+    id: "cat-4",
+    name: "Development",
+    icon: "code",
+    description: "Coding assistants and development helpers"
+  },
+  {
+    id: "cat-5",
+    name: "Productivity",
+    icon: "clock",
+    description: "Tools to boost your personal and team productivity"
+  }
+];
 
-export async function initSampleData() {
-  console.log("Initializing sample data...");
-  
-  // Check if we already have api_metrics data
-  const { count, error: countError } = await supabase
-    .from('api_metrics')
-    .select('*', { count: 'exact', head: true });
-    
-  if (countError) {
-    console.error("Error checking api_metrics:", countError);
-    return;
+// Mock data for agents
+export const AGENTS_MOCK = [
+  {
+    id: "agent-1",
+    title: "Customer Support Pro",
+    description: "An AI agent designed to handle customer support inquiries 24/7. Capable of understanding context, managing multiple languages, and escalating complex issues to human operators when needed.",
+    price: 29.99,
+    categories: { name: "Customer Support" },
+    rating: 4.7,
+    features: ["24/7 availability", "Multi-language support", "Context awareness", "Sentiment analysis"],
+    status: "published",
+    developer_id: "dev-1",
+    version: "2.1.0",
+    created_at: "2023-09-15T14:23:00Z",
+    updated_at: "2023-11-10T09:15:00Z"
+  },
+  {
+    id: "agent-2",
+    title: "Data Insights Engine",
+    description: "Transform your raw data into actionable insights with this powerful data analysis agent. Features advanced visualization capabilities and automated report generation.",
+    price: 49.99,
+    categories: { name: "Data Analysis" },
+    rating: 4.5,
+    features: ["Data visualization", "Report generation", "Pattern recognition", "Anomaly detection"],
+    status: "published",
+    developer_id: "dev-2",
+    version: "1.5.2",
+    created_at: "2023-08-05T10:30:00Z",
+    updated_at: "2023-10-20T16:45:00Z"
+  },
+  {
+    id: "agent-3",
+    title: "Content Creator",
+    description: "Generate high-quality, SEO-optimized content for your blog, social media, or marketing campaigns. Includes tools for tone adjustment, keyword optimization, and content planning.",
+    price: 34.99,
+    categories: { name: "Content Creation" },
+    rating: 4.3,
+    features: ["SEO optimization", "Tone customization", "Multi-format output", "Content calendar"],
+    status: "published",
+    developer_id: "dev-3",
+    version: "3.0.1",
+    created_at: "2023-07-12T08:20:00Z",
+    updated_at: "2023-12-01T11:10:00Z"
+  },
+  {
+    id: "agent-4",
+    title: "Code Assistant Pro",
+    description: "Boost your development workflow with AI-powered code suggestions, bug detection, and automated documentation. Supports multiple programming languages and frameworks.",
+    price: 59.99,
+    categories: { name: "Development" },
+    rating: 4.8,
+    features: ["Code completion", "Bug detection", "Documentation generation", "Multi-language support"],
+    status: "published",
+    developer_id: "dev-4",
+    version: "2.3.0",
+    created_at: "2023-06-18T15:40:00Z",
+    updated_at: "2023-11-25T09:30:00Z"
+  },
+  {
+    id: "agent-5",
+    title: "Meeting Assistant",
+    description: "Never miss important details in your meetings again. This agent transcribes discussions, extracts action items, and helps you stay organized with intelligent summaries.",
+    price: 19.99,
+    categories: { name: "Productivity" },
+    rating: 4.6,
+    features: ["Meeting transcription", "Action item extraction", "Summary generation", "Calendar integration"],
+    status: "published",
+    developer_id: "dev-5",
+    version: "1.2.1",
+    created_at: "2023-09-30T11:15:00Z",
+    updated_at: "2023-12-10T14:25:00Z"
+  },
+  {
+    id: "agent-6",
+    title: "Email Marketing Expert",
+    description: "Craft engaging email campaigns with this specialized marketing agent. Features include template creation, A/B testing suggestions, and performance analytics.",
+    price: 39.99,
+    categories: { name: "Content Creation" },
+    rating: 4.4,
+    features: ["Email templates", "A/B testing", "Performance analytics", "Audience segmentation"],
+    status: "published",
+    developer_id: "dev-6",
+    version: "2.0.0",
+    created_at: "2023-08-22T09:50:00Z",
+    updated_at: "2023-11-15T10:20:00Z"
   }
-  
-  // Only insert if we don't have any data
-  if (count === 0) {
-    // Insert sample api_metrics
-    const now = new Date();
-    const timePoints = Array.from({ length: 24 }, (_, i) => {
-      const timestamp = new Date(now);
-      timestamp.setHours(now.getHours() - 23 + i);
-      return timestamp.toISOString();
-    });
-    
-    const apiMetrics = timePoints.map(timestamp => ({
-      timestamp,
-      response_time: Math.floor(Math.random() * 500) + 50,
-      error_rate: Math.random() * 5,
-      requests_per_minute: Math.floor(Math.random() * 120) + 5,
-      requests_count: Math.floor(Math.random() * 100) + 10,
-      status_code: 200,
-      endpoint: '/api/data',
-      request_method: 'GET',
-      ip_address: '192.168.1.1',
-      user_agent: 'Mozilla/5.0',
-      error_details: null
-    }));
-    
-    const { error: insertError } = await supabase
-      .from('api_metrics')
-      .insert(apiMetrics);
-      
-    if (insertError) {
-      console.error("Error inserting api_metrics:", insertError);
-    } else {
-      console.log("Successfully inserted sample api_metrics");
-    }
-  }
-  
-  // Check if we have feature tours
-  const { count: tourCount, error: tourCountError } = await supabase
-    .from('feature_tours')
-    .select('*', { count: 'exact', head: true });
-    
-  if (tourCountError) {
-    console.error("Error checking feature_tours:", tourCountError);
-    return;
-  }
-  
-  // Only insert if we don't have any tours
-  if (tourCount === 0) {
-    const sampleTour = {
-      title: "Welcome Tour",
-      steps: [
-        {
-          target: ".dashboard-overview",
-          title: "Dashboard Overview",
-          content: "This is your main dashboard where you can see all your metrics at a glance.",
-          placement: "bottom"
-        },
-        {
-          target: ".analytics-section",
-          title: "Analytics",
-          content: "View detailed analytics about your API usage and performance.",
-          placement: "right"
-        },
-        {
-          target: ".marketplace-link",
-          title: "Marketplace",
-          content: "Explore and discover agents in our marketplace.",
-          placement: "left"
-        }
-      ]
-    };
-    
-    const { error: tourInsertError } = await supabase
-      .from('feature_tours')
-      .insert([sampleTour]);
-      
-    if (tourInsertError) {
-      console.error("Error inserting feature tour:", tourInsertError);
-    } else {
-      console.log("Successfully inserted sample feature tour");
-    }
-  }
-}
+];

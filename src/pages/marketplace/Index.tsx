@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { CATEGORIES_MOCK, AGENTS_MOCK } from '@/utils/dataInit';
+import { useNavigate } from 'react-router-dom';
 
 interface Category {
   id: string;
@@ -38,11 +39,12 @@ interface Agent {
 const MarketplacePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<[number, number]>([0, 1000]);
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [sortOrder, setSortOrder] = useState('latest');
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['marketplace-categories'],
@@ -67,9 +69,8 @@ const MarketplacePage = () => {
         return CATEGORIES_MOCK;
       }
     },
-    // Replace cacheTime with gcTime
-    gcTime: 1000 * 60 * 10, // 10 minutes
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes cache
+    staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
 
   const buildAgentQuery = () => {
@@ -90,14 +91,14 @@ const MarketplacePage = () => {
       query = query.eq('category_id', selectedCategory);
     }
     
-    if (priceRange) {
+    if (selectedPriceRange) {
       query = query
-        .gte('price', priceRange[0])
-        .lte('price', priceRange[1]);
+        .gte('price', selectedPriceRange[0])
+        .lte('price', selectedPriceRange[1]);
     }
     
-    if (ratingFilter) {
-      query = query.gte('rating', ratingFilter);
+    if (selectedRating) {
+      query = query.gte('rating', selectedRating);
     }
     
     // Add sorting
@@ -115,7 +116,7 @@ const MarketplacePage = () => {
   };
 
   const { data: agents = [], isLoading: isLoadingAgents } = useQuery({
-    queryKey: ['marketplace-agents', selectedCategory, priceRange, ratingFilter, sortOrder],
+    queryKey: ['marketplace-agents', selectedCategory, selectedPriceRange, selectedRating, sortOrder],
     queryFn: async () => {
       try {
         const query = buildAgentQuery();
@@ -135,8 +136,7 @@ const MarketplacePage = () => {
         return AGENTS_MOCK;
       }
     },
-    // Update React Query v5 options
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
 
   // Filter agents based on search query
@@ -160,11 +160,11 @@ const MarketplacePage = () => {
   };
 
   const handlePriceChange = (range: [number, number]) => {
-    setPriceRange(range);
+    setSelectedPriceRange(range);
   };
 
   const handleRatingChange = (rating: number | null) => {
-    setRatingFilter(rating);
+    setSelectedRating(rating);
   };
 
   const handleSortChange = (value: string) => {
@@ -180,9 +180,11 @@ const MarketplacePage = () => {
   };
 
   const handlePurchase = (agentId: string) => {
+    // Here we would typically create a transaction or deploy the agent
+    navigate(`/agent/${agentId}/dashboard`);
     toast({
-      title: "Coming Soon",
-      description: "Agent purchase functionality will be available soon.",
+      title: "Agent Acquired",
+      description: "The agent has been added to your collection.",
     });
   };
 
@@ -213,16 +215,16 @@ const MarketplacePage = () => {
             ) : (
               <CategoryNav 
                 categories={categories} 
-                selectedCategoryId={selectedCategory}
+                selectedCategory={selectedCategory}
                 onSelectCategory={handleCategoryChange}
               />
             )}
           </div>
           
           <FilterSystem
-            priceRange={priceRange}
+            selectedPriceRange={selectedPriceRange}
             onPriceChange={handlePriceChange}
-            ratingFilter={ratingFilter}
+            selectedRating={selectedRating}
             onRatingChange={handleRatingChange}
           />
         </div>
@@ -274,8 +276,8 @@ const MarketplacePage = () => {
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory(null);
-                  setPriceRange([0, 1000]);
-                  setRatingFilter(null);
+                  setSelectedPriceRange([0, 1000]);
+                  setSelectedRating(null);
                 }}
               >
                 Reset Filters

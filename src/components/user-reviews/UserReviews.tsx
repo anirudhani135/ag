@@ -1,12 +1,12 @@
 
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { ReviewList } from "./components/ReviewList";
+import ReviewList from "./components/ReviewList";
 import ReviewModal from "./components/ReviewModal";
 import { Button } from "@/components/ui/button";
 import { PenSquare } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RecentActivity } from "./components/RecentActivity";
+import RecentActivity from "./components/RecentActivity";
 
 export default function UserReviews() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);

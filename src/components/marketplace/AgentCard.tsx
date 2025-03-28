@@ -6,38 +6,51 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Info, ShoppingCart, ExternalLink } from "lucide-react";
 import { AgentDetailsModal } from "./AgentDetailsModal";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
-interface AgentCardProps {
+interface Agent {
+  id: string;
   title: string;
   description: string;
   price: number;
-  category: string;
+  categories?: {
+    name: string;
+  };
+  category?: string;
   rating: number;
   features?: string[];
-  onView: () => void;
+  developer_id?: string;
+  documentation_url?: string;
+  version?: string;
+  created_at?: string;
+  updated_at?: string;
+  technical_requirements?: {
+    min_memory?: string;
+    recommended_cpu?: string;
+    compatible_platforms?: string[];
+  };
 }
 
-export const AgentCard = ({
-  title,
-  description,
-  price,
-  category,
-  rating,
-  features = [],
-  onView
-}: AgentCardProps) => {
+interface AgentCardProps {
+  agent: Agent;
+  onClick: (agentId: string) => void;
+}
+
+export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handlePurchase = () => {
     toast({
       title: "Agent added to collection",
-      description: `${title} has been added to your agents.`,
+      description: `${agent.title} has been added to your agents.`,
       variant: "default",
     });
   };
 
   const handleTryDemo = () => {
+    navigate(`/agent/${agent.id}/chat`);
     toast({
       title: "Demo started",
       description: "You can now try this agent's functionality.",
@@ -61,51 +74,54 @@ export const AgentCard = ({
     );
   };
 
+  // Get category name from either format
+  const categoryName = agent.categories?.name || agent.category || "General";
+
   return (
     <>
       <Card className="overflow-hidden flex flex-col h-full transition-all duration-200 hover:shadow-md border-2 border-border">
         <div className="p-5 flex-1 flex flex-col">
           <div className="flex justify-between items-start mb-2">
             <Badge variant="secondary" className="mb-2 bg-blue-100 text-blue-800 hover:bg-blue-200">
-              {category}
+              {categoryName}
             </Badge>
-            {renderRatingStars(rating)}
+            {renderRatingStars(agent.rating)}
           </div>
 
-          <h3 className="text-lg font-semibold mb-2 text-primary">{title}</h3>
+          <h3 className="text-lg font-semibold mb-2 text-primary">{agent.title}</h3>
           <p className="text-sm text-gray-600 mb-4 flex-grow line-clamp-3">
-            {description}
+            {agent.description}
           </p>
 
-          {features.length > 0 && (
+          {agent.features && agent.features.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-1">
-              {features.slice(0, 3).map((feature, index) => (
+              {agent.features.slice(0, 3).map((feature, index) => (
                 <Badge key={index} variant="outline" className="text-xs bg-gray-50 text-gray-700">
                   {feature}
                 </Badge>
               ))}
-              {features.length > 3 && (
+              {agent.features.length > 3 && (
                 <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700">
-                  +{features.length - 3} more
+                  +{agent.features.length - 3} more
                 </Badge>
               )}
             </div>
           )}
 
           <div className="mt-auto">
-            <div className={`text-lg font-bold mb-3 ${price === 0 ? "text-emerald-600" : "text-blue-600"}`}>
-              {price === 0 ? "Free" : `$${price.toFixed(2)}`}
+            <div className={`text-lg font-bold mb-3 ${agent.price === 0 ? "text-emerald-600" : "text-blue-600"}`}>
+              {agent.price === 0 ? "Free" : `$${agent.price.toFixed(2)}`}
             </div>
 
             <div className="flex gap-2">
               <Button
-                variant={price === 0 ? "success" : "primary"}
+                variant={agent.price === 0 ? "success" : "primary"}
                 size="sm"
-                className={`flex-1 text-white font-medium ${price === 0 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                className={`flex-1 text-white font-medium ${agent.price === 0 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"}`}
                 onClick={handlePurchase}
               >
                 <ShoppingCart className="h-4 w-4 mr-1" />
-                {price === 0 ? "Get Agent" : "Purchase"}
+                {agent.price === 0 ? "Get Agent" : "Purchase"}
               </Button>
               <Button
                 variant="outline"
@@ -121,18 +137,14 @@ export const AgentCard = ({
         </div>
       </Card>
 
-      <AgentDetailsModal
-        open={showDetails}
-        onOpenChange={setShowDetails}
-        title={title}
-        description={description}
-        price={price}
-        category={category}
-        rating={rating}
-        features={features}
-        onPurchase={handlePurchase}
-        onTryDemo={handleTryDemo}
-      />
+      {showDetails && (
+        <AgentDetailsModal
+          isOpen={showDetails}
+          onClose={() => setShowDetails(false)}
+          agent={agent}
+          onPurchase={handlePurchase}
+        />
+      )}
     </>
   );
 };

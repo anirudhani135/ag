@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Check, Info, ExternalLink, Download, Clock, CreditCard, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 interface Agent {
   id: string;
@@ -343,7 +344,7 @@ export function AgentDetailsModal({
               
               <div className="text-center py-2">
                 <Button variant="ghost" size="sm" className="text-primary">
-                  View All Reviews
+                  <Link to={`/agent/${agent.id}/reviews`}>View All Reviews</Link>
                 </Button>
               </div>
             </div>

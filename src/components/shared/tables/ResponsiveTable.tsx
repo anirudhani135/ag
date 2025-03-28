@@ -28,16 +28,16 @@ interface ResponsiveTableProps<T> {
 }
 
 // Memoized row component for better performance
-const MemoizedTableRow = memo(<T extends unknown>({ 
+const MemoizedTableRow = memo(({ 
   row, 
   columns, 
   keyExtractor, 
   onRowClick 
 }: { 
-  row: T; 
-  columns: Column<T>[]; 
-  keyExtractor: (item: T) => string; 
-  onRowClick?: (row: T) => void;
+  row: any; 
+  columns: Column<any>[]; 
+  keyExtractor: (item: any) => string; 
+  onRowClick?: (row: any) => void;
 }) => (
   <TableRow
     key={keyExtractor(row)}
@@ -68,16 +68,16 @@ const MemoizedTableRow = memo(<T extends unknown>({
 MemoizedTableRow.displayName = 'MemoizedTableRow';
 
 // Memoized card row for mobile view
-const MemoizedCardRow = memo(<T extends unknown>({ 
+const MemoizedCardRow = memo(({ 
   row, 
   columns, 
   keyExtractor, 
   onRowClick 
 }: { 
-  row: T; 
-  columns: Column<T>[]; 
-  keyExtractor: (item: T) => string; 
-  onRowClick?: (row: T) => void;
+  row: any; 
+  columns: Column<any>[]; 
+  keyExtractor: (item: any) => string; 
+  onRowClick?: (row: any) => void;
 }) => (
   <Card
     key={keyExtractor(row)}
@@ -150,7 +150,7 @@ export function ResponsiveTable<T>({
         </TableHeader>
         <TableBody>
           {data.map((row) => (
-            <MemoizedTableRow<T> 
+            <MemoizedTableRow
               key={keyExtractor(row)} 
               row={row} 
               columns={columns} 
@@ -167,7 +167,7 @@ export function ResponsiveTable<T>({
   const renderMobileRows = () => (
     <div className="grid grid-cols-1 gap-4 md:hidden">
       {data.map((row) => (
-        <MemoizedCardRow<T>
+        <MemoizedCardRow
           key={keyExtractor(row)} 
           row={row} 
           columns={columns} 

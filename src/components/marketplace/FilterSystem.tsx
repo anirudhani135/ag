@@ -1,110 +1,106 @@
 
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuGroup,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
-import { Filter, SortDesc, SortAsc } from "lucide-react";
-
-interface FilterOption {
-  id: string;
-  label: string;
-}
-
-interface SortOption {
-  id: string;
-  label: string;
-}
+import { Card, CardContent } from "@/components/ui/card";
 
 interface FilterSystemProps {
-  options: FilterOption[];
-  selectedFilters: string[];
-  onFilterChange: (filters: string[]) => void;
-  sortOptions?: SortOption[];
-  selectedSort?: string;
-  onSortChange?: (sortId: string) => void;
+  minPrice?: number;
+  maxPrice?: number;
+  selectedPriceRange: [number, number];
+  onPriceChange: (range: [number, number]) => void;
+  selectedRating: number | null;
+  onRatingChange: (rating: number | null) => void;
 }
 
-export const FilterSystem = ({
-  options,
-  selectedFilters,
-  onFilterChange,
-  sortOptions = [],
-  selectedSort = '',
-  onSortChange = () => {},
-}: FilterSystemProps) => {
-  const toggleFilter = (filterId: string) => {
-    const newFilters = selectedFilters.includes(filterId)
-      ? selectedFilters.filter((id) => id !== filterId)
-      : [...selectedFilters, filterId];
-    onFilterChange(newFilters);
+export function FilterSystem({
+  minPrice = 0,
+  maxPrice = 1000,
+  selectedPriceRange = [0, 1000],
+  onPriceChange,
+  selectedRating,
+  onRatingChange
+}: FilterSystemProps) {
+  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>(selectedPriceRange);
+
+  const handlePriceChange = (value: number[]) => {
+    const range: [number, number] = [value[0], value[1]];
+    setLocalPriceRange(range);
+  };
+
+  const handleApplyPrice = () => {
+    onPriceChange(localPriceRange);
   };
 
   return (
-    <div className="flex gap-2 bg-white p-3 rounded-md shadow-sm mb-4">
-      {sortOptions.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2 bg-white border-gray-300">
-              <SortDesc className="h-4 w-4" />
-              Sort
-              {selectedSort && (
-                <span className="ml-1 text-xs font-medium text-gray-700">
-                  {sortOptions.find(o => o.id === selectedSort)?.label || ''}
-                </span>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-white shadow-lg border border-gray-200">
-            <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value={selectedSort} onValueChange={onSortChange}>
-              {sortOptions.map((option) => (
-                <DropdownMenuRadioItem key={option.id} value={option.id} className="cursor-pointer">
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2 bg-white border-gray-300">
-            <Filter className="h-4 w-4" />
-            Filters
-            {selectedFilters.length > 0 && (
-              <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-white">
-                {selectedFilters.length}
-              </span>
-            )}
+    <div className="space-y-6">
+      <div>
+        <h3 className="font-medium text-sm mb-3">Price Range</h3>
+        <div className="space-y-4">
+          <Slider
+            defaultValue={selectedPriceRange}
+            min={minPrice}
+            max={maxPrice}
+            step={10}
+            onValueChange={handlePriceChange}
+            className="mb-6"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-sm">${localPriceRange[0]}</span>
+            <span className="text-sm">${localPriceRange[1]}</span>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={handleApplyPrice}
+          >
+            Apply
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 bg-white shadow-lg border border-gray-200">
-          <DropdownMenuLabel>Filter By</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            {options.map((option) => (
-              <DropdownMenuCheckboxItem
-                key={option.id}
-                checked={selectedFilters.includes(option.id)}
-                onCheckedChange={() => toggleFilter(option.id)}
-                className="cursor-pointer"
-              >
-                {option.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-medium text-sm mb-3">Rating</h3>
+        <RadioGroup 
+          defaultValue={selectedRating?.toString() || ""}
+          onValueChange={(value) => onRatingChange(value ? parseInt(value) : null)}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="" id="rating-any" />
+            <Label htmlFor="rating-any">Any rating</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="4" id="rating-4" />
+            <Label htmlFor="rating-4">4+ stars</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="3" id="rating-3" />
+            <Label htmlFor="rating-3">3+ stars</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="2" id="rating-2" />
+            <Label htmlFor="rating-2">2+ stars</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      <div className="pt-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full"
+          onClick={() => {
+            setLocalPriceRange([minPrice, maxPrice]);
+            onPriceChange([minPrice, maxPrice]);
+            onRatingChange(null);
+          }}
+        >
+          Reset Filters
+        </Button>
+      </div>
     </div>
   );
-};
+}
