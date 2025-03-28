@@ -1,276 +1,379 @@
-
-import { useState, useCallback, memo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Search, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PaginationButton } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
+import { CalendarIcon, CreditCard, Download, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { formatDistance } from "date-fns";
 
-// Interface for transaction data with all optional fields except id
 interface TransactionData {
   id: string;
-  user_id: string;
-  agent_id?: string;
-  amount: number;
-  metadata?: Record<string, any> | null;
   created_at: string;
+  amount: number;
   status: string;
-  payment_intent_id?: string;
-  // Virtual properties added in transformation
-  type?: string;
+  payment_method?: string;
   description?: string;
+  type?: string;
+  metadata?: any;
 }
 
-// Optimized table row component
-const TransactionRow = memo(({ transaction, getStatusColor }: { 
-  transaction: TransactionData;
-  getStatusColor: (status: string) => string;
-}) => (
-  <TableRow key={transaction.id}>
-    <TableCell className="font-medium">
-      {format(new Date(transaction.created_at), "MMM d, yyyy")}
-    </TableCell>
-    <TableCell>{transaction.description}</TableCell>
-    <TableCell className="capitalize">{transaction.type}</TableCell>
-    <TableCell className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
-      {transaction.amount > 0 ? "+" : ""}{transaction.amount} credits
-    </TableCell>
-    <TableCell>
-      <Badge variant="outline" className={cn("capitalize", getStatusColor(transaction.status))}>
-        {transaction.status}
-      </Badge>
-    </TableCell>
-  </TableRow>
-));
+export function EnhancedTransactionsList() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-TransactionRow.displayName = 'TransactionRow';
-
-// Mobile card component
-const TransactionCard = memo(({ transaction, getStatusColor }: {
-  transaction: TransactionData;
-  getStatusColor: (status: string) => string;
-}) => (
-  <Card className="mb-3">
-    <CardContent className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <p className="font-medium">{transaction.description}</p>
-          <p className="text-sm text-muted-foreground">
-            {format(new Date(transaction.created_at), "MMM d, yyyy")}
-          </p>
-        </div>
-        <Badge variant="outline" className={cn("capitalize", getStatusColor(transaction.status))}>
-          {transaction.status}
-        </Badge>
-      </div>
-      <div className="flex justify-between items-center mt-2">
-        <span className="text-sm capitalize">{transaction.type}</span>
-        <span className={transaction.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-          {transaction.amount > 0 ? "+" : ""}{transaction.amount} credits
-        </span>
-      </div>
-    </CardContent>
-  </Card>
-));
-
-TransactionCard.displayName = 'TransactionCard';
-
-// Main component 
-export const EnhancedTransactionsList = () => {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
-  const { data: transactions, isLoading } = useQuery({
-    queryKey: ["transactions", user?.id, sortOrder, statusFilter, typeFilter],
+  // Fetch transactions with React Query
+  const {
+    data: transactions,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["transactions", filter, currentPage],
     queryFn: async () => {
-      if (!user) return [];
-      
       let query = supabase
         .from("transactions")
-        .select("id, user_id, agent_id, amount, metadata, created_at, status, payment_intent_id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: sortOrder === "asc" });
-      
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (filter !== "all") {
+        query = query.eq("status", filter);
       }
-      
-      // Modified type filter to check metadata->type safely
-      if (typeFilter !== "all" && typeFilter) {
-        query = query.eq("metadata->>type", typeFilter);
-      }
-      
-      // Limit results for better performance
-      query = query.limit(100);
-      
+
+      // Add pagination
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      query = query.range(from, to);
+
       const { data, error } = await query;
-      
       if (error) throw error;
-      
-      // Transform the data to add virtual properties
-      return (data || []).map((tx: any): TransactionData => {
-        const metadataObj = typeof tx.metadata === 'object' ? tx.metadata : {};
-        return {
-          ...tx,
-          // Extract type from metadata or provide default
-          type: metadataObj.type || 'unknown',
-          // Create a description from metadata or provide default
-          description: metadataObj.description || `Transaction ${tx.id.substring(0, 8)}`
-        };
-      });
+      return data as TransactionData[];
     },
-    keepPreviousData: true,
-    enabled: !!user,
-    staleTime: 30000 // 30 seconds before refetching
+    // Remove keepPreviousData as it's deprecated in React Query v5
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
-  
-  // Optimized search filter
-  const filteredTransactions = useCallback(() => {
+
+  // Get total transactions count for pagination
+  const { data: totalCount } = useQuery({
+    queryKey: ["transactions-count", filter],
+    queryFn: async () => {
+      let query = supabase.from("transactions").select("id", { count: "exact" });
+      if (filter !== "all") {
+        query = query.eq("status", filter);
+      }
+      const { count, error } = await query;
+      if (error) throw error;
+      return count || 0;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Filter transactions based on search term
+  const filteredTransactions = useMemo(() => {
     if (!transactions) return [];
-    if (!searchQuery) return transactions;
+    if (!searchTerm.trim()) return transactions;
+
+    return transactions.filter((transaction) => {
+      const searchFields = [
+        transaction.id,
+        transaction.status,
+        transaction.payment_method,
+        transaction.description,
+        transaction.type,
+      ];
+      
+      return searchFields.some(
+        (field) => field && field.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [transactions, searchTerm]);
+
+  const totalPages = useMemo(() => {
+    return totalCount ? Math.ceil(totalCount / itemsPerPage) : 0;
+  }, [totalCount]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const handleExport = () => {
+    if (!transactions) return;
     
-    const query = searchQuery.toLowerCase();
-    return transactions.filter(tx => 
-      (tx.description && tx.description.toLowerCase().includes(query)) ||
-      (tx.id && tx.id.toLowerCase().includes(query))
+    // Create CSV string
+    const headers = ["ID", "Date", "Amount", "Status", "Type", "Description"];
+    const csvRows = [headers.join(",")];
+    
+    transactions.forEach((transaction) => {
+      const row = [
+        transaction.id,
+        new Date(transaction.created_at).toLocaleString(),
+        transaction.amount,
+        transaction.status,
+        transaction.type || "purchase",
+        transaction.description || "",
+      ];
+      
+      csvRows.push(row.join(","));
+    });
+    
+    const csvString = csvRows.join("\n");
+    
+    // Create download link
+    const blob = new Blob([csvString], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
-  }, [transactions, searchQuery]);
+  }
 
-  // Get status badge color
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case "completed": return "bg-green-100 text-green-800 border-green-200";
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "failed": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  }, []);
-
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
-
-  const toggleSortOrder = useCallback(() => {
-    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
-  }, []);
-
-  const filtered = filteredTransactions();
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            There was an error loading transactions. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <CardContent className="p-4 md:p-6">
-        {/* Responsive filter controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 py-4">
+        <CardTitle>Transaction History</CardTitle>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 h-9"
+            onClick={handleExport}
+            disabled={!transactions?.length}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-y gap-2 sm:gap-0">
+          <div className="relative w-full sm:w-auto flex-1 sm:max-w-[250px]">
+            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search transactions..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={handleSearchChange}
+              className="pl-8 w-full max-w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Status" />
+          <div className="flex flex-col xs:flex-row w-full sm:w-auto items-center justify-end gap-2">
+            <Select value={filter} onValueChange={handleFilterChange}>
+              <SelectTrigger className="h-9 w-full sm:w-[130px]">
+                <SelectValue placeholder="Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="purchase">Purchase</SelectItem>
-                <SelectItem value="usage">Usage</SelectItem>
-                <SelectItem value="refund">Refund</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={toggleSortOrder}
-              title={`Sort by date ${sortOrder === "asc" ? "descending" : "ascending"}`}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
           </div>
         </div>
-        
-        {/* Loading state */}
-        {isLoading ? (
-          <div className="space-y-2">
-            {Array(5).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No transactions found</p>
+
+        {/* Transaction list */}
+        {filteredTransactions.length === 0 ? (
+          <div className="text-center py-10 px-4 text-muted-foreground">
+            No transactions found. Try adjusting your filters.
           </div>
         ) : (
           <>
-            {/* Mobile view */}
-            <div className="md:hidden">
-              {filtered.map(transaction => (
-                <TransactionCard 
-                  key={transaction.id} 
-                  transaction={transaction} 
-                  getStatusColor={getStatusColor}
-                />
-              ))}
-            </div>
-            
-            {/* Desktop view */}
-            <div className="hidden md:block rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map(transaction => (
-                    <TransactionRow 
-                      key={transaction.id} 
-                      transaction={transaction} 
-                      getStatusColor={getStatusColor}
-                    />
+            <div className="overflow-auto">
+              <div className="rounded-md">
+                {/* Desktop view */}
+                <table className="w-full hidden md:table">
+                  <thead className="bg-muted/50">
+                    <tr className="text-sm font-medium text-left">
+                      <th className="px-4 py-3 text-muted-foreground">Date</th>
+                      <th className="px-4 py-3 text-muted-foreground">ID</th>
+                      <th className="px-4 py-3 text-muted-foreground">Amount</th>
+                      <th className="px-4 py-3 text-muted-foreground">Type</th>
+                      <th className="px-4 py-3 text-muted-foreground">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTransactions.map((transaction) => (
+                      <tr key={transaction.id} className="border-b hover:bg-muted/50">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              {formatDistance(new Date(transaction.created_at), new Date(), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground font-mono">
+                          {transaction.id.slice(0, 8)}...
+                        </td>
+                        <td className="px-4 py-3 font-medium">${transaction.amount}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {transaction.type ||
+                                (transaction.metadata?.type) ||
+                                "Purchase"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "capitalize",
+                              transaction.status === "completed" && "border-green-500 text-green-600 bg-green-50",
+                              transaction.status === "pending" && "border-yellow-500 text-yellow-600 bg-yellow-50",
+                              transaction.status === "failed" && "border-red-500 text-red-600 bg-red-50"
+                            )}
+                          >
+                            {transaction.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {/* Mobile view */}
+                <div className="md:hidden divide-y">
+                  {filteredTransactions.map((transaction) => (
+                    <div key={transaction.id} className="p-4">
+                      <div className="flex justify-between mb-2">
+                        <div className="text-sm font-medium">
+                          ${transaction.amount}
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "capitalize",
+                            transaction.status === "completed" && "border-green-500 text-green-600 bg-green-50",
+                            transaction.status === "pending" && "border-yellow-500 text-yellow-600 bg-yellow-50",
+                            transaction.status === "failed" && "border-red-500 text-red-600 bg-red-50"
+                          )}
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3" />
+                          <span>
+                            {formatDistance(new Date(transaction.created_at), new Date(), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CreditCard className="h-3 w-3" />
+                          <span>
+                            {transaction.type ||
+                              (transaction.metadata?.type) ||
+                              "Purchase"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 font-mono">
+                        ID: {transaction.id.slice(0, 8)}...
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </div>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center p-4 border-t">
+                <div className="flex gap-1">
+                  <PaginationButton
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </PaginationButton>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => 
+                      page === 1 || 
+                      page === totalPages || 
+                      Math.abs(page - currentPage) <= 1
+                    )
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <PaginationButton disabled className="cursor-default">
+                            ...
+                          </PaginationButton>
+                        )}
+                        <PaginationButton
+                          onClick={() => handlePageChange(page)}
+                          active={page === currentPage}
+                        >
+                          {page}
+                        </PaginationButton>
+                      </React.Fragment>
+                    ))}
+                  <PaginationButton
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </PaginationButton>
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>
     </Card>
   );
-};
-
-// Simplified TransactionList component for reuse
-export const TransactionList = memo(EnhancedTransactionsList);
-TransactionList.displayName = 'TransactionList';
+}

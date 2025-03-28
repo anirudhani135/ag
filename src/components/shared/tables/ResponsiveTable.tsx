@@ -11,7 +11,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface Column<T> {
+export interface Column<T> {
   accessorKey: keyof T | string;
   header: string;
   cell?: (props: { row: { original: T; getValue: (key: string) => any } }) => React.ReactNode;
@@ -150,7 +150,7 @@ export function ResponsiveTable<T>({
         </TableHeader>
         <TableBody>
           {data.map((row) => (
-            <MemoizedTableRow 
+            <MemoizedTableRow<T> 
               key={keyExtractor(row)} 
               row={row} 
               columns={columns} 
@@ -167,7 +167,7 @@ export function ResponsiveTable<T>({
   const renderMobileRows = () => (
     <div className="grid grid-cols-1 gap-4 md:hidden">
       {data.map((row) => (
-        <MemoizedCardRow 
+        <MemoizedCardRow<T>
           key={keyExtractor(row)} 
           row={row} 
           columns={columns} 

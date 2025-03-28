@@ -1,303 +1,310 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
-import { AgentCard } from "@/components/marketplace/AgentCard";
-import { SearchBar } from "@/components/marketplace/SearchBar";
-import { CategoryNav } from "@/components/marketplace/CategoryNav";
-import { FilterSystem } from "@/components/marketplace/FilterSystem";
-import { supabase } from "@/integrations/supabase/client";
-import { useFeatureTour } from "@/components/feature-tours/FeatureTourProvider";
-import { FeatureTourDisplay } from "@/components/feature-tours/FeatureTourDisplay";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, Zap, Info, Search, FilterX } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 
-const LazyAgentCard = lazy(() => import("@/components/marketplace/AgentCard").then(module => ({ default: module.AgentCard })));
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { AgentCard } from '@/components/marketplace/AgentCard';
+import { AgentDetailsModal } from '@/components/marketplace/AgentDetailsModal';
+import { SearchBar } from '@/components/marketplace/SearchBar';
+import { CategoryNav } from '@/components/marketplace/CategoryNav';
+import { FilterSystem } from '@/components/marketplace/FilterSystem';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import { CATEGORIES_MOCK, AGENTS_MOCK } from '@/utils/dataInit';
 
-const Marketplace = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [selectedSort, setSelectedSort] = useState("popular");
-  const [filtersVisible, setFiltersVisible] = useState(false);
-  const { startTour } = useFeatureTour();
+interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  created_at?: string;
+  description?: string;
+}
 
-  useEffect(() => {
-    const container = document.querySelector('.marketplace-container');
-    if (container) {
-      container.classList.add('marketplace-link');
-    }
-    
-    const timer = setTimeout(() => {
-      startTour("welcome-tour");
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [startTour]);
+interface Agent {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  categories: {
+    name: string;
+  };
+  rating: number;
+  status: string;
+}
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        console.error("Error fetching categories:", error);
-        return [{ id: 'all', name: 'All', icon: '🌟' }];
-      }
-      
-      return [{ id: 'all', name: 'All', icon: '🌟' }, ...(data || [])];
-    },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
-  });
+const MarketplacePage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState('latest');
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: agents, isLoading } = useQuery({
-    queryKey: ['agents', searchQuery, selectedCategory, selectedFilters, selectedSort],
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
+    queryKey: ['marketplace-categories'],
     queryFn: async () => {
       try {
-        let query = supabase
-          .from('agents')
-          .select(`
-            id,
-            title,
-            description,
-            price,
-            rating,
-            status,
-            categories:category_id (name)
-          `);
-
-        if (searchQuery) {
-          query = query.textSearch('search_vector', searchQuery);
-        }
-
-        if (selectedCategory !== 'all') {
-          query = query.eq('category_id', selectedCategory);
-        }
-
-        if (selectedFilters.includes('verified')) {
-          query = query.eq('status', 'verified');
-        }
-
-        if (selectedFilters.includes('free')) {
-          query = query.eq('price', 0);
-        }
-
-        if (selectedFilters.includes('paid')) {
-          query = query.gt('price', 0);
-        }
-
-        switch (selectedSort) {
-          case 'price-asc':
-            query = query.order('price', { ascending: true });
-            break;
-          case 'price-desc':
-            query = query.order('price', { ascending: false });
-            break;
-          case 'rating':
-            query = query.order('rating', { ascending: false });
-            break;
-          default:
-            query = query.order('created_at', { ascending: false });
-        }
-
-        query = query.limit(50);
-
-        const { data, error } = await query;
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
         
-        if (error) {
-          console.error("Error fetching agents:", error);
-          return sampleAgents;
+        if (error) throw error;
+        
+        // If no categories in the database, return mock data
+        if (!data?.length) {
+          console.log('No categories found, using mock data');
+          return CATEGORIES_MOCK;
         }
         
-        return data.length > 0 ? data : sampleAgents;
+        return data as Category[];
       } catch (error) {
-        console.error("Error in agents query:", error);
-        return sampleAgents;
+        console.error('Error fetching categories:', error);
+        return CATEGORIES_MOCK;
       }
     },
-    keepPreviousData: true,
+    // Replace cacheTime with gcTime
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const filterOptions = [
-    { id: 'verified', label: 'Verified Agents' },
-    { id: 'free', label: 'Free Agents' },
-    { id: 'paid', label: 'Paid Agents' },
-  ];
+  const buildAgentQuery = () => {
+    let query = supabase
+      .from('agents')
+      .select(`
+        id,
+        title,
+        description,
+        price,
+        rating,
+        status,
+        categories:category_id (name)
+      `)
+      .eq('status', 'published');
+    
+    if (selectedCategory) {
+      query = query.eq('category_id', selectedCategory);
+    }
+    
+    if (priceRange) {
+      query = query
+        .gte('price', priceRange[0])
+        .lte('price', priceRange[1]);
+    }
+    
+    if (ratingFilter) {
+      query = query.gte('rating', ratingFilter);
+    }
+    
+    // Add sorting
+    if (sortOrder === 'latest') {
+      query = query.order('created_at', { ascending: false });
+    } else if (sortOrder === 'price-low') {
+      query = query.order('price', { ascending: true });
+    } else if (sortOrder === 'price-high') {
+      query = query.order('price', { ascending: false });
+    } else if (sortOrder === 'rating') {
+      query = query.order('rating', { ascending: false });
+    }
+    
+    return query;
+  };
 
-  const sortOptions = [
-    { id: 'popular', label: 'Most Popular' },
-    { id: 'rating', label: 'Highest Rated' },
-    { id: 'price-asc', label: 'Price: Low to High' },
-    { id: 'price-desc', label: 'Price: High to Low' },
-  ];
+  const { data: agents = [], isLoading: isLoadingAgents } = useQuery({
+    queryKey: ['marketplace-agents', selectedCategory, priceRange, ratingFilter, sortOrder],
+    queryFn: async () => {
+      try {
+        const query = buildAgentQuery();
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        // If no agents in the database, return mock data
+        if (!data?.length) {
+          console.log('No agents found, using mock data');
+          return AGENTS_MOCK;
+        }
+        
+        return data as Agent[];
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+        return AGENTS_MOCK;
+      }
+    },
+    // Update React Query v5 options
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  const handleSearch = useCallback((query: string) => {
+  // Filter agents based on search query
+  const filteredAgents = useMemo(() => {
+    if (!searchQuery.trim()) return agents;
+    
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    return agents.filter(
+      agent => 
+        agent.title.toLowerCase().includes(normalizedQuery) || 
+        agent.description.toLowerCase().includes(normalizedQuery)
+    );
+  }, [agents, searchQuery]);
+
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-  }, []);
+  };
 
-  const toggleFilters = useCallback(() => {
-    setFiltersVisible(prev => !prev);
-  }, []);
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handlePriceChange = (range: [number, number]) => {
+    setPriceRange(range);
+  };
+
+  const handleRatingChange = (rating: number | null) => {
+    setRatingFilter(rating);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortOrder(value);
+  };
+
+  const handleAgentClick = (agentId: string) => {
+    setSelectedAgentId(agentId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedAgentId(null);
+  };
+
+  const handlePurchase = (agentId: string) => {
+    toast({
+      title: "Coming Soon",
+      description: "Agent purchase functionality will be available soon.",
+    });
+  };
+
+  const selectedAgent = selectedAgentId 
+    ? agents.find(agent => agent.id === selectedAgentId) || null
+    : null;
 
   return (
-    <div className="space-y-6 marketplace-container px-4 py-6 md:px-6">
-      <div className="bg-gradient-to-r from-primary/5 to-accent/10 p-4 md:p-6 rounded-lg mb-4 md:mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center">
-            <ShoppingBag className="h-8 w-8 text-primary mr-3 flex-shrink-0" />
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold">AI Agent Marketplace</h2>
-              <p className="text-muted-foreground text-sm md:text-base">Discover and deploy powerful AI agents</p>
+    <DashboardLayout>
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">AI Agent Marketplace</h1>
+        <p className="text-muted-foreground">
+          Discover, purchase, and deploy AI agents created by our developer community
+        </p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+        {/* Sidebar/Filters (mobile collapsible, desktop fixed) */}
+        <div className="w-full md:w-64 flex-shrink-0 space-y-6">
+          <div className="space-y-4">
+            <h3 className="font-medium text-sm">Categories</h3>
+            {isLoadingCategories ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : (
+              <CategoryNav 
+                categories={categories} 
+                selectedCategoryId={selectedCategory}
+                onSelectCategory={handleCategoryChange}
+              />
+            )}
+          </div>
+          
+          <FilterSystem
+            priceRange={priceRange}
+            onPriceChange={handlePriceChange}
+            ratingFilter={ratingFilter}
+            onRatingChange={handleRatingChange}
+          />
+        </div>
+        
+        {/* Main content */}
+        <div className="flex-1">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <SearchBar onSearch={handleSearch} />
+            
+            <div className="w-full sm:w-auto flex-shrink-0">
+              <Select value={sortOrder} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">Latest</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <Button 
-            variant="default" 
-            className="shadow-lg w-full md:w-auto text-sm"
-            onClick={() => startTour("welcome-tour")}
-            size="sm"
-          >
-            <Info className="mr-2 h-4 w-4" />
-            How It Works
-          </Button>
+          
+          {isLoadingAgents ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex flex-col gap-4">
+                  <Skeleton className="h-48 w-full rounded-lg" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <div className="flex justify-between">
+                    <Skeleton className="h-8 w-16" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredAgents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <h3 className="text-lg font-medium">No agents found</h3>
+              <p className="text-muted-foreground mt-2">
+                Try adjusting your filters or search query
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory(null);
+                  setPriceRange([0, 1000]);
+                  setRatingFilter(null);
+                }}
+              >
+                Reset Filters
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAgents.map((agent) => (
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  onClick={() => handleAgentClick(agent.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 sticky top-0 bg-background z-10 py-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <SearchBar onSearch={handleSearch} className="w-full sm:w-64" />
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center md:hidden"
-              onClick={toggleFilters}
-            >
-              <FilterX className="mr-2 h-4 w-4" />
-              {filtersVisible ? 'Hide Filters' : 'Show Filters'}
-            </Button>
-            <div className={`${filtersVisible ? 'flex' : 'hidden'} md:flex flex-wrap items-center gap-2 w-full md:w-auto`}>
-              <FilterSystem
-                options={filterOptions}
-                selectedFilters={selectedFilters}
-                onFilterChange={setSelectedFilters}
-                sortOptions={sortOptions}
-                selectedSort={selectedSort}
-                onSortChange={setSelectedSort}
-              />
-            </div>
-          </div>
-        </div>
-
-        <CategoryNav
-          categories={categories || []}
-          selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
+      {selectedAgent && (
+        <AgentDetailsModal
+          agent={selectedAgent}
+          isOpen={!!selectedAgentId}
+          onClose={handleCloseModal}
+          onPurchase={() => handlePurchase(selectedAgent.id)}
         />
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="h-[300px] animate-pulse" />
-          ))}
-        </div>
-      ) : agents && agents.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {agents.map((agent) => (
-            <Suspense key={agent.id} fallback={<Card className="h-[300px] animate-pulse" />}>
-              <LazyAgentCard
-                title={agent.title}
-                description={agent.description}
-                price={agent.price}
-                category={agent.categories?.name || 'Uncategorized'}
-                rating={agent.rating || 0}
-                onView={() => {/* TODO: Implement agent details view */}}
-              />
-            </Suspense>
-          ))}
-        </div>
-      ) : (
-        <Card className="p-6 text-center">
-          <p className="text-muted-foreground">
-            No agents found matching your criteria.
-          </p>
-        </Card>
       )}
-      
-      <Button 
-        variant="outline" 
-        className="fixed bottom-8 right-8 shadow-lg z-20 bg-white rounded-full size-12 md:size-auto md:rounded-md md:px-4 md:py-2"
-        size="icon"
-        aria-label="Buy Credits"
-      >
-        <Zap className="h-5 w-5 text-primary md:mr-2" />
-        <span className="hidden md:inline font-semibold">Buy Credits</span>
-      </Button>
-      
-      <FeatureTourDisplay />
-    </div>
+    </DashboardLayout>
   );
 };
 
-const sampleAgents = [
-  {
-    id: '1',
-    title: 'Content Writer',
-    description: 'AI-powered content writer that can generate blog posts, articles, and more.',
-    price: 0,
-    categories: { name: 'Writing' },
-    rating: 4.5,
-    status: 'verified'
-  },
-  {
-    id: '2',
-    title: 'Data Analyzer',
-    description: 'Analyze your datasets and generate insightful reports with visualizations.',
-    price: 9.99,
-    categories: { name: 'Analytics' },
-    rating: 4.8,
-    status: 'verified'
-  },
-  {
-    id: '3',
-    title: 'Customer Support Assistant',
-    description: 'Handle customer inquiries and provide support 24/7.',
-    price: 19.99,
-    categories: { name: 'Support' },
-    rating: 4.2,
-    status: 'verified'
-  },
-  {
-    id: '4',
-    title: 'Code Review Helper',
-    description: 'Review your code for bugs, security issues, and best practices.',
-    price: 0,
-    categories: { name: 'Development' },
-    rating: 4.7,
-    status: 'verified'
-  },
-  {
-    id: '5',
-    title: 'Email Marketing Assistant',
-    description: 'Create and analyze email marketing campaigns to boost engagement.',
-    price: 14.99,
-    categories: { name: 'Marketing' },
-    rating: 4.4,
-    status: 'verified'
-  },
-  {
-    id: '6',
-    title: 'Legal Document Helper',
-    description: 'Generate and review legal documents for your business needs.',
-    price: 29.99,
-    categories: { name: 'Legal' },
-    rating: 4.6,
-    status: 'verified'
-  }
-];
-
-export default Marketplace;
+export default MarketplacePage;
