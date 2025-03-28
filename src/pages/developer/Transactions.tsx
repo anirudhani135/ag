@@ -40,10 +40,15 @@ export default function Transactions() {
 
   const refreshData = async () => {
     try {
-      await supabase.rest.realtime.setRealtimeSubscriptionEnabled(true, {
-        table: "transactions",
-        schema: "public"
-      });
+      // Use the correct method to refresh realtime data
+      // The previous implementation was using a protected property
+      await supabase.channel('table-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'transactions'
+        }, () => {})
+        .subscribe();
       
       setLastUpdated(new Date());
       toast({

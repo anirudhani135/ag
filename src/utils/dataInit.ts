@@ -1,4 +1,3 @@
-
 // Mock data for categories
 export const CATEGORIES_MOCK = [
   {
@@ -120,3 +119,28 @@ export const AGENTS_MOCK = [
     updated_at: "2023-11-15T10:20:00Z"
   }
 ];
+
+/**
+ * Initialize sample data for development purposes
+ * This function sets up mock data in localStorage or other client-side storage
+ * to simulate a database during development
+ */
+export const initSampleData = async (): Promise<void> => {
+  try {
+    // Store categories in localStorage if not already present
+    if (!localStorage.getItem('categories')) {
+      localStorage.setItem('categories', JSON.stringify(CATEGORIES_MOCK));
+    }
+    
+    // Store agents in localStorage if not already present
+    if (!localStorage.getItem('agents')) {
+      localStorage.setItem('agents', JSON.stringify(AGENTS_MOCK));
+    }
+    
+    console.log('Sample data initialized successfully');
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Failed to initialize sample data:', error);
+    return Promise.reject(error);
+  }
+};
