@@ -64,16 +64,16 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create agent with forced active status
+      // Create agent - making sure to use a valid status
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
           developer_id: DEV_USER_ID,
-          // Using "active" status to bypass constraints
-          status: 'active',
-          deployment_status: 'active',
+          // Use a valid status from the enum
+          status: 'pending',
+          deployment_status: 'pending',
           price: 0,
           version_number: "1.0",
           category_id: null
@@ -117,7 +117,7 @@ export const ExternalSourceDeployment = () => {
         .from('agents')
         .update({ 
           current_version_id: version.id,
-          deployment_status: 'active'
+          deployment_status: 'pending'
         })
         .eq('id', agent.id);
       
@@ -126,7 +126,7 @@ export const ExternalSourceDeployment = () => {
         .insert({
           agent_id: agent.id,
           version_id: version.id,
-          status: 'running',
+          status: 'pending',
           health_status: 'healthy',
           environment: 'production',
           resource_usage: {

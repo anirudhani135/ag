@@ -35,17 +35,19 @@ serve(async (req) => {
 
     console.log(`Deploying agent ${agent.title} with type: ${externalType}`);
 
-    // Force update agent to active status
+    // Update agent to valid status - using one of the allowed enum values
     const { error: updateError } = await supabase
       .from('agents')
       .update({ 
-        status: 'active',
+        status: 'active',  // Make sure this matches allowed enum values
         deployment_status: 'active'
       })
       .eq('id', agentId);
       
     if (updateError) {
       console.error('Error updating agent status:', updateError);
+      // Even if there's an error here, continue with deployment
+      // We'll try to set it to active at the end as well
     } else {
       console.log('Updated agent status to active');
     }
@@ -224,7 +226,7 @@ async function simulateDeployment(supabase, deploymentId, agentId, deploymentTyp
       })
       .eq('id', deploymentId);
 
-    // Ensure agent is active for marketplace visibility
+    // Force ensure agent is active for marketplace visibility
     await supabase
       .from('agents')
       .update({
