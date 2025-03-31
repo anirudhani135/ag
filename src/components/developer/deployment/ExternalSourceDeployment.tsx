@@ -33,6 +33,8 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
+const DEV_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
+
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
@@ -69,7 +71,8 @@ export const ExternalSourceDeployment = () => {
           deployment_status: 'active',
           price: 0,
           version_number: "1.0",
-          category_id: null
+          category_id: null,
+          developer_id: DEV_USER_ID
         })
         .select('id')
         .single();
