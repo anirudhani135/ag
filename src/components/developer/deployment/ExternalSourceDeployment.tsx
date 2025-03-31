@@ -63,7 +63,7 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create a new agent - removing properties that don't exist in the agents table
+      // Create a new agent - ensuring all required fields are provided
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
@@ -71,8 +71,9 @@ export const ExternalSourceDeployment = () => {
           description: data.description,
           developer_id: (await supabase.auth.getUser()).data.user?.id,
           status: 'draft',
-          // These properties will be stored in the agent_versions table instead
-          version_number: "1.0" // Fix: Change to string type
+          price: 0, // Adding required price field with default value
+          version_number: "1.0", // Already fixed as string
+          category_id: null // NULL is acceptable for this field
         })
         .select('id')
         .single();
@@ -90,7 +91,7 @@ export const ExternalSourceDeployment = () => {
         .from('agent_versions')
         .insert({
           agent_id: agent.id,
-          version_number: "1.0", // Fix: Change to string type
+          version_number: "1.0",
           status: 'active',
           changes: 'Initial external import',
           config: {
