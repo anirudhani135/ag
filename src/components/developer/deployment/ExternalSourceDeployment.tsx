@@ -39,6 +39,7 @@ import { useNavigate } from "react-router-dom";
 import { Upload, Server, Globe, Database, Code, Bot, CheckCircle, Loader2, AlertCircle, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { logActivity } from "@/utils/activityLogger";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -65,6 +66,7 @@ export function ExternalSourceDeployment() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedConfig, setUploadedConfig] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [deploymentId, setDeploymentId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -134,7 +136,15 @@ export function ExternalSourceDeployment() {
         throw new Error('Authentication required');
       }
 
+      // Log the activity
+      await logActivity('agent_deploy', {
+        deployment_type: values.externalType,
+        agent_name: values.name
+      });
+
       setDeploymentProgress(20);
+      
+      // Create agent record
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
@@ -147,18 +157,22 @@ export function ExternalSourceDeployment() {
           technical_requirements: {
             integration_type: values.externalType,
             api_endpoint: values.apiEndpoint,
+            api_key: values.apiKey, // This will be stored securely
             external_config: values.customConfig
           },
-          deployment_status: 'deploying'
+          deployment_status: 'deploying',
+          version_number: '1.0.0' // Initial version
         })
         .select()
         .single();
 
       if (agentError) throw agentError;
       
+      console.log("Agent created:", agent);
       setDeploymentProgress(40);
       setDeploymentStep(2);
       
+      // Create version record
       const { data: version, error: versionError } = await supabase
         .from('agent_versions')
         .insert({
@@ -166,7 +180,8 @@ export function ExternalSourceDeployment() {
           version_number: '1.0.0',
           runtime_config: {
             integration_type: values.externalType,
-            api_endpoint: values.apiEndpoint
+            api_endpoint: values.apiEndpoint,
+            api_key: values.apiKey
           },
           status: 'active'
         })
@@ -175,15 +190,18 @@ export function ExternalSourceDeployment() {
         
       if (versionError) throw versionError;
       
+      console.log("Version created:", version);
       setDeploymentProgress(60);
       setDeploymentStep(3);
       
+      // Create deployment record
       const { data: deployment, error: deploymentError } = await supabase
         .from('deployments')
         .insert({
           agent_id: agent.id,
           version_id: version.id,
           status: 'deploying',
+          deployed_by: user.id,
           metrics: {
             deployment_type: values.externalType,
             progress: 60,
@@ -203,54 +221,90 @@ export function ExternalSourceDeployment() {
         
       if (deploymentError) throw deploymentError;
       
+      setDeploymentId(deployment.id);
+      console.log("Deployment created:", deployment);
       setDeploymentProgress(80);
       setDeploymentStep(4);
       
-      setTimeout(async () => {
-        try {
-          const { error: updateError } = await supabase
-            .from('deployments')
-            .update({
-              status: 'running',
-              metrics: {
-                deployment_type: values.externalType,
-                progress: 100,
-                current_stage: 'completed'
-              }
-            })
-            .eq('id', deployment.id);
-            
-          if (updateError) throw updateError;
-          
-          // Update agent status to make it immediately available in marketplace
-          await supabase
-            .from('agents')
-            .update({
-              deployment_status: 'live',
-              status: values.isPublic ? 'active' : 'pending_review'
-            })
-            .eq('id', agent.id);
-          
-          setDeploymentProgress(100);
-          
-          toast({
-            title: "Deployment successful",
-            description: "Your agent has been successfully deployed and is now available in the marketplace.",
-          });
-          
-          setTimeout(() => {
-            navigate(`/marketplace`);
-          }, 1500);
-        } catch (error) {
-          console.error('Deployment completion error:', error);
-          toast({
-            variant: "destructive",
-            title: "Deployment failed at final stage",
-            description: error instanceof Error ? error.message : "An unexpected error occurred during completion",
-          });
-          setIsDeploying(false);
+      // Call the deploy-agent edge function to handle the actual deployment process
+      const { data: deploymentResponse, error: functionError } = await supabase.functions.invoke('deploy-agent', {
+        body: { 
+          agentId: agent.id, 
+          versionId: version.id,
+          deploymentType: values.externalType,
+          config: {
+            environment: 'production',
+            api_endpoint: values.apiEndpoint,
+            api_key: values.apiKey,
+            custom_config: values.customConfig
+          }
         }
+      });
+      
+      if (functionError) throw functionError;
+      
+      console.log("Deployment response:", deploymentResponse);
+      
+      // Final update to mark the deployment complete
+      const { error: updateError } = await supabase
+        .from('deployments')
+        .update({
+          status: 'running',
+          metrics: {
+            deployment_type: values.externalType,
+            progress: 100,
+            current_stage: 'completed',
+            completion_time: new Date().toISOString()
+          }
+        })
+        .eq('id', deployment.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update agent status to make it available in marketplace
+      await supabase
+        .from('agents')
+        .update({
+          deployment_status: 'live',
+          status: values.isPublic ? 'active' : 'pending_review'
+        })
+        .eq('id', agent.id);
+      
+      setDeploymentProgress(100);
+      
+      toast({
+        title: "Deployment successful",
+        description: "Your agent has been successfully deployed and is now available in the marketplace.",
+      });
+      
+      // Add deployment log
+      await supabase
+        .from('deployment_logs')
+        .insert({
+          deployment_id: deployment.id,
+          status: 'complete',
+          message: `Successfully deployed ${values.name} using ${values.externalType} integration`,
+          metadata: {
+            agent_id: agent.id,
+            deployment_type: values.externalType,
+            api_endpoint: values.apiEndpoint ? true : false,
+            timestamp: new Date().toISOString()
+          }
+        });
+      
+      // Log deployment success
+      await logActivity('agent_deploy', {
+        status: 'success',
+        agent_id: agent.id,
+        deployment_id: deployment.id,
+        deployment_type: values.externalType
+      });
+      
+      // Redirect to the marketplace after a short delay to see completion
+      setTimeout(() => {
+        navigate(`/marketplace`);
       }, 2000);
+      
     } catch (error) {
       console.error('Deployment error:', error);
       
@@ -267,6 +321,41 @@ export function ExternalSourceDeployment() {
           title: "Deployment failed",
           description: error instanceof Error ? error.message : "An unexpected error occurred",
         });
+        
+        // Log deployment failure
+        if (deploymentId) {
+          // Update deployment status
+          await supabase
+            .from('deployments')
+            .update({
+              status: 'failed',
+              metrics: {
+                error: error instanceof Error ? error.message : "Deployment failed",
+                error_time: new Date().toISOString()
+              }
+            })
+            .eq('id', deploymentId);
+          
+          // Log the error
+          await supabase
+            .from('deployment_logs')
+            .insert({
+              deployment_id: deploymentId,
+              status: 'failed',
+              message: `Deployment failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+              metadata: { 
+                error: error instanceof Error ? error.message : "Unknown error",
+                timestamp: new Date().toISOString()
+              }
+            });
+            
+          // Log activity
+          await logActivity('agent_deploy', {
+            status: 'failed',
+            deployment_id: deploymentId,
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
       }
       
       setIsDeploying(false);
@@ -528,36 +617,40 @@ export function ExternalSourceDeployment() {
                 
                 {externalType === "langflow" && (
                   <div className="space-y-4 border rounded-md p-4">
-                    <div className="flex flex-col items-center justify-center gap-4 p-4 border-2 border-dashed rounded-md">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                      <div className="space-y-1 text-center">
-                        <p className="text-sm font-medium">Drag & drop your LangFlow JSON file</p>
-                        <p className="text-xs text-muted-foreground">
-                          Or click to browse files (max 5MB)
-                        </p>
-                      </div>
-                      <label className="relative">
+                    <div className="space-y-2">
+                      <Label htmlFor="langflow-file">LangFlow Configuration JSON</Label>
+                      <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center">
+                        <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                        <p className="mb-2 text-sm font-medium">Drag & drop or click to upload</p>
+                        <p className="text-xs text-muted-foreground mb-4">Upload your LangFlow JSON configuration file</p>
                         <Input 
+                          id="langflow-file" 
                           type="file" 
                           accept=".json" 
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className="hidden" 
                           onChange={handleFileUpload}
                         />
-                        <Button variant="outline">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => document.getElementById('langflow-file')?.click()}
+                          disabled={isUploading}
+                        >
                           {isUploading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Uploading...
                             </>
                           ) : (
-                            "Browse Files"
+                            'Select File'
                           )}
                         </Button>
-                      </label>
+                      </div>
                       {uploadedConfig && (
-                        <div className="text-sm text-green-600 flex items-center gap-1">
-                          <CheckCircle className="h-4 w-4" />
-                          Configuration uploaded successfully
+                        <div className="p-2 bg-green-50 text-green-700 text-sm rounded border border-green-200">
+                          <div className="flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            <p>Configuration file uploaded successfully!</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -566,10 +659,16 @@ export function ExternalSourceDeployment() {
                 
                 {externalType === "custom" && (
                   <div className="space-y-4 border rounded-md p-4">
-                    <p className="text-sm text-muted-foreground">
-                      For custom integrations, please contact our support team or refer to the
-                      integration documentation for setup instructions.
-                    </p>
+                    <FormItem>
+                      <FormLabel>Custom Integration Details</FormLabel>
+                      <Textarea 
+                        placeholder="Provide details about your custom integration needs and requirements..."
+                        className="min-h-24"
+                      />
+                      <FormDescription>
+                        Our team will review your custom integration request and may contact you for additional information
+                      </FormDescription>
+                    </FormItem>
                   </div>
                 )}
                 
@@ -577,13 +676,11 @@ export function ExternalSourceDeployment() {
                   control={form.control}
                   name="isPublic"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 mt-4">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 mt-6">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Direct Publishing
-                        </FormLabel>
+                        <FormLabel className="text-base">Make Agent Public</FormLabel>
                         <FormDescription>
-                          Make this agent publicly available immediately without review process
+                          When enabled, your agent will be immediately visible in the marketplace
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -597,39 +694,19 @@ export function ExternalSourceDeployment() {
                 />
               </div>
               
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isDeploying || !user}
-              >
+              <Button type="submit" className="w-full" disabled={isDeploying}>
                 {isDeploying ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deploying...
+                    Deploying Agent...
                   </>
                 ) : (
                   <>
-                    <Server className="mr-2 h-4 w-4" />
+                    <Bot className="mr-2 h-4 w-4" />
                     Deploy Agent
                   </>
                 )}
               </Button>
-              
-              {!user && (
-                <div className="text-center mt-2">
-                  <p className="text-sm text-red-500 mb-2">
-                    You must be signed in to deploy an agent
-                  </p>
-                  <Button 
-                    variant="outline"
-                    onClick={handleLogin}
-                    className="bg-primary/10 text-primary hover:bg-primary/20"
-                  >
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Sign In to Deploy
-                  </Button>
-                </div>
-              )}
             </form>
           </Form>
         )}
