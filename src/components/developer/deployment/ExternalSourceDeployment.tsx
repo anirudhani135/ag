@@ -63,7 +63,7 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create a new agent
+      // Create a new agent - removing properties that don't exist in the agents table
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
@@ -71,9 +71,7 @@ export const ExternalSourceDeployment = () => {
           description: data.description,
           developer_id: (await supabase.auth.getUser()).data.user?.id,
           status: 'draft',
-          external_source: true,
-          external_type: data.external_type,
-          source_url: data.source_url,
+          // These properties will be stored in the agent_versions table instead
           version_number: "1.0" // Fix: Change to string type
         })
         .select('id')
@@ -87,7 +85,7 @@ export const ExternalSourceDeployment = () => {
         throw new Error("Failed to create agent");
       }
       
-      // Create agent version
+      // Create agent version with the external source properties
       const { data: version, error: versionError } = await supabase
         .from('agent_versions')
         .insert({
@@ -161,14 +159,14 @@ export const ExternalSourceDeployment = () => {
       setDeploymentProgress(100);
       setDeploymentStatus("success");
       
-      // Log the successful deployment
-      await supabase.from('activity_log') // Fix: Change table name from 'activity_logs' to 'activity_log'
+      // Log the successful deployment to user_activity table instead of activity_log
+      await supabase.from('user_activity')
         .insert({
           user_id: (await supabase.auth.getUser()).data.user?.id,
-          action: 'agent_deployed',
-          resource_type: 'agent',
-          resource_id: agent.id,
-          metadata: { 
+          activity_type: 'agent_deployed',
+          details: {
+            resource_type: 'agent',
+            resource_id: agent.id,
             deployment_id: deployment.id,
             deployment_type: 'external',
             external_type: data.external_type
