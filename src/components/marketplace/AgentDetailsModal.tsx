@@ -50,14 +50,14 @@ export function AgentDetailsModal({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handlePurchase = async () => {
+  const handleHire = async () => {
     setIsLoading(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         toast({
           title: "Authentication Required",
-          description: "Please sign in to purchase this agent",
+          description: "Please sign in to hire this agent",
           variant: "destructive",
         });
         return;
@@ -70,7 +70,7 @@ export function AgentDetailsModal({
         amount: agent.price,
         status: 'pending',
         metadata: {
-          type: 'purchase',
+          type: 'hire',
           agent_name: agent.title,
           timestamp: new Date().toISOString()
         }
@@ -79,26 +79,26 @@ export function AgentDetailsModal({
       if (error) throw error;
 
       toast({
-        title: "Purchase Initiated",
-        description: "Your purchase is being processed",
+        title: "Hiring in progress",
+        description: "Your request is being processed",
       });
 
-      // Simulate successful purchase after delay
+      // Simulate successful hire after delay
       setTimeout(() => {
         setIsLoading(false);
         onPurchase(agent.id);
         toast({
-          title: "Purchase Complete",
+          title: "Agent Hired Successfully",
           description: "You now have access to this agent",
         });
         onClose();
       }, 1500);
     } catch (error) {
-      console.error('Purchase error:', error);
+      console.error('Hire error:', error);
       setIsLoading(false);
       toast({
-        title: "Purchase Failed",
-        description: "There was an error processing your purchase. Please try again.",
+        title: "Hire Failed",
+        description: "There was an error processing your request. Please try again.",
         variant: "destructive",
       });
     }
@@ -138,7 +138,7 @@ export function AgentDetailsModal({
             </div>
             <div className="flex flex-col items-end">
               <div className="text-lg font-bold">${agent.price}</div>
-              <div className="text-xs text-muted-foreground">One-time purchase</div>
+              <div className="text-xs text-muted-foreground">One-time payment</div>
             </div>
           </div>
         </DialogHeader>
@@ -175,9 +175,9 @@ export function AgentDetailsModal({
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium">Before you purchase:</p>
+                  <p className="font-medium">Before you hire:</p>
                   <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground">
-                    <li>This agent requires sufficient credits to operate</li>
+                    <li>This agent connects to an external API service</li>
                     <li>Technical support is provided by the developer</li>
                     <li>Refer to documentation for integration help</li>
                   </ul>
@@ -187,11 +187,11 @@ export function AgentDetailsModal({
 
             <div className="flex flex-col sm:flex-row mt-6 gap-3">
               <Button 
-                onClick={handlePurchase} 
+                onClick={handleHire} 
                 className="flex-1"
                 disabled={isLoading}
               >
-                {isLoading ? "Processing..." : "Purchase Now"}
+                {isLoading ? "Processing..." : "Hire Now"}
               </Button>
               {agent.documentation_url && (
                 <Button variant="outline" className="flex items-center gap-2" asChild>

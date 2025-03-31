@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -85,7 +84,7 @@ const MarketplacePage = () => {
         status,
         categories:category_id (name)
       `)
-      .eq('status', 'published');
+      .eq('status', 'active');
     
     if (selectedCategory) {
       query = query.eq('category_id', selectedCategory);
@@ -179,11 +178,11 @@ const MarketplacePage = () => {
     setSelectedAgentId(null);
   };
 
-  const handlePurchase = (agentId: string) => {
+  const handleHire = (agentId: string) => {
     // Here we would typically create a transaction or deploy the agent
     navigate(`/agent/${agentId}/dashboard`);
     toast({
-      title: "Agent Acquired",
+      title: "Agent Hired",
       description: "The agent has been added to your collection.",
     });
   };
@@ -197,7 +196,7 @@ const MarketplacePage = () => {
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">AI Agent Marketplace</h1>
         <p className="text-muted-foreground">
-          Discover, purchase, and deploy AI agents created by our developer community
+          Discover, hire, and deploy AI agents created by our developer community
         </p>
       </div>
 
@@ -302,7 +301,7 @@ const MarketplacePage = () => {
           agent={selectedAgent}
           isOpen={!!selectedAgentId}
           onClose={handleCloseModal}
-          onPurchase={() => handlePurchase(selectedAgent.id)}
+          onPurchase={() => handleHire(selectedAgent.id)}
         />
       )}
     </DashboardLayout>

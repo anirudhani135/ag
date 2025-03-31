@@ -64,16 +64,15 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create agent - making sure to use a valid status
+      // Create agent with active status directly
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
           developer_id: DEV_USER_ID,
-          // Use a valid status from the enum
-          status: 'pending',
-          deployment_status: 'pending',
+          status: 'active',
+          deployment_status: 'active',
           price: 0,
           version_number: "1.0",
           category_id: null
@@ -117,7 +116,7 @@ export const ExternalSourceDeployment = () => {
         .from('agents')
         .update({ 
           current_version_id: version.id,
-          deployment_status: 'pending'
+          deployment_status: 'active'
         })
         .eq('id', agent.id);
       
@@ -126,7 +125,7 @@ export const ExternalSourceDeployment = () => {
         .insert({
           agent_id: agent.id,
           version_id: version.id,
-          status: 'pending',
+          status: 'running',
           health_status: 'healthy',
           environment: 'production',
           resource_usage: {
@@ -175,7 +174,7 @@ export const ExternalSourceDeployment = () => {
         });
       
       toast.success("Agent deployed successfully!", {
-        description: "Your agent is now ready to use in the marketplace."
+        description: "Your agent is now available in the marketplace."
       });
       
       setTimeout(() => {
@@ -206,7 +205,7 @@ export const ExternalSourceDeployment = () => {
       <CardHeader>
         <CardTitle>Deploy External Agent</CardTitle>
         <CardDescription>
-          Connect to external AI agents and services
+          Connect to external AI agents and services - simply provide the API endpoint and key
         </CardDescription>
       </CardHeader>
       
@@ -243,7 +242,7 @@ export const ExternalSourceDeployment = () => {
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertTitle>Deployment Successful</AlertTitle>
               <AlertDescription>
-                Your agent has been successfully deployed and will be available in the marketplace shortly.
+                Your agent has been successfully deployed and is now available in the marketplace.
               </AlertDescription>
             </Alert>
           )}
@@ -266,18 +265,6 @@ export const ExternalSourceDeployment = () => {
                   <SelectItem value="custom">Custom API</SelectItem>
                 </SelectContent>
               </Select>
-              
-              {externalType === "openai" && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Connect to an existing OpenAI Assistant
-                </p>
-              )}
-              
-              {externalType === "langflow" && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Deploy a LangFlow flow as an agent
-                </p>
-              )}
             </div>
             
             <div className="space-y-2">
@@ -305,30 +292,15 @@ export const ExternalSourceDeployment = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="source_url">
-                {externalType === "openai" ? "Assistant ID" : 
-                 externalType === "langflow" ? "Langflow API Endpoint" : 
-                 "API Endpoint"}
-              </Label>
+              <Label htmlFor="source_url">API Endpoint</Label>
               <Input 
                 id="source_url" 
-                {...register("source_url", { required: "This field is required" })}
-                placeholder={
-                  externalType === "openai" ? "asst_abc123..." : 
-                  externalType === "langflow" ? "https://your-langflow-instance.com/api/v1/process" : 
-                  "https://api.example.com/agent"
-                }
+                {...register("source_url", { required: "API endpoint is required" })}
+                placeholder="https://api.example.com/agent"
                 disabled={isSubmitting || deploymentStatus !== "idle"}
               />
               {errors.source_url && (
                 <p className="text-sm text-red-500 mt-1">{errors.source_url.message}</p>
-              )}
-              
-              {externalType === "openai" && (
-                <p className="text-xs text-amber-600 mt-1 inline-flex items-center">
-                  <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
-                  Enter your OpenAI Assistant ID (not the API key)
-                </p>
               )}
             </div>
             

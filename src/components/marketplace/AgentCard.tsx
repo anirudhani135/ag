@@ -41,9 +41,9 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handlePurchase = () => {
+  const handleHire = () => {
     toast({
-      title: "Agent added to collection",
+      title: "Agent hired",
       description: `${agent.title} has been added to your agents.`,
       variant: "default",
     });
@@ -118,10 +118,10 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
                 variant={agent.price === 0 ? "success" : "primary"}
                 size="sm"
                 className={`flex-1 text-white font-medium ${agent.price === 0 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"}`}
-                onClick={handlePurchase}
+                onClick={handleHire}
               >
                 <ShoppingCart className="h-4 w-4 mr-1" />
-                {agent.price === 0 ? "Get Agent" : "Purchase"}
+                {agent.price === 0 ? "Hire Agent" : "Hire"}
               </Button>
               <Button
                 variant="outline"
@@ -142,7 +142,7 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
           isOpen={showDetails}
           onClose={() => setShowDetails(false)}
           agent={agent}
-          onPurchase={handlePurchase}
+          onPurchase={handleHire}
         />
       )}
     </>
