@@ -35,7 +35,7 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
-const DEV_USER_ID = "dev-user-id";
+const DEV_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
 
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,14 +64,13 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create a new agent - ensuring all required fields are provided
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
           developer_id: DEV_USER_ID,
-          status: 'draft',
+          status: 'active',
           price: 0,
           version_number: "1.0",
           category_id: null
@@ -112,7 +111,10 @@ export const ExternalSourceDeployment = () => {
 
       await supabase
         .from('agents')
-        .update({ current_version_id: version.id })
+        .update({ 
+          current_version_id: version.id,
+          deployment_status: 'active'
+        })
         .eq('id', agent.id);
       
       const { data: deployment, error: deploymentError } = await supabase
@@ -120,8 +122,8 @@ export const ExternalSourceDeployment = () => {
         .insert({
           agent_id: agent.id,
           version_id: version.id,
-          status: 'deploying',
-          health_status: 'pending',
+          status: 'running',
+          health_status: 'healthy',
           environment: 'production',
           resource_usage: {
             cpu: "0.5",
@@ -170,6 +172,8 @@ export const ExternalSourceDeployment = () => {
           }
         });
       
+      await addAgentToMarketplace(agent.id);
+      
       toast.success("Agent deployed successfully!", {
         description: "Your agent is now ready to use in the marketplace."
       });
@@ -188,6 +192,24 @@ export const ExternalSourceDeployment = () => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const addAgentToMarketplace = async (agentId: string) => {
+    try {
+      await supabase.from('agent_metrics')
+        .insert({
+          agent_id: agentId,
+          views: 0,
+          unique_views: 0,
+          purchases: 0,
+          revenue: 0,
+          date: new Date().toISOString().split('T')[0]
+        });
+      
+      console.log("Added agent to marketplace metrics");
+    } catch (error) {
+      console.error("Error adding agent to marketplace:", error);
     }
   };
 
