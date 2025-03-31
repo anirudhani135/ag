@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,9 +33,6 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
-// Using a valid UUID for development
-const DEV_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
-
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
@@ -64,15 +60,12 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Important: use a valid status value that passes the constraint check
-      // Using "draft" which is likely an allowed value for the status column
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
-          developer_id: DEV_USER_ID,
-          status: 'draft', // Using 'draft' instead of 'active' to comply with the constraint
+          status: 'draft',
           deployment_status: 'active',
           price: 0,
           version_number: "1.0",
@@ -112,13 +105,12 @@ export const ExternalSourceDeployment = () => {
         throw new Error("Failed to create agent version");
       }
 
-      // Update the agent with version info and change status to 'live' if that's a valid value
       await supabase
         .from('agents')
         .update({ 
           current_version_id: version.id,
           deployment_status: 'active',
-          status: 'live' // Try using 'live' which is likely an allowed value
+          status: 'live' 
         })
         .eq('id', agent.id);
       
@@ -164,7 +156,6 @@ export const ExternalSourceDeployment = () => {
       setDeploymentProgress(100);
       setDeploymentStatus("success");
       
-      // Create marketplace metrics for immediate visibility
       await supabase.from('agent_metrics')
         .insert({
           agent_id: agent.id,
@@ -363,3 +354,5 @@ export const ExternalSourceDeployment = () => {
     </Card>
   );
 };
+
+export default ExternalSourceDeployment;
