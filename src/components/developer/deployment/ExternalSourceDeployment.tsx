@@ -74,7 +74,7 @@ export const ExternalSourceDeployment = () => {
           external_source: true,
           external_type: data.external_type,
           source_url: data.source_url,
-          version_number: 1.0
+          version_number: "1.0" // Fix: Change to string type
         })
         .select('id')
         .single();
@@ -92,7 +92,7 @@ export const ExternalSourceDeployment = () => {
         .from('agent_versions')
         .insert({
           agent_id: agent.id,
-          version_number: 1.0,
+          version_number: "1.0", // Fix: Change to string type
           status: 'active',
           changes: 'Initial external import',
           config: {
@@ -162,17 +162,18 @@ export const ExternalSourceDeployment = () => {
       setDeploymentStatus("success");
       
       // Log the successful deployment
-      await supabase.from('activity_logs').insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: 'agent_deployed',
-        resource_type: 'agent',
-        resource_id: agent.id,
-        metadata: { 
-          deployment_id: deployment.id,
-          deployment_type: 'external',
-          external_type: data.external_type
-        }
-      });
+      await supabase.from('activity_log') // Fix: Change table name from 'activity_logs' to 'activity_log'
+        .insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          action: 'agent_deployed',
+          resource_type: 'agent',
+          resource_id: agent.id,
+          metadata: { 
+            deployment_id: deployment.id,
+            deployment_type: 'external',
+            external_type: data.external_type
+          }
+        });
       
       toast.success("Agent deployed successfully!", {
         description: "Your agent is now ready to use in the marketplace."
@@ -329,11 +330,9 @@ export const ExternalSourceDeployment = () => {
               )}
               
               {externalType === "openai" && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-amber-600 inline-flex items-center">
-                    <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
-                    Enter your OpenAI Assistant ID (not the API key)
-                  </span>
+                <p className="text-xs text-amber-600 mt-1 inline-flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
+                  Enter your OpenAI Assistant ID (not the API key)
                 </p>
               )}
             </div>
@@ -349,11 +348,9 @@ export const ExternalSourceDeployment = () => {
               {errors.api_key && (
                 <p className="text-sm text-red-500 mt-1">{errors.api_key.message}</p>
               )}
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className="text-amber-600 inline-flex items-center">
-                  <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
-                  API keys are encrypted and stored securely
-                </span>
+              <p className="text-xs text-amber-600 mt-1 inline-flex items-center">
+                <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
+                API keys are encrypted and stored securely
               </p>
             </div>
           </div>
