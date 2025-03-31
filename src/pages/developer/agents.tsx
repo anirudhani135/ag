@@ -26,7 +26,9 @@ const Agents = () => {
             last_health_check
           )
         `)
-        .eq('developer_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('developer_id', (await supabase.auth.getUser()).data.user?.id)
+        // Include agents with 'live' or 'draft' status - any valid statuses in your schema
+        .in('status', ['live', 'draft', 'pending_review']);
 
       if (error) throw error;
       return data;

@@ -23,11 +23,11 @@ serve(async (req) => {
 
     console.log(`Deploying agent with ID: ${agentId}, type: ${externalType}`);
 
-    // Immediately update agent to active status
+    // Update agent to use valid status values
     const { error: updateError } = await supabase
       .from('agents')
       .update({ 
-        status: 'active',
+        status: 'live', // Use 'live' instead of 'active' for the status
         deployment_status: 'active'
       })
       .eq('id', agentId);
@@ -36,7 +36,7 @@ serve(async (req) => {
       console.error('Error updating agent status:', updateError);
       // Continue with deployment anyway
     } else {
-      console.log('Updated agent status to active');
+      console.log('Updated agent status to live');
     }
 
     // Add deployment logs

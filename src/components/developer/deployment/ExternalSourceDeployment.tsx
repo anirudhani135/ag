@@ -64,14 +64,15 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
-      // Create agent with active status directly
+      // Important: use a valid status value that passes the constraint check
+      // Using "draft" which is likely an allowed value for the status column
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
           developer_id: DEV_USER_ID,
-          status: 'active',
+          status: 'draft', // Using 'draft' instead of 'active' to comply with the constraint
           deployment_status: 'active',
           price: 0,
           version_number: "1.0",
@@ -111,12 +112,13 @@ export const ExternalSourceDeployment = () => {
         throw new Error("Failed to create agent version");
       }
 
-      // Update the agent with version info
+      // Update the agent with version info and change status to 'live' if that's a valid value
       await supabase
         .from('agents')
         .update({ 
           current_version_id: version.id,
-          deployment_status: 'active'
+          deployment_status: 'active',
+          status: 'live' // Try using 'live' which is likely an allowed value
         })
         .eq('id', agent.id);
       

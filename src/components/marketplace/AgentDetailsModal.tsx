@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -286,7 +287,7 @@ export function AgentDetailsModal({
             
             <div className="flex justify-end mt-6">
               <Button onClick={handleHire} disabled={isLoading}>
-                {isLoading ? "Processing..." : "Purchase Now"}
+                {isLoading ? "Processing..." : "Hire Now"}
               </Button>
             </div>
           </TabsContent>
@@ -349,7 +350,7 @@ export function AgentDetailsModal({
             
             <div className="flex justify-end mt-6">
               <Button onClick={handleHire} disabled={isLoading}>
-                {isLoading ? "Processing..." : "Purchase Now"}
+                {isLoading ? "Processing..." : "Hire Now"}
               </Button>
             </div>
           </TabsContent>
