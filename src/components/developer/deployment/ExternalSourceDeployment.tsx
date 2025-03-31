@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +35,8 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
+const DEV_USER_ID = "dev-user-id";
+
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
@@ -69,11 +70,11 @@ export const ExternalSourceDeployment = () => {
         .insert({
           title: data.title,
           description: data.description,
-          developer_id: (await supabase.auth.getUser()).data.user?.id,
+          developer_id: DEV_USER_ID,
           status: 'draft',
-          price: 0, // Adding required price field with default value
-          version_number: "1.0", // Already fixed as string
-          category_id: null // NULL is acceptable for this field
+          price: 0,
+          version_number: "1.0",
+          category_id: null
         })
         .select('id')
         .single();
@@ -86,7 +87,6 @@ export const ExternalSourceDeployment = () => {
         throw new Error("Failed to create agent");
       }
       
-      // Create agent version with the external source properties
       const { data: version, error: versionError } = await supabase
         .from('agent_versions')
         .insert({
@@ -97,7 +97,7 @@ export const ExternalSourceDeployment = () => {
           config: {
             external_type: data.external_type,
             source_url: data.source_url,
-            api_key: data.api_key // Note: In production, store API keys securely
+            api_key: data.api_key
           }
         })
         .select('id')
@@ -110,13 +110,11 @@ export const ExternalSourceDeployment = () => {
         throw new Error("Failed to create agent version");
       }
 
-      // Update the agent with the current version ID
       await supabase
         .from('agents')
         .update({ current_version_id: version.id })
         .eq('id', agent.id);
       
-      // Create a deployment record
       const { data: deployment, error: deploymentError } = await supabase
         .from('deployments')
         .insert({
@@ -143,7 +141,6 @@ export const ExternalSourceDeployment = () => {
       
       setDeploymentId(deployment.id);
       
-      // Call the deploy-agent edge function
       const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-agent', {
         body: {
           agentId: agent.id,
@@ -160,10 +157,9 @@ export const ExternalSourceDeployment = () => {
       setDeploymentProgress(100);
       setDeploymentStatus("success");
       
-      // Log the successful deployment to user_activity table instead of activity_log
       await supabase.from('user_activity')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: DEV_USER_ID,
           activity_type: 'agent_deployed',
           details: {
             resource_type: 'agent',
@@ -178,7 +174,6 @@ export const ExternalSourceDeployment = () => {
         description: "Your agent is now ready to use in the marketplace."
       });
       
-      // Redirect to the agent detail page after a short delay
       setTimeout(() => {
         navigate(`/developer/agents`);
       }, 2000);
