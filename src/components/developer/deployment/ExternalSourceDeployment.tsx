@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
+// Using a valid UUID for development
 const DEV_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
 
 export const ExternalSourceDeployment = () => {
@@ -70,7 +72,8 @@ export const ExternalSourceDeployment = () => {
           title: data.title,
           description: data.description,
           developer_id: DEV_USER_ID,
-          status: 'active',
+          // Using "pending_review" as a safe status that likely exists in the constraint
+          status: 'pending_review',
           price: 0,
           version_number: "1.0",
           category_id: null

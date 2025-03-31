@@ -49,22 +49,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { agentId, config, deploymentType } = await req.json()
+    const { agentId, versionId, deploymentId, externalType, sourceUrl, apiKey } = await req.json()
 
     // Validate required fields
-    if (!agentId || !config) {
+    if (!agentId) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
-    }
-
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError) {
-      console.error('Error getting user:', userError);
-      throw userError;
     }
 
     // Get agent information
@@ -79,28 +71,54 @@ serve(async (req) => {
       throw agentError;
     }
 
-    console.log(`Deploying agent ${agent.title} with type: ${deploymentType}`);
+    console.log(`Deploying agent ${agent.title} with type: ${externalType}`);
 
-    // Process based on deployment type
-    let deploymentId;
-    switch (deploymentType) {
-      case 'api':
-        deploymentId = await handleApiDeployment(supabase, agent, config, user.id);
-        break;
-      case 'langflow':
-        deploymentId = await handleLangFlowDeployment(supabase, agent, config, user.id);
-        break;
-      case 'custom':
-        deploymentId = await handleCustomDeployment(supabase, agent, config, user.id);
-        break;
-      default:
-        deploymentId = await handleApiDeployment(supabase, agent, config, user.id);
+    // Update agent with proper marketplace status if needed
+    if (agent.status !== 'active') {
+      const { error: updateError } = await supabase
+        .from('agents')
+        .update({ 
+          status: 'active',
+          deployment_status: 'active'
+        })
+        .eq('id', agentId);
+        
+      if (updateError) {
+        console.error('Error updating agent status:', updateError);
+      } else {
+        console.log('Updated agent status to active');
+      }
     }
 
+    // Add deployment logs
+    await supabase
+      .from('deployment_logs')
+      .insert({
+        deployment_id: deploymentId,
+        status: 'deploying',
+        message: `Starting deployment for ${externalType} agent: ${agent.title}`,
+        metadata: {
+          agent_id: agentId,
+          version_id: versionId,
+          external_type: externalType,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+    // Initialize health monitoring
+    await initializeHealthCheck(supabase, deploymentId, agentId);
+    
+    // Simulate deployment process
+    simulateDeployment(supabase, deploymentId, agentId, externalType).catch(console.error);
+    
     return new Response(
       JSON.stringify({ 
         message: 'Deployment initiated successfully',
-        deploymentId
+        deploymentId,
+        agent: {
+          id: agentId,
+          title: agent.title
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -112,258 +130,6 @@ serve(async (req) => {
     )
   }
 })
-
-async function handleApiDeployment(supabase: any, agent: any, config: ExternalApiConfig, userId: string): Promise<string> {
-  console.log('Starting API deployment process');
-  
-  // Validate API config
-  if (!config.api_endpoint) {
-    throw new Error('API endpoint is required for API deployments');
-  }
-  
-  try {
-    // Create new version record
-    const { data: version, error: versionError } = await supabase
-      .from('agent_versions')
-      .insert({
-        agent_id: agent.id,
-        version_number: agent.version_number || '1.0.0',
-        runtime_config: {
-          integration_type: 'api',
-          api_endpoint: config.api_endpoint,
-          api_key: config.api_key || null,
-          custom_headers: config.headers || {}
-        },
-        status: 'active'
-      })
-      .select()
-      .single();
-      
-    if (versionError) throw versionError;
-    
-    // Create deployment record
-    const { data: deployment, error: deploymentError } = await supabase
-      .from('deployments')
-      .insert({
-        agent_id: agent.id,
-        version_id: version.id,
-        status: 'deploying',
-        environment: 'production',
-        deployed_by: userId,
-        metrics: {
-          deployment_type: 'api',
-          version_number: version.version_number,
-          start_time: new Date().toISOString(),
-          progress: 20
-        },
-        resource_usage: {
-          cpu: '0.5',
-          memory: '512',
-          timeout: 30,
-          scaling: {
-            minReplicas: 1,
-            maxReplicas: 3
-          }
-        }
-      })
-      .select()
-      .single();
-      
-    if (deploymentError) throw deploymentError;
-    
-    // Log deployment
-    await supabase
-      .from('deployment_logs')
-      .insert({
-        deployment_id: deployment.id,
-        status: 'deploying',
-        message: `Started API deployment for agent ${agent.title}`,
-        metadata: {
-          deployment_id: deployment.id,
-          integration_type: 'api',
-          api_endpoint: config.api_endpoint,
-          timestamp: new Date().toISOString()
-        }
-      });
-    
-    // Initialize health monitoring
-    await initializeHealthCheck(supabase, deployment.id, agent.id);
-    
-    // Simulate deployment process
-    simulateDeployment(supabase, deployment.id, agent.id, 'api').catch(console.error);
-    
-    return deployment.id;
-  } catch (error) {
-    console.error('API deployment error:', error);
-    throw error;
-  }
-}
-
-async function handleLangFlowDeployment(supabase: any, agent: any, config: LangFlowConfig, userId: string): Promise<string> {
-  console.log('Starting LangFlow deployment process');
-  
-  // Validate LangFlow config
-  if (!config.nodes || !config.edges) {
-    throw new Error('Valid LangFlow configuration with nodes and edges is required');
-  }
-  
-  try {
-    // Create new version record with LangFlow config
-    const { data: version, error: versionError } = await supabase
-      .from('agent_versions')
-      .insert({
-        agent_id: agent.id,
-        version_number: agent.version_number || '1.0.0',
-        runtime_config: {
-          integration_type: 'langflow',
-          langflow_config: {
-            nodes: config.nodes,
-            edges: config.edges
-          }
-        },
-        status: 'active'
-      })
-      .select()
-      .single();
-      
-    if (versionError) throw versionError;
-    
-    // Create deployment record
-    const { data: deployment, error: deploymentError } = await supabase
-      .from('deployments')
-      .insert({
-        agent_id: agent.id,
-        version_id: version.id,
-        status: 'deploying',
-        environment: 'production',
-        deployed_by: userId,
-        metrics: {
-          deployment_type: 'langflow',
-          version_number: version.version_number,
-          start_time: new Date().toISOString(),
-          progress: 20
-        },
-        resource_usage: {
-          cpu: '1.0',  // LangFlow may need more resources
-          memory: '1024',
-          timeout: 60,
-          scaling: {
-            minReplicas: 1,
-            maxReplicas: 5
-          }
-        }
-      })
-      .select()
-      .single();
-      
-    if (deploymentError) throw deploymentError;
-    
-    // Log deployment
-    await supabase
-      .from('deployment_logs')
-      .insert({
-        deployment_id: deployment.id,
-        status: 'deploying',
-        message: `Started LangFlow deployment for agent ${agent.title}`,
-        metadata: {
-          deployment_id: deployment.id,
-          integration_type: 'langflow',
-          node_count: config.nodes.length,
-          edge_count: config.edges.length,
-          timestamp: new Date().toISOString()
-        }
-      });
-    
-    // Initialize health monitoring
-    await initializeHealthCheck(supabase, deployment.id, agent.id);
-    
-    // Simulate deployment process
-    simulateDeployment(supabase, deployment.id, agent.id, 'langflow').catch(console.error);
-    
-    return deployment.id;
-  } catch (error) {
-    console.error('LangFlow deployment error:', error);
-    throw error;
-  }
-}
-
-async function handleCustomDeployment(supabase: any, agent: any, config: CustomConfig, userId: string): Promise<string> {
-  console.log('Starting custom deployment process');
-  
-  try {
-    // Create new version record with custom config
-    const { data: version, error: versionError } = await supabase
-      .from('agent_versions')
-      .insert({
-        agent_id: agent.id,
-        version_number: agent.version_number || '1.0.0',
-        runtime_config: {
-          integration_type: 'custom',
-          configuration: config.config_json || {}
-        },
-        status: 'active'
-      })
-      .select()
-      .single();
-      
-    if (versionError) throw versionError;
-    
-    // Create deployment record
-    const { data: deployment, error: deploymentError } = await supabase
-      .from('deployments')
-      .insert({
-        agent_id: agent.id,
-        version_id: version.id,
-        status: 'deploying',
-        environment: 'production',
-        deployed_by: userId,
-        metrics: {
-          deployment_type: 'custom',
-          version_number: version.version_number,
-          start_time: new Date().toISOString(),
-          progress: 20
-        },
-        resource_usage: {
-          cpu: '1.0',
-          memory: '1024',
-          timeout: 60,
-          scaling: {
-            minReplicas: 1,
-            maxReplicas: 5
-          }
-        }
-      })
-      .select()
-      .single();
-      
-    if (deploymentError) throw deploymentError;
-    
-    // Log deployment
-    await supabase
-      .from('deployment_logs')
-      .insert({
-        deployment_id: deployment.id,
-        status: 'deploying',
-        message: `Started custom deployment for agent ${agent.title}`,
-        metadata: {
-          deployment_id: deployment.id,
-          integration_type: 'custom',
-          timestamp: new Date().toISOString()
-        }
-      });
-    
-    // Initialize health monitoring
-    await initializeHealthCheck(supabase, deployment.id, agent.id);
-    
-    // Simulate deployment process
-    simulateDeployment(supabase, deployment.id, agent.id, 'custom').catch(console.error);
-    
-    return deployment.id;
-  } catch (error) {
-    console.error('Custom deployment error:', error);
-    throw error;
-  }
-}
 
 async function initializeHealthCheck(supabase: any, deploymentId: string, agentId: string) {
   try {
@@ -407,13 +173,13 @@ async function initializeHealthCheck(supabase: any, deploymentId: string, agentI
 async function simulateDeployment(supabase: any, deploymentId: string, agentId: string, deploymentType: string) {
   try {
     const deploymentTypes = {
-      'api': {
+      'openai': {
         stages: [
-          { progress: 30, message: "Validating API endpoint" },
-          { progress: 50, message: "Configuring API integration" },
+          { progress: 30, message: "Validating OpenAI Assistant API access" },
+          { progress: 50, message: "Configuring OpenAI integration" },
           { progress: 70, message: "Setting up authentication" },
-          { progress: 90, message: "Testing API connectivity" },
-          { progress: 100, message: "API integration complete" }
+          { progress: 90, message: "Testing OpenAI connectivity" },
+          { progress: 100, message: "OpenAI integration complete" }
         ],
         duration: 1000 // ms between stages
       },
@@ -428,6 +194,16 @@ async function simulateDeployment(supabase: any, deploymentId: string, agentId: 
         ],
         duration: 1500 // ms between stages (longer for complexity)
       },
+      'langchain': {
+        stages: [
+          { progress: 30, message: "Configuring LangChain integration" },
+          { progress: 50, message: "Building chain components" },
+          { progress: 70, message: "Setting up model providers" },
+          { progress: 90, message: "Testing chain functionality" },
+          { progress: 100, message: "LangChain integration complete" }
+        ],
+        duration: 1200 // ms between stages
+      },
       'custom': {
         stages: [
           { progress: 30, message: "Analyzing custom configuration" },
@@ -440,7 +216,7 @@ async function simulateDeployment(supabase: any, deploymentId: string, agentId: 
       }
     };
     
-    const deployment = deploymentTypes[deploymentType] || deploymentTypes['api'];
+    const deployment = deploymentTypes[deploymentType] || deploymentTypes['custom'];
 
     for (const stage of deployment.stages) {
       // Wait between stages
@@ -489,13 +265,33 @@ async function simulateDeployment(supabase: any, deploymentId: string, agentId: 
       })
       .eq('id', deploymentId);
 
-    // Update agent status
+    // Update agent status - ensure it's active and visible in marketplace
     await supabase
       .from('agents')
       .update({
+        status: 'active',
         deployment_status: 'active'
       })
       .eq('id', agentId);
+
+    // Create marketplace metrics for the agent if they don't exist
+    const { data: existingMetrics } = await supabase
+      .from('agent_metrics')
+      .select('id')
+      .eq('agent_id', agentId)
+      .maybeSingle();
+      
+    if (!existingMetrics) {
+      await supabase.from('agent_metrics')
+        .insert({
+          agent_id: agentId,
+          views: 0,
+          unique_views: 0,
+          purchases: 0,
+          revenue: 0,
+          date: new Date().toISOString().split('T')[0]
+        });
+    }
 
   } catch (error) {
     console.error(`Error in ${deploymentType} deployment simulation:`, error);
