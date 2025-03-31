@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -286,7 +285,7 @@ export function AgentDetailsModal({
             </div>
             
             <div className="flex justify-end mt-6">
-              <Button onClick={handlePurchase} disabled={isLoading}>
+              <Button onClick={handleHire} disabled={isLoading}>
                 {isLoading ? "Processing..." : "Purchase Now"}
               </Button>
             </div>
@@ -305,7 +304,6 @@ export function AgentDetailsModal({
             </div>
             
             <div className="space-y-4">
-              {/* Sample reviews to be replaced with real data */}
               {[
                 { 
                   id: '1', 
@@ -350,7 +348,7 @@ export function AgentDetailsModal({
             </div>
             
             <div className="flex justify-end mt-6">
-              <Button onClick={handlePurchase} disabled={isLoading}>
+              <Button onClick={handleHire} disabled={isLoading}>
                 {isLoading ? "Processing..." : "Purchase Now"}
               </Button>
             </div>
