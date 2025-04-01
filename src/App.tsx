@@ -3,9 +3,11 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster"
 import DeveloperOverview from './pages/developer/Overview';
-import DeveloperAgents from './pages/developer/Agents';
 import AgentManagement from './pages/developer/AgentManagement';
 import MyAgents from './components/developer/MyAgents';
+
+// Import the agents file with the correct casing
+import DeveloperAgents from './pages/developer/agents';
 
 // Lazy load the external deployment page
 const ExternalDeploymentPage = lazy(() => import('./pages/agent-external-deployment'));
