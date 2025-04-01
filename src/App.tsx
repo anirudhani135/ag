@@ -3,11 +3,10 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import DeveloperOverview from './pages/developer/Overview';
+import Agents from './pages/developer/agents';
 import AgentManagement from './pages/developer/AgentManagement';
 import MyAgents from './components/developer/MyAgents';
-
-// Use the Developer Agents component directly from the file we know exists
-import Agents from './pages/developer/agents';
+import Index from './pages/Index';
 
 // Lazy load the external deployment page
 const ExternalDeploymentPage = lazy(() => import('./pages/agent-external-deployment'));
@@ -17,7 +16,7 @@ function App() {
     <div className="min-h-screen">
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          <Route path="/" element={<div>Home Page</div>} />
+          <Route path="/" element={<Index />} />
           
           {/* Developer Routes */}
           <Route path="/developer" element={<DeveloperOverview />} />
