@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster"
 import Home from './pages/Home';
@@ -23,6 +23,9 @@ import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 import MyAgents from './components/developer/MyAgents';
+
+// Lazy load the external deployment page
+const ExternalDeploymentPage = lazy(() => import('./pages/agent-external-deployment'));
 
 function App() {
   return (
@@ -61,7 +64,7 @@ function App() {
             path="/agent-external-deployment" 
             element={
               <Suspense fallback={<div>Loading...</div>}>
-                <React.lazy(() => import('./pages/agent-external-deployment')) />
+                <ExternalDeploymentPage />
               </Suspense>
             } 
           />
