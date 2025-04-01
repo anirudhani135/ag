@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,9 @@ interface FormData {
   external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
-const DEV_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
+// Using a mock/demo user ID that was created in our SQL migration
+// This eliminates the need for developer authentication in the simplified flow
+const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
 
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,17 +65,19 @@ export const ExternalSourceDeployment = () => {
     setErrorMessage(null);
     
     try {
+      // Create the agent with our demo user ID and set it immediately to 'live' status
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
-          status: 'draft',
+          status: 'live', // Set to live immediately
           deployment_status: 'active',
           price: 0,
           version_number: "1.0",
           category_id: null,
-          developer_id: DEV_USER_ID
+          developer_id: DEMO_USER_ID, // Use the demo user ID that we created in our SQL migration
+          features: ["External Integration", data.external_type]
         })
         .select('id')
         .single();
@@ -159,6 +164,7 @@ export const ExternalSourceDeployment = () => {
       setDeploymentProgress(100);
       setDeploymentStatus("success");
       
+      // Initialize metrics for the agent so it appears in marketplace statistics
       await supabase.from('agent_metrics')
         .insert({
           agent_id: agent.id,

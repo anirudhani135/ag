@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { AgentModal } from "@/components/developer/AgentModals";
+import { Link } from "react-router-dom";
 
 const Agents = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -14,7 +15,7 @@ const Agents = () => {
   const { data: agents, isLoading } = useQuery({
     queryKey: ['developer', 'agents'],
     queryFn: async () => {
-      // Use a simplified query that doesn't require developer_id
+      // Simplified query without requiring specific developer_id
       const { data, error } = await supabase
         .from('agents')
         .select(`
@@ -27,7 +28,7 @@ const Agents = () => {
             last_health_check
           )
         `)
-        .in('status', ['live', 'draft', 'pending_review']);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -39,15 +40,23 @@ const Agents = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">My Agents</h2>
+            <h2 className="text-3xl font-bold tracking-tight">AI Agents</h2>
             <p className="text-muted-foreground">
-              Manage and monitor your deployed agents
+              Manage and monitor deployed agents
             </p>
           </div>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create New Agent
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild>
+              <Link to="/agent-external-deployment">
+                <Plus className="w-4 h-4 mr-2" />
+                Deploy External Agent
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Custom Agent
+            </Button>
+          </div>
         </div>
 
         <AgentDeploymentList agents={agents || []} isLoading={isLoading} />
