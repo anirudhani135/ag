@@ -52,10 +52,6 @@ const Agents = () => {
                 Deploy External Agent
               </Link>
             </Button>
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Custom Agent
-            </Button>
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -19,37 +18,70 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { agentId, apiEndpoint, apiKey } = await req.json()
+    // Parse request body
+    const { agentId, apiEndpoint, apiKey, title, description } = await req.json()
 
-    console.log(`Deploying external agent with ID: ${agentId}`);
-
-    // Update agent status
-    const { error: updateError } = await supabase
-      .from('agents')
-      .update({ 
-        status: 'live',
-        deployment_status: 'active',
-        api_endpoint: apiEndpoint,
-        api_key: apiKey
-      })
-      .eq('id', agentId);
+    // Using a demo developer ID for simplified deployment
+    const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
+    
+    // If agentId is provided, update existing agent
+    // Otherwise, create a new agent
+    let agent;
+    if (agentId) {
+      console.log(`Updating external agent with ID: ${agentId}`);
       
-    if (updateError) {
-      console.error('Error updating agent:', updateError);
-      throw updateError;
+      const { data, error } = await supabase
+        .from('agents')
+        .update({ 
+          status: 'live',
+          deployment_status: 'active',
+          api_endpoint: apiEndpoint,
+          api_key: apiKey
+        })
+        .eq('id', agentId)
+        .select('id')
+        .single();
+        
+      if (error) throw error;
+      agent = data;
+    } else {
+      console.log('Creating new external agent');
+      
+      // Create new agent
+      const { data, error } = await supabase
+        .from('agents')
+        .insert({
+          title: title,
+          description: description,
+          status: 'live',
+          deployment_status: 'active',
+          price: 0,
+          developer_id: DEMO_USER_ID,
+          api_endpoint: apiEndpoint,
+          api_key: apiKey
+        })
+        .select('id')
+        .single();
+        
+      if (error) throw error;
+      agent = data;
+    }
+    
+    if (!agent?.id) {
+      throw new Error("Failed to create or update agent");
     }
     
     // Add to marketplace metrics
     const { data: existingMetrics } = await supabase
       .from('agent_metrics')
       .select('id')
-      .eq('agent_id', agentId)
+      .eq('agent_id', agent.id)
       .maybeSingle();
       
     if (!existingMetrics) {
       await supabase.from('agent_metrics')
         .insert({
-          agent_id: agentId,
+          agent_id: agent.id,
           views: 0,
           unique_views: 0,
           purchases: 0,
@@ -61,7 +93,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'Agent deployed successfully',
-        status: 'active'
+        status: 'active',
+        agentId: agent.id
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

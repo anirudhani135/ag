@@ -34,6 +34,8 @@ serve(async (req) => {
       throw new Error("Agent API configuration is incomplete");
     }
     
+    console.log(`Contacting external agent at: ${agent.api_endpoint}`);
+    
     // Contact the external API
     const response = await fetch(agent.api_endpoint, {
       method: 'POST',
@@ -52,6 +54,8 @@ serve(async (req) => {
     }
     
     const data = await response.json();
+    
+    console.log("Received response from external agent");
     
     // Log the interaction
     await supabase.from('agent_logs').insert({

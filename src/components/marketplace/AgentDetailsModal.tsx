@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Star, Check } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -43,37 +43,16 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
     setResponse("");
     
     try {
-      // Fetch the agent's API endpoint and key
-      const { data: agentData, error: agentError } = await supabase
-        .from('agents')
-        .select('api_endpoint, api_key')
-        .eq('id', agent.id)
-        .single();
-      
-      if (agentError) throw agentError;
-      
-      if (!agentData.api_endpoint || !agentData.api_key) {
-        throw new Error("Agent API configuration is incomplete");
-      }
-      
-      // Send request to the external API
-      const response = await fetch(agentData.api_endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${agentData.api_key}`
-        },
-        body: JSON.stringify({ 
-          message: prompt,
-          max_tokens: 1000 
-        })
+      // Call the contact-external-agent edge function
+      const { data, error } = await supabase.functions.invoke('contact-external-agent', {
+        body: { 
+          agentId: agent.id, 
+          message: prompt 
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
-      }
+      if (error) throw error;
       
-      const data = await response.json();
       setResponse(data.output || data.response || data.answer || JSON.stringify(data));
       
     } catch (error) {
