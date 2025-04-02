@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -76,20 +75,65 @@ serve(async (req) => {
       );
     }
 
-    // Test the API endpoint with a simple request to verify it's reachable
+    // Check if this is a Relevance AI endpoint
+    const isRelevanceAI = validatedEndpoint.includes('tryrelevance.com');
+    
+    // Test the API endpoint with an appropriate method
+    // For Relevance AI, we'll try a POST request instead of HEAD since they might not support HEAD
     try {
-      const testResponse = await fetch(validatedEndpoint, {
-        method: 'HEAD',
-        headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
-        signal: AbortSignal.timeout(5000) // 5 second timeout
-      });
+      let testResponse;
+      
+      if (isRelevanceAI) {
+        // For Relevance AI, try a simple POST request instead
+        console.log("Detected Relevance AI endpoint, testing with POST request");
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (apiKey) {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        }
+        
+        // Prepare a minimal test payload for Relevance AI
+        const testPayload = {
+          message: {
+            role: "user",
+            content: "Hello" // Minimal test content
+          }
+        };
+        
+        // Some Relevance AI endpoints might require an agent_id
+        // If the URL contains /agents/trigger, try to extract agent_id from the API key
+        // This is a common format: project_id:sk-actualkey
+        if (apiKey && apiKey.includes(':')) {
+          const parts = apiKey.split(':');
+          if (parts.length === 2) {
+            console.log("Using project ID from API key for test request");
+            testPayload.agent_id = parts[0];
+          }
+        }
+        
+        testResponse = await fetch(validatedEndpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(testPayload),
+          signal: AbortSignal.timeout(8000) // 8 second timeout - longer for more complex APIs
+        });
+      } else {
+        // For other APIs, we'll use HEAD as before
+        testResponse = await fetch(validatedEndpoint, {
+          method: 'HEAD',
+          headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+      }
       
       console.log(`API endpoint test status: ${testResponse.status}`);
       
-      // We don't fail if the HEAD request doesn't work - some APIs might not support it
+      // We don't fail if the request doesn't return 200 - some APIs might return different codes
       // This is just for logging purposes
     } catch (apiError) {
-      // Log but don't fail - endpoint might still work for POST requests
+      // Log but don't fail - endpoint might still work with different parameters
       console.warn(`Warning: Could not connect to API endpoint: ${apiError.message}`);
     }
 
@@ -139,10 +183,33 @@ serve(async (req) => {
       
       if (categoryError) {
         console.error("Error getting category:", categoryError);
-        // Continue with null category_id, which should still work if the column allows nulls
+        return new Response(
+          JSON.stringify({ 
+            error: 'Error retrieving categories',
+            details: categoryError.message
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+            status: 500 
+          }
+        );
       }
       
-      const categoryId = categories && categories.length > 0 ? categories[0].id : null;
+      if (!categories || categories.length === 0) {
+        console.error("No categories found in database");
+        return new Response(
+          JSON.stringify({ 
+            error: 'No categories available',
+            details: 'Cannot create agent without a valid category'
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+            status: 500 
+          }
+        );
+      }
+      
+      const categoryId = categories[0].id;
       console.log(`Using category_id: ${categoryId}`);
       
       // Create new agent
@@ -158,7 +225,7 @@ serve(async (req) => {
           api_endpoint: validatedEndpoint,
           api_key: apiKey,
           rating: 5,
-          category_id: categoryId  // Using the fetched category ID or null
+          category_id: categoryId  // Using the fetched category ID
         })
         .select('id')
         .single();

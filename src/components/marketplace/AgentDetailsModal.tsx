@@ -66,6 +66,8 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
         throw new Error(data.details || "Error communicating with agent");
       }
       
+      console.log("Response data:", data);
+      
       // Handle different response formats
       let formattedResponse;
       

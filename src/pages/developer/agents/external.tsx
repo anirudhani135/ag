@@ -229,7 +229,7 @@ const ExternalSourceDeploymentPage = () => {
                     Your agent has been successfully deployed and is now available in the marketplace.
                     <div className="mt-2">
                       <Button 
-                        variant="outline" 
+                        variant="default" 
                         size="sm" 
                         onClick={handleTestAgent} 
                         className="text-green-700 bg-green-100 hover:bg-green-200 border-green-300"

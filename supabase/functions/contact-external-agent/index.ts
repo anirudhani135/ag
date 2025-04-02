@@ -90,6 +90,9 @@ serve(async (req) => {
     
     console.log(`Contacting external agent at: ${agent.api_endpoint}`);
     
+    // Check if this is a Relevance AI endpoint
+    const isRelevanceAI = agent.api_endpoint.includes('tryrelevance.com');
+    
     // Contact the external API with timeout and error handling
     try {
       const controller = new AbortController();
@@ -104,12 +107,35 @@ serve(async (req) => {
         headers['Authorization'] = `Bearer ${agent.api_key}`;
       }
       
-      const payload = { 
-        message: message,
-        max_tokens: 1000,
-        prompt: message, // Some APIs use prompt instead of message
-        question: message // Some APIs use question
-      };
+      // Prepare the payload based on the API type
+      let payload;
+      
+      if (isRelevanceAI) {
+        console.log("Preparing Relevance AI format payload");
+        // For Relevance AI
+        payload = {
+          message: {
+            role: "user", 
+            content: message
+          }
+        };
+        
+        // If the API key contains a project ID (format project_id:sk-key)
+        if (agent.api_key && agent.api_key.includes(':')) {
+          const parts = agent.api_key.split(':');
+          if (parts.length === 2) {
+            payload.agent_id = parts[0];
+          }
+        }
+      } else {
+        // Standard payload for other APIs
+        payload = { 
+          message: message,
+          max_tokens: 1000,
+          prompt: message, // Some APIs use prompt instead of message
+          question: message // Some APIs use question
+        };
+      }
       
       console.log("Sending payload to external agent:", JSON.stringify(payload));
       
@@ -151,9 +177,28 @@ serve(async (req) => {
         console.error("Failed to log interaction:", err);
       });
       
-      // Handle different response formats from various APIs
+      // Handle different response formats
       let formattedResponse;
-      if (typeof responseData === 'string') {
+      
+      if (isRelevanceAI) {
+        // Handle Relevance AI specific response format
+        console.log("Processing Relevance AI format response");
+        
+        if (responseData.output) {
+          formattedResponse = { text: responseData.output };
+        } else if (responseData.data && responseData.data.response) {
+          formattedResponse = { text: responseData.data.response };
+        } else if (responseData.data && responseData.data.content) {
+          formattedResponse = { text: responseData.data.content };
+        } else if (responseData.responses && responseData.responses.length > 0) {
+          formattedResponse = { text: responseData.responses[0].content || JSON.stringify(responseData.responses[0]) };
+        } else {
+          // Default fallback for Relevance AI
+          formattedResponse = { 
+            text: `Response from ${agent.title}: ${JSON.stringify(responseData)}` 
+          };
+        }
+      } else if (typeof responseData === 'string') {
         formattedResponse = { text: responseData };
       } else if (responseData.output) {
         formattedResponse = { text: responseData.output };
@@ -174,7 +219,7 @@ serve(async (req) => {
           text: choice.text || (choice.message ? choice.message.content : JSON.stringify(choice)) 
         };
       } else if (responseData.data && responseData.data.content) {
-        // Relevance AI format
+        // Relevance AI format (alternative)
         formattedResponse = { text: responseData.data.content };
       } else {
         // If we can't determine the format, send the whole response
