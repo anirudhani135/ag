@@ -96,7 +96,11 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       let errorMessage = "There was an error communicating with the agent";
       
       if (error.message) {
-        errorMessage = error.message;
+        if (error.message.includes("Edge Function returned a non-2xx status code")) {
+          errorMessage = "The external agent service returned an error. The agent might be unavailable.";
+        } else {
+          errorMessage = error.message;
+        }
       } else if (typeof error === 'string') {
         errorMessage = error;
       } else if (error.details) {

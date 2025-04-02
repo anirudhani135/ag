@@ -50,15 +50,33 @@ serve(async (req) => {
       .from('agents')
       .select('api_endpoint, api_key, title')
       .eq('id', agentId)
-      .single();
+      .maybeSingle();
       
-    if (agentError) {
-      console.error("Error fetching agent:", agentError);
-      throw new Error(`Failed to find agent: ${agentError.message}`);
+    if (agentError || !agent) {
+      console.error("Error fetching agent:", agentError || "Agent not found");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Agent not found', 
+          details: agentError?.message || "Could not find the specified agent" 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 404 
+        }
+      );
     }
     
     if (!agent.api_endpoint) {
-      throw new Error("Agent API endpoint is missing");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Agent configuration error', 
+          details: "Agent API endpoint is missing" 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
     
     console.log(`Contacting external agent at: ${agent.api_endpoint}`);
@@ -151,7 +169,14 @@ serve(async (req) => {
       );
     } catch (fetchError) {
       console.error("Fetch error:", fetchError);
-      throw new Error(`Failed to contact external agent: ${fetchError.message}`);
+      
+      return new Response(
+        JSON.stringify({
+          error: 'External API communication error',
+          details: fetchError.message || 'Failed to contact external agent'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 502 }
+      );
     }
     
   } catch (error) {
@@ -162,6 +187,6 @@ serve(async (req) => {
         details: error.message || 'Unknown error occurred' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    )
   }
-});
+})

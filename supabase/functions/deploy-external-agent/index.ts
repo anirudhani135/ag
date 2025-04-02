@@ -97,6 +97,21 @@ serve(async (req) => {
     } else {
       console.log('Creating new external agent');
       
+      // First, get a valid category ID from the database
+      const { data: category, error: categoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .limit(1)
+        .single();
+      
+      if (categoryError) {
+        console.log("Could not get a valid category, using a null category_id");
+        // Continue with null category_id, which should still work if the column allows nulls
+      }
+      
+      const categoryId = category?.id || null;
+      console.log(`Using category_id: ${categoryId}`);
+      
       // Create new agent
       const { data, error } = await supabase
         .from('agents')
@@ -110,7 +125,7 @@ serve(async (req) => {
           api_endpoint: validatedEndpoint,
           api_key: apiKey,
           rating: 5,
-          category_id: 1  // Default category
+          category_id: categoryId  // Using the fetched category ID or null
         })
         .select('id')
         .single();

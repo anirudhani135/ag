@@ -26,6 +26,7 @@ const ExternalSourceDeploymentPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorDetails, setErrorDetails] = useState<{ message: string; category: ErrorCategory } | null>(null);
+  const [deployedAgentId, setDeployedAgentId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -85,12 +86,13 @@ const ExternalSourceDeploymentPage = () => {
       }
       
       setDeploymentStatus("success");
+      setDeployedAgentId(result.agentId);
       
       toast.success("Agent deployed successfully!", {
         description: "Your agent is now available in the marketplace."
       });
       
-      // Redirect after successful deployment
+      // Redirect after successful deployment with a short delay
       setTimeout(() => {
         navigate(`/developer/agents`);
       }, 2000);
@@ -103,7 +105,9 @@ const ExternalSourceDeploymentPage = () => {
       let category = ErrorCategory.ServerError;
       
       // Try to extract more specific error details
-      if (error.message && error.message.includes("Failed to fetch")) {
+      if (error.message && error.message.includes("Edge Function returned a non-2xx status code")) {
+        errorMessage = "The deployment service returned an error. This might be due to invalid input or a service issue.";
+      } else if (error.message && error.message.includes("Failed to fetch")) {
         errorMessage = "Could not connect to the deployment service. Please check your internet connection and try again.";
         category = ErrorCategory.Network;
       } else if (error.message) {
@@ -124,6 +128,12 @@ const ExternalSourceDeploymentPage = () => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTestAgent = () => {
+    if (deployedAgentId) {
+      navigate(`/marketplace?agentId=${deployedAgentId}`);
     }
   };
 
@@ -167,6 +177,16 @@ const ExternalSourceDeploymentPage = () => {
                   <AlertTitle>Deployment Successful</AlertTitle>
                   <AlertDescription>
                     Your agent has been successfully deployed and is now available in the marketplace.
+                    <div className="mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleTestAgent} 
+                        className="text-green-700 bg-green-100 hover:bg-green-200 border-green-300"
+                      >
+                        Test Your Agent
+                      </Button>
+                    </div>
                   </AlertDescription>
                 </Alert>
               )}
