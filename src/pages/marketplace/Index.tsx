@@ -118,8 +118,19 @@ const MarketplacePage = () => {
     queryKey: ['marketplace-agents', selectedCategory, selectedPriceRange, selectedRating, sortOrder],
     queryFn: async () => {
       try {
-        const query = buildAgentQuery();
-        const { data, error } = await query;
+        // Simplified query to get all live agents
+        const { data, error } = await supabase
+          .from('agents')
+          .select(`
+            id,
+            title,
+            description,
+            price,
+            rating,
+            status,
+            categories:category_id (name)
+          `)
+          .eq('status', 'live');
         
         if (error) throw error;
         
@@ -178,13 +189,29 @@ const MarketplacePage = () => {
     setSelectedAgentId(null);
   };
 
-  const handleHire = (agentId: string) => {
-    // Here we would typically create a transaction or deploy the agent
-    navigate(`/agent/${agentId}/dashboard`);
-    toast({
-      title: "Agent Hired",
-      description: "The agent has been added to your collection.",
-    });
+  const handleHire = async (agentId: string) => {
+    // Record the purchase
+    try {
+      await supabase.from('purchases').insert({
+        agent_id: agentId,
+        buyer_id: 'demo-user', // Using a demo user ID for simplicity
+        amount: 0,
+        status: 'completed'
+      });
+      
+      navigate(`/user/agents`);
+      toast({
+        title: "Agent Hired",
+        description: "The agent has been added to your collection.",
+      });
+    } catch (error) {
+      console.error("Error hiring agent:", error);
+      toast({
+        title: "Error",
+        description: "Failed to hire this agent. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const selectedAgent = selectedAgentId 

@@ -5,166 +5,66 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { useForm } from "react-hook-form";
-import { 
-  AlertCircle, 
-  AlertTriangle, 
-  ArrowRight, 
-  CheckCircle, 
-  Loader2,
-  RefreshCw
-} from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { LoadingButton } from "@/components/ui/loading-button";
 
 interface FormData {
   title: string;
   description: string;
   source_url: string;
   api_key: string;
-  external_type: "openai" | "langflow" | "langchain" | "custom";
 }
 
-// Using a mock/demo user ID that was created in our SQL migration
-// This eliminates the need for developer authentication in the simplified flow
+// Using a demo developer ID for simplified deployment
 const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
 
 export const ExternalSourceDeployment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
-  const [deploymentId, setDeploymentId] = useState<string | null>(null);
-  const [deploymentProgress, setDeploymentProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       title: "",
       description: "",
       source_url: "",
-      api_key: "",
-      external_type: "openai"
+      api_key: ""
     }
   });
-
-  const externalType = watch("external_type");
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setDeploymentStatus("processing");
-    setDeploymentProgress(10);
     setErrorMessage(null);
     
     try {
-      // Create the agent with our demo user ID and set it immediately to 'live' status
+      // Create the agent with our demo user ID
       const { data: agent, error: agentError } = await supabase
         .from('agents')
         .insert({
           title: data.title,
           description: data.description,
-          status: 'live', // Set to live immediately
+          status: 'live',
           deployment_status: 'active',
           price: 0,
-          version_number: "1.0",
-          category_id: null,
-          developer_id: DEMO_USER_ID, // Use the demo user ID that we created in our SQL migration
-          features: ["External Integration", data.external_type]
+          developer_id: DEMO_USER_ID,
+          api_endpoint: data.source_url,
+          api_key: data.api_key
         })
         .select('id')
         .single();
       
       if (agentError) throw agentError;
       
-      setDeploymentProgress(30);
-      
       if (!agent?.id) {
         throw new Error("Failed to create agent");
       }
       
-      const { data: version, error: versionError } = await supabase
-        .from('agent_versions')
-        .insert({
-          agent_id: agent.id,
-          version_number: "1.0",
-          status: 'active',
-          changes: 'Initial external import',
-          config: {
-            external_type: data.external_type,
-            source_url: data.source_url,
-            api_key: data.api_key
-          }
-        })
-        .select('id')
-        .single();
-      
-      if (versionError) throw versionError;
-      setDeploymentProgress(50);
-
-      if (!version?.id) {
-        throw new Error("Failed to create agent version");
-      }
-
-      await supabase
-        .from('agents')
-        .update({ 
-          current_version_id: version.id,
-          deployment_status: 'active',
-          status: 'live' 
-        })
-        .eq('id', agent.id);
-      
-      const { data: deployment, error: deploymentError } = await supabase
-        .from('deployments')
-        .insert({
-          agent_id: agent.id,
-          version_id: version.id,
-          status: 'running',
-          health_status: 'healthy',
-          environment: 'production',
-          resource_usage: {
-            cpu: "0.5",
-            memory: "512Mi",
-            timeout: 30
-          }
-        })
-        .select('id')
-        .single();
-      
-      if (deploymentError) throw deploymentError;
-      setDeploymentProgress(70);
-      
-      if (!deployment?.id) {
-        throw new Error("Failed to create deployment");
-      }
-      
-      setDeploymentId(deployment.id);
-      
-      const { data: deployResponse, error: deployError } = await supabase.functions.invoke('deploy-agent', {
-        body: {
-          agentId: agent.id,
-          versionId: version.id,
-          deploymentId: deployment.id,
-          externalType: data.external_type,
-          sourceUrl: data.source_url,
-          apiKey: data.api_key
-        }
-      });
-      
-      if (deployError) throw deployError;
-      
-      setDeploymentProgress(100);
-      setDeploymentStatus("success");
-      
-      // Initialize metrics for the agent so it appears in marketplace statistics
+      // Initialize metrics for the agent so it appears in marketplace
       await supabase.from('agent_metrics')
         .insert({
           agent_id: agent.id,
@@ -174,6 +74,8 @@ export const ExternalSourceDeployment = () => {
           revenue: 0,
           date: new Date().toISOString().split('T')[0]
         });
+      
+      setDeploymentStatus("success");
       
       toast.success("Agent deployed successfully!", {
         description: "Your agent is now available in the marketplace."
@@ -196,12 +98,6 @@ export const ExternalSourceDeployment = () => {
     }
   };
 
-  const resetForm = () => {
-    setDeploymentStatus("idle");
-    setDeploymentProgress(0);
-    setErrorMessage(null);
-  };
-
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -215,28 +111,9 @@ export const ExternalSourceDeployment = () => {
         <CardContent className="space-y-6">
           {errorMessage && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
               <AlertTitle>Deployment Failed</AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
-          )}
-          
-          {deploymentStatus === "processing" && (
-            <div className="space-y-2 animate-pulse">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span>Deploying agent...</span>
-                </div>
-                <span>{deploymentProgress}%</span>
-              </div>
-              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-primary h-full rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${deploymentProgress}%` }}
-                />
-              </div>
-            </div>
           )}
           
           {deploymentStatus === "success" && (
@@ -250,25 +127,6 @@ export const ExternalSourceDeployment = () => {
           )}
           
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="external_type">Source Type</Label>
-              <Select 
-                defaultValue={externalType}
-                onValueChange={(value) => setValue("external_type", value as any)}
-                disabled={isSubmitting || deploymentStatus !== "idle"}
-              >
-                <SelectTrigger id="external_type">
-                  <SelectValue placeholder="Select a source type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openai">OpenAI Assistant</SelectItem>
-                  <SelectItem value="langflow">Langflow</SelectItem>
-                  <SelectItem value="langchain">LangChain</SelectItem>
-                  <SelectItem value="custom">Custom API</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
             <div className="space-y-2">
               <Label htmlFor="title">Agent Name</Label>
               <Input 
@@ -317,46 +175,38 @@ export const ExternalSourceDeployment = () => {
               {errors.api_key && (
                 <p className="text-sm text-red-500 mt-1">{errors.api_key.message}</p>
               )}
-              <p className="text-xs text-amber-600 mt-1 inline-flex items-center">
-                <AlertTriangle className="h-3 w-3 mr-1 text-amber-600" />
-                API keys are encrypted and stored securely
-              </p>
             </div>
           </div>
         </CardContent>
         
         <CardFooter className="flex justify-between">
-          {deploymentStatus === "error" ? (
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={resetForm}
-              className="flex items-center"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Try Again
-            </Button>
-          ) : (
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/developer/agents')}
-              disabled={isSubmitting || deploymentStatus === "processing"}
-            >
-              Cancel
-            </Button>
-          )}
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/developer/agents')}
+            disabled={isSubmitting || deploymentStatus === "processing"}
+          >
+            Cancel
+          </Button>
           
           {deploymentStatus === "idle" && (
-            <LoadingButton 
+            <Button 
               type="submit" 
-              isLoading={isSubmitting}
+              disabled={isSubmitting}
               className="flex items-center"
-              loadingText="Deploying..."
-              icon={<ArrowRight className="mr-2 h-4 w-4" />}
             >
-              Deploy Agent
-            </LoadingButton>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deploying...
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Deploy Agent
+                </>
+              )}
+            </Button>
           )}
         </CardFooter>
       </form>
