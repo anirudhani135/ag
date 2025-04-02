@@ -20,7 +20,16 @@ serve(async (req) => {
     
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-      throw new Error("Server configuration error: Missing environment variables");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Server configuration error', 
+          details: 'Missing environment variables' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -49,6 +58,22 @@ serve(async (req) => {
     let validatedEndpoint = apiEndpoint;
     if (!validatedEndpoint.startsWith('http')) {
       validatedEndpoint = `https://${validatedEndpoint}`;
+    }
+
+    try {
+      // Validate URL format
+      new URL(validatedEndpoint);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid API endpoint', 
+          details: 'The API endpoint URL format is invalid' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
 
     // Test the API endpoint with a simple request to verify it's reachable
@@ -91,25 +116,33 @@ serve(async (req) => {
         
       if (error) {
         console.error("Database error updating agent:", error);
-        throw new Error(`Database error: ${error.message}`);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Database error updating agent',
+            details: error.message
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+            status: 500 
+          }
+        );
       }
       agent = data;
     } else {
       console.log('Creating new external agent');
       
       // First, get a valid category ID from the database
-      const { data: category, error: categoryError } = await supabase
+      const { data: categories, error: categoryError } = await supabase
         .from('categories')
         .select('id')
-        .limit(1)
-        .single();
+        .limit(1);
       
       if (categoryError) {
-        console.log("Could not get a valid category, using a null category_id");
+        console.error("Error getting category:", categoryError);
         // Continue with null category_id, which should still work if the column allows nulls
       }
       
-      const categoryId = category?.id || null;
+      const categoryId = categories && categories.length > 0 ? categories[0].id : null;
       console.log(`Using category_id: ${categoryId}`);
       
       // Create new agent
@@ -132,13 +165,31 @@ serve(async (req) => {
         
       if (error) {
         console.error("Database error creating agent:", error);
-        throw new Error(`Database error: ${error.message}`);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Database error creating agent',
+            details: error.message
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+            status: 500 
+          }
+        );
       }
       agent = data;
     }
     
     if (!agent?.id) {
-      throw new Error("Failed to create or update agent: No agent ID returned");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Agent creation failed',
+          details: 'No agent ID returned from database'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
     }
     
     console.log("Agent deployed successfully with ID:", agent.id);

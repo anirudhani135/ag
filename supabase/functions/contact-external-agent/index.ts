@@ -20,7 +20,16 @@ serve(async (req) => {
     
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-      throw new Error("Server configuration error: Missing environment variables");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Server configuration error', 
+          details: "Missing environment variables" 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -84,9 +93,9 @@ serve(async (req) => {
     // Contact the external API with timeout and error handling
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const headers = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
       
@@ -95,14 +104,19 @@ serve(async (req) => {
         headers['Authorization'] = `Bearer ${agent.api_key}`;
       }
       
+      const payload = { 
+        message: message,
+        max_tokens: 1000,
+        prompt: message, // Some APIs use prompt instead of message
+        question: message // Some APIs use question
+      };
+      
+      console.log("Sending payload to external agent:", JSON.stringify(payload));
+      
       const response = await fetch(agent.api_endpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ 
-          message: message,
-          max_tokens: 1000,
-          prompt: message // Some APIs use prompt instead of message
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal
       });
       
@@ -117,7 +131,8 @@ serve(async (req) => {
         responseData = JSON.parse(responseText);
       } catch (parseError) {
         console.error("Failed to parse response as JSON:", parseError);
-        responseData = { text: responseText }; // Fallback to raw text
+        // If it's not JSON, return the raw text
+        responseData = { text: responseText }; 
       }
       
       if (!response.ok) {
@@ -131,7 +146,9 @@ serve(async (req) => {
         agent_id: agentId,
         log_type: 'interaction',
         message: message,
-        metadata: { response: responseData }
+        metadata: { response: typeof responseData === 'object' ? responseData : { text: responseData } }
+      }).catch(err => {
+        console.error("Failed to log interaction:", err);
       });
       
       // Handle different response formats from various APIs
@@ -156,6 +173,9 @@ serve(async (req) => {
         formattedResponse = { 
           text: choice.text || (choice.message ? choice.message.content : JSON.stringify(choice)) 
         };
+      } else if (responseData.data && responseData.data.content) {
+        // Relevance AI format
+        formattedResponse = { text: responseData.data.content };
       } else {
         // If we can't determine the format, send the whole response
         formattedResponse = { 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { ArrowRight, Loader2, CheckCircle2, AlertCircle, Zap } from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle2, AlertCircle, Zap, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -29,7 +29,7 @@ const ExternalSourceDeploymentPage = () => {
   const [deployedAgentId, setDeployedAgentId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, getValues } = useForm<FormData>({
     defaultValues: {
       title: "",
       description: "",
@@ -38,21 +38,63 @@ const ExternalSourceDeploymentPage = () => {
     }
   });
 
+  // Function to validate URL format
+  const isValidUrl = (url: string) => {
+    try {
+      // Add https:// if not present
+      const urlToTest = url.startsWith('http') ? url : `https://${url}`;
+      new URL(urlToTest);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const testAgentEndpoint = async () => {
+    const endpoint = getValues("api_endpoint");
+    const apiKey = getValues("api_key");
+    
+    if (!endpoint) {
+      toast.error("Please enter an API endpoint to test");
+      return;
+    }
+    
+    if (!isValidUrl(endpoint)) {
+      toast.error("Please enter a valid URL");
+      return;
+    }
+    
+    toast.info("Testing connection to API endpoint...");
+    
+    try {
+      // Ensure URL format is correct
+      let validatedEndpoint = endpoint;
+      if (!validatedEndpoint.startsWith('http')) {
+        validatedEndpoint = `https://${validatedEndpoint}`;
+      }
+      
+      const response = await fetch(validatedEndpoint, {
+        method: 'HEAD',
+        headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
+      });
+      
+      if (response.ok) {
+        toast.success("API endpoint is reachable!");
+      } else {
+        toast.warning("API endpoint returned status " + response.status + ". It may still work for POST requests.");
+      }
+    } catch (error) {
+      toast.warning("Could not connect to API endpoint. Check the URL and try again.");
+    }
+  };
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setErrorDetails(null);
     
     try {
       // Validate the API endpoint format
-      let endpoint = data.api_endpoint.trim();
-      if (!endpoint.startsWith('http')) {
-        endpoint = `https://${endpoint}`;
-      }
-      
-      // Basic URL validation
-      try {
-        new URL(endpoint);
-      } catch (e) {
+      if (!isValidUrl(data.api_endpoint)) {
         toast.error("Invalid API endpoint URL format");
         setErrorDetails({
           message: "Please enter a valid URL for the API endpoint",
@@ -62,9 +104,15 @@ const ExternalSourceDeploymentPage = () => {
         return;
       }
       
+      // Ensure URL format is correct
+      let endpoint = data.api_endpoint.trim();
+      if (!endpoint.startsWith('http')) {
+        endpoint = `https://${endpoint}`;
+      }
+      
       console.log("Deploying external agent:", { title: data.title, endpoint });
       
-      // Call the deploy-external-agent function
+      // Call the deploy-external-agent edge function
       const { data: result, error } = await supabase.functions.invoke('deploy-external-agent', {
         body: { 
           agentId: null, // Will be created in the function
@@ -105,13 +153,15 @@ const ExternalSourceDeploymentPage = () => {
       let category = ErrorCategory.ServerError;
       
       // Try to extract more specific error details
-      if (error.message && error.message.includes("Edge Function returned a non-2xx status code")) {
-        errorMessage = "The deployment service returned an error. This might be due to invalid input or a service issue.";
-      } else if (error.message && error.message.includes("Failed to fetch")) {
-        errorMessage = "Could not connect to the deployment service. Please check your internet connection and try again.";
-        category = ErrorCategory.Network;
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error.message) {
+        if (error.message.includes("Edge Function returned a non-2xx status code")) {
+          errorMessage = "The deployment service returned an error. This might be due to invalid input or a service issue.";
+        } else if (error.message.includes("Failed to fetch")) {
+          errorMessage = "Could not connect to the deployment service. Please check your internet connection and try again.";
+          category = ErrorCategory.Network;
+        } else {
+          errorMessage = error.message;
+        }
       } else if (typeof error === 'string') {
         errorMessage = error;
       } else if (error.details) {
@@ -193,11 +243,12 @@ const ExternalSourceDeploymentPage = () => {
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Agent Name</Label>
+                  <Label htmlFor="title">Agent Name <span className="text-red-500">*</span></Label>
                   <Input 
                     id="title" 
                     {...register("title", { required: "Agent name is required" })}
                     disabled={isSubmitting || deploymentStatus === "success"}
+                    placeholder="e.g., SEO Blog Writer, Document Analyzer"
                   />
                   {errors.title && (
                     <p className="text-sm text-red-500 mt-1">{errors.title.message}</p>
@@ -205,7 +256,7 @@ const ExternalSourceDeploymentPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
                   <Textarea 
                     id="description" 
                     {...register("description", { required: "Description is required" })}
@@ -219,13 +270,24 @@ const ExternalSourceDeploymentPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="api_endpoint">API Endpoint</Label>
-                  <Input 
-                    id="api_endpoint" 
-                    {...register("api_endpoint", { required: "API endpoint is required" })}
-                    placeholder="https://api.example.com/agent"
-                    disabled={isSubmitting || deploymentStatus === "success"}
-                  />
+                  <Label htmlFor="api_endpoint">API Endpoint <span className="text-red-500">*</span></Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      id="api_endpoint" 
+                      {...register("api_endpoint", { required: "API endpoint is required" })}
+                      placeholder="https://api.example.com/agent"
+                      disabled={isSubmitting || deploymentStatus === "success"}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={testAgentEndpoint}
+                      disabled={isSubmitting || deploymentStatus === "success"}
+                    >
+                      Test
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Your API should accept POST requests with a JSON body containing a "message" field
                   </p>
@@ -241,11 +303,28 @@ const ExternalSourceDeploymentPage = () => {
                     type="password"
                     {...register("api_key")}
                     disabled={isSubmitting || deploymentStatus === "success"}
+                    placeholder="sk-api-key-for-authentication"
                   />
                   <p className="text-xs text-muted-foreground">
                     If your API requires authentication, provide your API key here
                   </p>
                 </div>
+
+                <Alert variant="outline" className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-500" />
+                  <AlertTitle className="text-blue-700">Relevance AI Instructions</AlertTitle>
+                  <AlertDescription className="text-blue-600 text-sm">
+                    For Relevance AI agents, use the agent's deployment URL that looks like:<br />
+                    <code className="bg-blue-100 px-1 py-0.5 rounded">
+                      https://api-{"{id}"}.stack.tryrelevance.com/latest/agents/trigger
+                    </code>
+                    <br />
+                    The API key should be in this format: 
+                    <code className="bg-blue-100 px-1 py-0.5 rounded">
+                      project_id:sk-{"{api_key}"}
+                    </code>
+                  </AlertDescription>
+                </Alert>
               </div>
             </CardContent>
             
