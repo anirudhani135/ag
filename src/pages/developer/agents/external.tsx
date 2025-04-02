@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -281,7 +280,7 @@ const ExternalSourceDeploymentPage = () => {
                     />
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="secondary" 
                       onClick={testAgentEndpoint}
                       disabled={isSubmitting || deploymentStatus === "success"}
                     >
@@ -331,7 +330,7 @@ const ExternalSourceDeploymentPage = () => {
             <CardFooter className="flex justify-between">
               <Button 
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={() => navigate('/developer/agents')}
                 disabled={isSubmitting}
               >
