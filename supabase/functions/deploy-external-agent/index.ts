@@ -40,6 +40,7 @@ serve(async (req) => {
 
     console.log("Processing deployment request:", { title, apiEndpoint });
     
+    // Validate required fields
     if (!apiEndpoint || !title) {
       console.error("Missing required fields in request:", { title, apiEndpoint });
       return new Response(
@@ -79,8 +80,21 @@ serve(async (req) => {
     // Check if this is a Relevance AI endpoint
     const isRelevanceAI = validatedEndpoint.includes('tryrelevance.com');
     
+    // Additional validation for Relevance AI endpoints
+    if (isRelevanceAI && !apiKey) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing API key', 
+          details: 'Relevance AI endpoints require an API key' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
+    }
+    
     // Test the API endpoint with an appropriate method
-    // For Relevance AI, we'll try a POST request instead of HEAD since they might not support HEAD
     try {
       let testResponse;
       
@@ -96,7 +110,7 @@ serve(async (req) => {
         }
         
         // Prepare a minimal test payload for Relevance AI
-        const testPayload = {
+        const testPayload: any = {
           message: {
             role: "user",
             content: "Hello" // Minimal test content
@@ -114,28 +128,35 @@ serve(async (req) => {
           }
         }
         
-        testResponse = await fetch(validatedEndpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(testPayload),
-          signal: AbortSignal.timeout(8000) // 8 second timeout - longer for more complex APIs
-        });
+        try {
+          testResponse = await fetch(validatedEndpoint, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(testPayload),
+            signal: AbortSignal.timeout(8000) // 8 second timeout - longer for more complex APIs
+          });
+          console.log(`API endpoint test status: ${testResponse.status}`);
+        } catch (testError) {
+          console.warn(`Warning: Could not connect to API endpoint during test: ${testError.message}`);
+          // Continue with deployment anyway, as we've already warned the user
+        }
       } else {
         // For other APIs, we'll use HEAD as before
-        testResponse = await fetch(validatedEndpoint, {
-          method: 'HEAD',
-          headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
-          signal: AbortSignal.timeout(5000) // 5 second timeout
-        });
+        try {
+          testResponse = await fetch(validatedEndpoint, {
+            method: 'HEAD',
+            headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+          });
+          console.log(`API endpoint test status: ${testResponse.status}`);
+        } catch (testError) {
+          console.warn(`Warning: Could not connect to API endpoint during test: ${testError.message}`);
+          // Continue with deployment anyway, as we've already warned the user
+        }
       }
-      
-      console.log(`API endpoint test status: ${testResponse.status}`);
-      
-      // We don't fail if the request doesn't return 200 - some APIs might return different codes
-      // This is just for logging purposes
     } catch (apiError) {
       // Log but don't fail - endpoint might still work with different parameters
-      console.warn(`Warning: Could not connect to API endpoint: ${apiError.message}`);
+      console.warn(`Warning: Error testing API endpoint: ${apiError.message}`);
     }
 
     // Using a demo developer ID for simplified deployment
@@ -187,7 +208,6 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('agents')
         .update({ 
-          // FIX: Changed status value to match the allowed values in the DB constraint
           status: 'active',
           deployment_status: 'active',
           api_endpoint: validatedEndpoint,
@@ -220,7 +240,6 @@ serve(async (req) => {
         .insert({
           title: title,
           description: description || `External AI agent: ${title}`,
-          // FIX: Changed status value to match the allowed values in the DB constraint
           status: 'active',
           deployment_status: 'active',
           price: 0,
@@ -228,7 +247,7 @@ serve(async (req) => {
           api_endpoint: validatedEndpoint,
           api_key: apiKey,
           rating: 5,
-          category_id: categoryId  // Using the fetched category ID
+          category_id: categoryId
         })
         .select('id')
         .single();
@@ -265,30 +284,35 @@ serve(async (req) => {
     console.log("Agent deployed successfully with ID:", agent.id);
     
     // Add to marketplace metrics
-    const { data: existingMetrics, error: metricsError } = await supabase
-      .from('agent_metrics')
-      .select('id')
-      .eq('agent_id', agent.id)
-      .maybeSingle();
-      
-    if (metricsError) {
-      console.warn("Error checking for existing metrics:", metricsError);
-    }
-    
-    if (!existingMetrics) {
-      const { error: insertError } = await supabase.from('agent_metrics')
-        .insert({
-          agent_id: agent.id,
-          views: 0,
-          unique_views: 0,
-          purchases: 0,
-          revenue: 0,
-          date: new Date().toISOString().split('T')[0]
-        });
+    try {
+      const { data: existingMetrics, error: metricsError } = await supabase
+        .from('agent_metrics')
+        .select('id')
+        .eq('agent_id', agent.id)
+        .maybeSingle();
         
-      if (insertError) {
-        console.warn("Error inserting metrics:", insertError);
+      if (metricsError) {
+        console.warn("Error checking for existing metrics:", metricsError);
       }
+      
+      if (!existingMetrics) {
+        const { error: insertError } = await supabase.from('agent_metrics')
+          .insert({
+            agent_id: agent.id,
+            views: 0,
+            unique_views: 0,
+            purchases: 0,
+            revenue: 0,
+            date: new Date().toISOString().split('T')[0]
+          });
+          
+        if (insertError) {
+          console.warn("Error inserting metrics:", insertError);
+        }
+      }
+    } catch (metricsError) {
+      console.warn("Error handling metrics:", metricsError);
+      // Don't fail the deployment if metrics insertion fails
     }
     
     return new Response(

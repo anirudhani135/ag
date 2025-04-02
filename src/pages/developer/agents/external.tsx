@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { ErrorHandler } from "@/components/shared/ErrorHandler";
 import { ErrorCategory } from "@/utils/errorHandling";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 interface FormData {
   title: string;
@@ -27,9 +28,10 @@ const ExternalSourceDeploymentPage = () => {
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorDetails, setErrorDetails] = useState<{ message: string; category: ErrorCategory } | null>(null);
   const [deployedAgentId, setDeployedAgentId] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState: { errors }, getValues } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, getValues, watch } = useForm<FormData>({
     defaultValues: {
       title: "",
       description: "",
@@ -38,8 +40,15 @@ const ExternalSourceDeploymentPage = () => {
     }
   });
 
+  // Watch the form values for real-time validation
+  const apiEndpoint = watch("api_endpoint");
+  const isRelevanceEndpoint = apiEndpoint?.includes('tryrelevance.com');
+
   const isValidUrl = (url: string) => {
     try {
+      // If no URL is provided, return false
+      if (!url.trim()) return false;
+      
       const urlToTest = url.startsWith('http') ? url : `https://${url}`;
       new URL(urlToTest);
       return true;
@@ -62,6 +71,7 @@ const ExternalSourceDeploymentPage = () => {
       return;
     }
     
+    setIsTesting(true);
     toast.info("Testing connection to API endpoint...");
     
     try {
@@ -78,10 +88,12 @@ const ExternalSourceDeploymentPage = () => {
       if (response.ok) {
         toast.success("API endpoint is reachable!");
       } else {
-        toast.warning("API endpoint returned status " + response.status + ". It may still work for POST requests.");
+        toast.warning(`API endpoint returned status ${response.status}. It may still work for POST requests.`);
       }
     } catch (error) {
       toast.warning("Could not connect to API endpoint. Check the URL and try again.");
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -113,7 +125,7 @@ const ExternalSourceDeploymentPage = () => {
           apiEndpoint: endpoint,
           apiKey: data.api_key.trim(),
           title: data.title.trim(),
-          description: data.description.trim()
+          description: data.description.trim() || `External AI agent: ${data.title.trim()}`
         }
       });
       
@@ -238,9 +250,13 @@ const ExternalSourceDeploymentPage = () => {
                   <Label htmlFor="title">Agent Name <span className="text-red-500">*</span></Label>
                   <Input 
                     id="title" 
-                    {...register("title", { required: "Agent name is required" })}
+                    {...register("title", { 
+                      required: "Agent name is required",
+                      minLength: { value: 3, message: "Name must be at least 3 characters" }
+                    })}
                     disabled={isSubmitting || deploymentStatus === "success"}
                     placeholder="e.g., SEO Blog Writer, Document Analyzer"
+                    className={errors.title ? "border-red-300" : ""}
                   />
                   {errors.title && (
                     <p className="text-sm text-red-500 mt-1">{errors.title.message}</p>
@@ -251,10 +267,13 @@ const ExternalSourceDeploymentPage = () => {
                   <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
                   <Textarea 
                     id="description" 
-                    {...register("description", { required: "Description is required" })}
+                    {...register("description", { 
+                      required: "Description is required",
+                      minLength: { value: 10, message: "Description must be at least 10 characters" }
+                    })}
                     disabled={isSubmitting || deploymentStatus === "success"}
                     placeholder="Describe what your agent does and how it can help users"
-                    className="min-h-[100px]"
+                    className={`min-h-[100px] ${errors.description ? "border-red-300" : ""}`}
                   />
                   {errors.description && (
                     <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>
@@ -266,19 +285,24 @@ const ExternalSourceDeploymentPage = () => {
                   <div className="flex gap-2">
                     <Input 
                       id="api_endpoint" 
-                      {...register("api_endpoint", { required: "API endpoint is required" })}
+                      {...register("api_endpoint", { 
+                        required: "API endpoint is required",
+                        validate: value => isValidUrl(value) || "Please enter a valid URL" 
+                      })}
                       placeholder="https://api.example.com/agent"
                       disabled={isSubmitting || deploymentStatus === "success"}
-                      className="flex-1"
+                      className={`flex-1 ${errors.api_endpoint ? "border-red-300" : ""}`}
                     />
-                    <Button 
+                    <LoadingButton 
                       type="button" 
                       variant="secondary" 
                       onClick={testAgentEndpoint}
                       disabled={isSubmitting || deploymentStatus === "success"}
+                      isLoading={isTesting}
+                      loadingText="Testing..."
                     >
                       Test
-                    </Button>
+                    </LoadingButton>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Your API should accept POST requests with a JSON body containing a "message" field
@@ -289,17 +313,23 @@ const ExternalSourceDeploymentPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="api_key">API Key (Optional)</Label>
+                  <Label htmlFor="api_key">API Key {isRelevanceEndpoint && <span className="text-red-500">*</span>}</Label>
                   <Input 
                     id="api_key" 
                     type="password"
-                    {...register("api_key")}
+                    {...register("api_key", {
+                      required: isRelevanceEndpoint ? "API key is required for Relevance AI agents" : false
+                    })}
                     disabled={isSubmitting || deploymentStatus === "success"}
                     placeholder="sk-api-key-for-authentication"
+                    className={errors.api_key ? "border-red-300" : ""}
                   />
                   <p className="text-xs text-muted-foreground">
                     If your API requires authentication, provide your API key here
                   </p>
+                  {errors.api_key && (
+                    <p className="text-sm text-red-500 mt-1">{errors.api_key.message}</p>
+                  )}
                 </div>
 
                 <Alert variant="default" className="bg-blue-50 border-blue-200">
@@ -330,23 +360,15 @@ const ExternalSourceDeploymentPage = () => {
                 Cancel
               </Button>
               
-              <Button 
+              <LoadingButton 
                 type="submit" 
                 disabled={isSubmitting || deploymentStatus === "success"}
-                className="flex items-center"
+                isLoading={isSubmitting}
+                loadingText="Deploying..."
+                icon={<ArrowRight className="h-4 w-4" />}
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deploying...
-                  </>
-                ) : (
-                  <>
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    Deploy Agent
-                  </>
-                )}
-              </Button>
+                Deploy Agent
+              </LoadingButton>
             </CardFooter>
           </form>
         </Card>
