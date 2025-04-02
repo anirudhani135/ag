@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -301,7 +302,7 @@ const ExternalSourceDeploymentPage = () => {
                   </p>
                 </div>
 
-                <Alert variant="outline" className="bg-blue-50 border-blue-200">
+                <Alert variant="default" className="bg-blue-50 border-blue-200">
                   <AlertCircle className="h-4 w-4 text-blue-500" />
                   <AlertTitle className="text-blue-700">Relevance AI Instructions</AlertTitle>
                   <AlertDescription className="text-blue-600 text-sm">
