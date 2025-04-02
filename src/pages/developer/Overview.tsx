@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +46,7 @@ const DeveloperOverview = () => {
     setDeploymentLoading(true);
     setTimeout(() => {
       setDeploymentLoading(false);
-      navigate('/agent-external-deployment');
+      navigate('/developer/agents/external');
     }, 500);
   };
   

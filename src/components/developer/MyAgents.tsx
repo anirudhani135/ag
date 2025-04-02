@@ -155,7 +155,7 @@ export const MyAgents = () => {
   };
   
   const handleExternalDeploy = () => {
-    navigate("/agent-external-deployment");
+    navigate("/developer/agents/external");
   };
 
   return (

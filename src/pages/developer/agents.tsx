@@ -47,7 +47,7 @@ const Agents = () => {
           </div>
           <div className="flex gap-2">
             <Button asChild>
-              <Link to="/agent-external-deployment">
+              <Link to="/developer/agents/external">
                 <Plus className="w-4 h-4 mr-2" />
                 Deploy External Agent
               </Link>

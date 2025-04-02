@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -53,7 +54,7 @@ const DeveloperReviews = lazy(() => import("./pages/developer/Reviews"));
 const DeveloperSupport = lazy(() => import("./pages/developer/Support"));
 const DeveloperSettings = lazy(() => import("./pages/developer/Settings"));
 const ApiIntegrations = lazy(() => import("./pages/developer/ApiIntegrations"));
-const ExternalSourceDeployment = lazy(() => import("./pages/external-source-deployment/index"));
+const ExternalSourceDeployment = lazy(() => import("./pages/developer/agents/external"));
 const Marketplace = lazy(() => import("./pages/marketplace/Index"));
 const DeveloperTransactions = lazy(() => import("./pages/developer/Transactions"));
 const DeveloperMonitoring = lazy(() => import("./pages/developer/Monitoring"));
@@ -115,7 +116,7 @@ const AppContent = () => {
             <Route path="dashboard" element={<DeveloperOverview />} />
             <Route path="agents" element={<AgentManagement />} />
             <Route path="agents/:agentId/testing" element={<AgentTesting />} />
-            <Route path="agents/create" element={<Navigate to="/agent-external-deployment" replace />} />
+            <Route path="agents/external" element={<ExternalSourceDeployment />} />
             <Route path="revenue" element={<Revenue />} />
             <Route path="api-integrations" element={<ApiIntegrations />} />
             <Route path="api" element={<Navigate to="/developer/api-integrations" replace />} />
@@ -125,9 +126,8 @@ const AppContent = () => {
             <Route path="settings" element={<DeveloperSettings />} />
             <Route path="transactions" element={<DeveloperTransactions />} />
             <Route path="monitoring" element={<DeveloperMonitoring />} />
-            <Route path="agents/external" element={<ExternalSourceDeployment />} />
           </Route>
-          <Route path="/agent-external-deployment" element={<ExternalSourceDeployment />} />
+          <Route path="/agent-external-deployment" element={<Navigate to="/developer/agents/external" replace />} />
         </Route>
 
         {/* Marketplace - publicly accessible */}
