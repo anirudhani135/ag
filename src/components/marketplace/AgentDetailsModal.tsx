@@ -52,7 +52,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       const { data, error } = await supabase.functions.invoke('contact-external-agent', {
         body: { 
           agentId: agent.id, 
-          message: prompt 
+          message: prompt.trim() 
         }
       });
       
@@ -68,19 +68,23 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       
       // Handle different response formats
       let formattedResponse;
+      
       if (typeof data === 'string') {
         formattedResponse = data;
+      } else if (data.text) {
+        formattedResponse = data.text;
       } else if (data.output) {
         formattedResponse = data.output;
       } else if (data.response) {
         formattedResponse = data.response;
       } else if (data.answer) {
         formattedResponse = data.answer;
-      } else if (data.text) {
-        formattedResponse = data.text;
       } else if (data.message) {
         formattedResponse = data.message;
+      } else if (data.content) {
+        formattedResponse = data.content;
       } else {
+        // If we can't extract a specific text field, stringify the whole response
         formattedResponse = JSON.stringify(data, null, 2);
       }
       
@@ -88,9 +92,20 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       
     } catch (error: any) {
       console.error("Error testing agent:", error);
-      setError(error.message || "There was an error communicating with the agent");
+      
+      let errorMessage = "There was an error communicating with the agent";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.details) {
+        errorMessage = error.details;
+      }
+      
+      setError(errorMessage);
       toast.error("Failed to get response", {
-        description: error.message || "There was an error communicating with the agent"
+        description: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -103,7 +118,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
             {agent.title}
-            <Badge variant={agent.status === "active" ? "default" : "secondary"}>
+            <Badge variant={agent.status === "live" ? "default" : "secondary"}>
               {agent.status}
             </Badge>
           </DialogTitle>

@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle2, AlertCircle, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
+import { ErrorHandler } from "@/components/shared/ErrorHandler";
+import { ErrorCategory } from "@/utils/errorHandling";
 
 interface FormData {
   title: string;
@@ -23,7 +25,7 @@ interface FormData {
 const ExternalSourceDeploymentPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<"idle" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<{ message: string; category: ErrorCategory } | null>(null);
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -37,24 +39,38 @@ const ExternalSourceDeploymentPage = () => {
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
-    setErrorMessage(null);
+    setErrorDetails(null);
     
     try {
       // Validate the API endpoint format
-      if (!data.api_endpoint.startsWith('http')) {
-        data.api_endpoint = `https://${data.api_endpoint}`;
+      let endpoint = data.api_endpoint.trim();
+      if (!endpoint.startsWith('http')) {
+        endpoint = `https://${endpoint}`;
       }
       
-      console.log("Deploying external agent:", { title: data.title, endpoint: data.api_endpoint });
+      // Basic URL validation
+      try {
+        new URL(endpoint);
+      } catch (e) {
+        toast.error("Invalid API endpoint URL format");
+        setErrorDetails({
+          message: "Please enter a valid URL for the API endpoint",
+          category: ErrorCategory.Validation
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      console.log("Deploying external agent:", { title: data.title, endpoint });
       
       // Call the deploy-external-agent function
       const { data: result, error } = await supabase.functions.invoke('deploy-external-agent', {
         body: { 
           agentId: null, // Will be created in the function
-          apiEndpoint: data.api_endpoint,
-          apiKey: data.api_key,
-          title: data.title,
-          description: data.description
+          apiEndpoint: endpoint,
+          apiKey: data.api_key.trim(),
+          title: data.title.trim(),
+          description: data.description.trim()
         }
       });
       
@@ -82,14 +98,38 @@ const ExternalSourceDeploymentPage = () => {
     } catch (error: any) {
       console.error("Deployment error:", error);
       setDeploymentStatus("error");
-      setErrorMessage(error.message || "Failed to deploy agent");
+      
+      let errorMessage = "There was an error deploying your agent";
+      let category = ErrorCategory.ServerError;
+      
+      // Try to extract more specific error details
+      if (error.message && error.message.includes("Failed to fetch")) {
+        errorMessage = "Could not connect to the deployment service. Please check your internet connection and try again.";
+        category = ErrorCategory.Network;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.details) {
+        errorMessage = error.details;
+      }
+      
+      setErrorDetails({
+        message: errorMessage,
+        category
+      });
       
       toast.error("Deployment failed", {
-        description: error.message || "There was an error deploying your agent"
+        description: errorMessage
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRetry = () => {
+    setDeploymentStatus("idle");
+    setErrorDetails(null);
   };
 
   return (
@@ -104,16 +144,21 @@ const ExternalSourceDeploymentPage = () => {
         
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>Deploy External Agent</CardTitle>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Deploy External Agent
+            </CardTitle>
           </CardHeader>
           
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-6">
-              {errorMessage && (
-                <Alert variant="destructive">
-                  <AlertTitle>Deployment Failed</AlertTitle>
-                  <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
+              {errorDetails && (
+                <ErrorHandler 
+                  error={new Error(errorDetails.message)}
+                  category={errorDetails.category}
+                  resetError={handleRetry}
+                  retry={handleRetry}
+                />
               )}
               
               {deploymentStatus === "success" && (
@@ -170,19 +215,16 @@ const ExternalSourceDeploymentPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="api_key">API Key</Label>
+                  <Label htmlFor="api_key">API Key (Optional)</Label>
                   <Input 
                     id="api_key" 
                     type="password"
-                    {...register("api_key", { required: "API key is required" })}
+                    {...register("api_key")}
                     disabled={isSubmitting || deploymentStatus === "success"}
                   />
                   <p className="text-xs text-muted-foreground">
-                    This key will be used to authenticate requests to your API
+                    If your API requires authentication, provide your API key here
                   </p>
-                  {errors.api_key && (
-                    <p className="text-sm text-red-500 mt-1">{errors.api_key.message}</p>
-                  )}
                 </div>
               </div>
             </CardContent>

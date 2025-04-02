@@ -19,7 +19,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Missing environment variables");
+      console.error("Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      throw new Error("Server configuration error: Missing environment variables");
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -31,7 +32,40 @@ serve(async (req) => {
     console.log("Processing deployment request:", { title, apiEndpoint });
     
     if (!apiEndpoint || !title) {
-      throw new Error("Missing required fields: title and API endpoint are required");
+      console.error("Missing required fields in request:", { title, apiEndpoint });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required fields', 
+          details: 'Title and API endpoint are required' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
+    }
+
+    // Validate API endpoint format
+    let validatedEndpoint = apiEndpoint;
+    if (!validatedEndpoint.startsWith('http')) {
+      validatedEndpoint = `https://${validatedEndpoint}`;
+    }
+
+    // Test the API endpoint with a simple request to verify it's reachable
+    try {
+      const testResponse = await fetch(validatedEndpoint, {
+        method: 'HEAD',
+        headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      console.log(`API endpoint test status: ${testResponse.status}`);
+      
+      // We don't fail if the HEAD request doesn't work - some APIs might not support it
+      // This is just for logging purposes
+    } catch (apiError) {
+      // Log but don't fail - endpoint might still work for POST requests
+      console.warn(`Warning: Could not connect to API endpoint: ${apiError.message}`);
     }
 
     // Using a demo developer ID for simplified deployment
@@ -48,7 +82,7 @@ serve(async (req) => {
         .update({ 
           status: 'live',
           deployment_status: 'active',
-          api_endpoint: apiEndpoint,
+          api_endpoint: validatedEndpoint,
           api_key: apiKey
         })
         .eq('id', agentId)
@@ -57,7 +91,7 @@ serve(async (req) => {
         
       if (error) {
         console.error("Database error updating agent:", error);
-        throw error;
+        throw new Error(`Database error: ${error.message}`);
       }
       agent = data;
     } else {
@@ -73,7 +107,7 @@ serve(async (req) => {
           deployment_status: 'active',
           price: 0,
           developer_id: DEMO_USER_ID,
-          api_endpoint: apiEndpoint,
+          api_endpoint: validatedEndpoint,
           api_key: apiKey,
           rating: 5,
           category_id: 1  // Default category
@@ -83,13 +117,13 @@ serve(async (req) => {
         
       if (error) {
         console.error("Database error creating agent:", error);
-        throw error;
+        throw new Error(`Database error: ${error.message}`);
       }
       agent = data;
     }
     
     if (!agent?.id) {
-      throw new Error("Failed to create or update agent");
+      throw new Error("Failed to create or update agent: No agent ID returned");
     }
     
     console.log("Agent deployed successfully with ID:", agent.id);
@@ -134,7 +168,10 @@ serve(async (req) => {
     
     // Return a proper error response
     return new Response(
-      JSON.stringify({ error: 'Deployment failed', details: error.message }),
+      JSON.stringify({ 
+        error: 'Deployment failed', 
+        details: error.message || 'Unknown error occurred'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }

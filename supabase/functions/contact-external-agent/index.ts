@@ -19,7 +19,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Missing environment variables");
+      console.error("Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      throw new Error("Server configuration error: Missing environment variables");
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -29,7 +30,17 @@ serve(async (req) => {
     const { agentId, message } = body;
     
     if (!agentId || !message) {
-      throw new Error("Missing required fields: agentId and message are required");
+      console.error("Missing required fields in request", { agentId, messagePreview: message?.substring(0, 30) });
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required fields', 
+          details: 'agentId and message are required' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
 
     console.log(`Processing request for agent ${agentId}: "${message.substring(0, 50)}..."`);
@@ -37,17 +48,17 @@ serve(async (req) => {
     // Get agent API endpoint and key
     const { data: agent, error: agentError } = await supabase
       .from('agents')
-      .select('api_endpoint, api_key')
+      .select('api_endpoint, api_key, title')
       .eq('id', agentId)
       .single();
       
     if (agentError) {
       console.error("Error fetching agent:", agentError);
-      throw agentError;
+      throw new Error(`Failed to find agent: ${agentError.message}`);
     }
     
-    if (!agent.api_endpoint || !agent.api_key) {
-      throw new Error("Agent API configuration is incomplete");
+    if (!agent.api_endpoint) {
+      throw new Error("Agent API endpoint is missing");
     }
     
     console.log(`Contacting external agent at: ${agent.api_endpoint}`);
@@ -55,41 +66,87 @@ serve(async (req) => {
     // Contact the external API with timeout and error handling
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add authorization header if API key exists
+      if (agent.api_key) {
+        headers['Authorization'] = `Bearer ${agent.api_key}`;
+      }
       
       const response = await fetch(agent.api_endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${agent.api_key}`
-        },
+        headers,
         body: JSON.stringify({ 
           message: message,
-          max_tokens: 1000 
+          max_tokens: 1000,
+          prompt: message // Some APIs use prompt instead of message
         }),
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`External API error: ${response.status} ${response.statusText}\n${errorText}`);
+      // Read response as text first to debug any issues
+      const responseText = await response.text();
+      console.log(`Raw response from external agent: ${responseText.substring(0, 200)}...`);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        responseData = { text: responseText }; // Fallback to raw text
       }
       
-      const data = await response.json();
-      console.log("Received response from external agent");
+      if (!response.ok) {
+        throw new Error(`External API error: ${response.status} ${response.statusText}`);
+      }
+      
+      console.log("Successfully received response from external agent");
       
       // Log the interaction
       await supabase.from('agent_logs').insert({
         agent_id: agentId,
         log_type: 'interaction',
         message: message,
-        metadata: { response: data }
+        metadata: { response: responseData }
       });
       
+      // Handle different response formats from various APIs
+      let formattedResponse;
+      if (typeof responseData === 'string') {
+        formattedResponse = { text: responseData };
+      } else if (responseData.output) {
+        formattedResponse = { text: responseData.output };
+      } else if (responseData.response) {
+        formattedResponse = { text: responseData.response };
+      } else if (responseData.answer) {
+        formattedResponse = { text: responseData.answer };
+      } else if (responseData.text) {
+        formattedResponse = { text: responseData.text };
+      } else if (responseData.message) {
+        formattedResponse = { text: responseData.message };
+      } else if (responseData.content) {
+        formattedResponse = { text: responseData.content };
+      } else if (responseData.choices && responseData.choices[0]) {
+        // OpenAI-like format
+        const choice = responseData.choices[0];
+        formattedResponse = { 
+          text: choice.text || (choice.message ? choice.message.content : JSON.stringify(choice)) 
+        };
+      } else {
+        // If we can't determine the format, send the whole response
+        formattedResponse = { 
+          text: `Response from ${agent.title}: ${JSON.stringify(responseData)}` 
+        };
+      }
+      
       return new Response(
-        JSON.stringify(data),
+        JSON.stringify(formattedResponse),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (fetchError) {
@@ -100,7 +157,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error contacting external agent:', error);
     return new Response(
-      JSON.stringify({ error: 'Agent communication failed', details: error.message }),
+      JSON.stringify({ 
+        error: 'Agent communication failed', 
+        details: error.message || 'Unknown error occurred' 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
