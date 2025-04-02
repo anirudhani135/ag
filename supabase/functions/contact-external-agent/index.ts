@@ -14,12 +14,25 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing environment variables");
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { agentId, message } = await req.json()
+    // Parse request body
+    const body = await req.json();
+    const { agentId, message } = body;
+    
+    if (!agentId || !message) {
+      throw new Error("Missing required fields: agentId and message are required");
+    }
+
+    console.log(`Processing request for agent ${agentId}: "${message.substring(0, 50)}..."`);
 
     // Get agent API endpoint and key
     const { data: agent, error: agentError } = await supabase
@@ -28,7 +41,10 @@ serve(async (req) => {
       .eq('id', agentId)
       .single();
       
-    if (agentError) throw agentError;
+    if (agentError) {
+      console.error("Error fetching agent:", agentError);
+      throw agentError;
+    }
     
     if (!agent.api_endpoint || !agent.api_key) {
       throw new Error("Agent API configuration is incomplete");
@@ -36,44 +52,56 @@ serve(async (req) => {
     
     console.log(`Contacting external agent at: ${agent.api_endpoint}`);
     
-    // Contact the external API
-    const response = await fetch(agent.api_endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${agent.api_key}`
-      },
-      body: JSON.stringify({ 
+    // Contact the external API with timeout and error handling
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const response = await fetch(agent.api_endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${agent.api_key}`
+        },
+        body: JSON.stringify({ 
+          message: message,
+          max_tokens: 1000 
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`External API error: ${response.status} ${response.statusText}\n${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log("Received response from external agent");
+      
+      // Log the interaction
+      await supabase.from('agent_logs').insert({
+        agent_id: agentId,
+        log_type: 'interaction',
         message: message,
-        max_tokens: 1000 
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`External API error: ${response.status} ${response.statusText}`);
+        metadata: { response: data }
+      });
+      
+      return new Response(
+        JSON.stringify(data),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (fetchError) {
+      console.error("Fetch error:", fetchError);
+      throw new Error(`Failed to contact external agent: ${fetchError.message}`);
     }
     
-    const data = await response.json();
-    
-    console.log("Received response from external agent");
-    
-    // Log the interaction
-    await supabase.from('agent_logs').insert({
-      agent_id: agentId,
-      log_type: 'interaction',
-      message: message,
-      metadata: { response: data }
-    });
-    
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
   } catch (error) {
-    console.error('Error contacting external agent:', error)
+    console.error('Error contacting external agent:', error);
     return new Response(
       JSON.stringify({ error: 'Agent communication failed', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+    );
   }
-})
+});

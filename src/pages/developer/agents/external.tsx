@@ -11,6 +11,7 @@ import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormData {
   title: string;
@@ -18,9 +19,6 @@ interface FormData {
   api_endpoint: string;
   api_key: string;
 }
-
-// Using a demo developer ID for simplified deployment
-const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
 
 const ExternalSourceDeploymentPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +40,13 @@ const ExternalSourceDeploymentPage = () => {
     setErrorMessage(null);
     
     try {
+      // Validate the API endpoint format
+      if (!data.api_endpoint.startsWith('http')) {
+        data.api_endpoint = `https://${data.api_endpoint}`;
+      }
+      
+      console.log("Deploying external agent:", { title: data.title, endpoint: data.api_endpoint });
+      
       // Call the deploy-external-agent function
       const { data: result, error } = await supabase.functions.invoke('deploy-external-agent', {
         body: { 
@@ -53,7 +58,15 @@ const ExternalSourceDeploymentPage = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Function invocation error:", error);
+        throw error;
+      }
+      
+      if (!result || result.error) {
+        console.error("Deployment returned error:", result?.error);
+        throw new Error(result?.details || "Failed to deploy agent");
+      }
       
       setDeploymentStatus("success");
       
@@ -61,11 +74,12 @@ const ExternalSourceDeploymentPage = () => {
         description: "Your agent is now available in the marketplace."
       });
       
+      // Redirect after successful deployment
       setTimeout(() => {
         navigate(`/developer/agents`);
       }, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Deployment error:", error);
       setDeploymentStatus("error");
       setErrorMessage(error.message || "Failed to deploy agent");
@@ -127,10 +141,12 @@ const ExternalSourceDeploymentPage = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Input 
+                  <Textarea 
                     id="description" 
                     {...register("description", { required: "Description is required" })}
                     disabled={isSubmitting || deploymentStatus === "success"}
+                    placeholder="Describe what your agent does and how it can help users"
+                    className="min-h-[100px]"
                   />
                   {errors.description && (
                     <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>
@@ -145,6 +161,9 @@ const ExternalSourceDeploymentPage = () => {
                     placeholder="https://api.example.com/agent"
                     disabled={isSubmitting || deploymentStatus === "success"}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Your API should accept POST requests with a JSON body containing a "message" field
+                  </p>
                   {errors.api_endpoint && (
                     <p className="text-sm text-red-500 mt-1">{errors.api_endpoint.message}</p>
                   )}
@@ -158,6 +177,9 @@ const ExternalSourceDeploymentPage = () => {
                     {...register("api_key", { required: "API key is required" })}
                     disabled={isSubmitting || deploymentStatus === "success"}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    This key will be used to authenticate requests to your API
+                  </p>
                   {errors.api_key && (
                     <p className="text-sm text-red-500 mt-1">{errors.api_key.message}</p>
                   )}

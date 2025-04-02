@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Star, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface AgentDetailsModalProps {
   agent: any;
@@ -20,6 +21,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
   const [isLoading, setIsLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
+  const [error, setError] = useState<string | null>(null);
   
   const handleHire = async () => {
     try {
@@ -41,8 +43,11 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
     
     setIsLoading(true);
     setResponse("");
+    setError(null);
     
     try {
+      console.log("Contacting external agent:", agent.id);
+      
       // Call the contact-external-agent edge function
       const { data, error } = await supabase.functions.invoke('contact-external-agent', {
         body: { 
@@ -51,16 +56,42 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Function invocation error:", error);
+        throw error;
+      }
       
-      setResponse(data.output || data.response || data.answer || JSON.stringify(data));
+      if (data.error) {
+        console.error("Agent returned error:", data.error);
+        throw new Error(data.details || "Error communicating with agent");
+      }
       
-    } catch (error) {
+      // Handle different response formats
+      let formattedResponse;
+      if (typeof data === 'string') {
+        formattedResponse = data;
+      } else if (data.output) {
+        formattedResponse = data.output;
+      } else if (data.response) {
+        formattedResponse = data.response;
+      } else if (data.answer) {
+        formattedResponse = data.answer;
+      } else if (data.text) {
+        formattedResponse = data.text;
+      } else if (data.message) {
+        formattedResponse = data.message;
+      } else {
+        formattedResponse = JSON.stringify(data, null, 2);
+      }
+      
+      setResponse(formattedResponse);
+      
+    } catch (error: any) {
       console.error("Error testing agent:", error);
+      setError(error.message || "There was an error communicating with the agent");
       toast.error("Failed to get response", {
         description: error.message || "There was an error communicating with the agent"
       });
-      setResponse("Error: Failed to get a response from the agent. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +153,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
                 )}
               </Button>
             </div>
+            
+            {error && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             
             {response && (
               <div className="mt-4 p-4 bg-gray-50 rounded-md border">

@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -13,13 +14,25 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing environment variables");
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Parse request body
-    const { agentId, apiEndpoint, apiKey, title, description } = await req.json()
+    const body = await req.json();
+    const { agentId, apiEndpoint, apiKey, title, description } = body;
+
+    console.log("Processing deployment request:", { title, apiEndpoint });
+    
+    if (!apiEndpoint || !title) {
+      throw new Error("Missing required fields: title and API endpoint are required");
+    }
 
     // Using a demo developer ID for simplified deployment
     const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
@@ -42,7 +55,10 @@ serve(async (req) => {
         .select('id')
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Database error updating agent:", error);
+        throw error;
+      }
       agent = data;
     } else {
       console.log('Creating new external agent');
@@ -52,18 +68,23 @@ serve(async (req) => {
         .from('agents')
         .insert({
           title: title,
-          description: description,
+          description: description || `External AI agent: ${title}`,
           status: 'live',
           deployment_status: 'active',
           price: 0,
           developer_id: DEMO_USER_ID,
           api_endpoint: apiEndpoint,
-          api_key: apiKey
+          api_key: apiKey,
+          rating: 5,
+          category_id: 1  // Default category
         })
         .select('id')
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Database error creating agent:", error);
+        throw error;
+      }
       agent = data;
     }
     
@@ -71,15 +92,21 @@ serve(async (req) => {
       throw new Error("Failed to create or update agent");
     }
     
+    console.log("Agent deployed successfully with ID:", agent.id);
+    
     // Add to marketplace metrics
-    const { data: existingMetrics } = await supabase
+    const { data: existingMetrics, error: metricsError } = await supabase
       .from('agent_metrics')
       .select('id')
       .eq('agent_id', agent.id)
       .maybeSingle();
       
+    if (metricsError) {
+      console.warn("Error checking for existing metrics:", metricsError);
+    }
+    
     if (!existingMetrics) {
-      await supabase.from('agent_metrics')
+      const { error: insertError } = await supabase.from('agent_metrics')
         .insert({
           agent_id: agent.id,
           views: 0,
@@ -88,6 +115,10 @@ serve(async (req) => {
           revenue: 0,
           date: new Date().toISOString().split('T')[0]
         });
+        
+      if (insertError) {
+        console.warn("Error inserting metrics:", insertError);
+      }
     }
     
     return new Response(
@@ -96,10 +127,12 @@ serve(async (req) => {
         status: 'active',
         agentId: agent.id
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
-    console.error('Error in deployment process:', error)
+    console.error('Error in deployment process:', error);
+    
+    // Return a proper error response
     return new Response(
       JSON.stringify({ error: 'Deployment failed', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
