@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -140,6 +141,43 @@ serve(async (req) => {
     // Using a demo developer ID for simplified deployment
     const DEMO_USER_ID = "d394384a-8eb4-4f49-8cce-ba2d0784e3b4";
     
+    // First, get a valid category ID from the database
+    const { data: categories, error: categoryError } = await supabase
+      .from('categories')
+      .select('id')
+      .limit(1);
+    
+    if (categoryError) {
+      console.error("Error getting category:", categoryError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Error retrieving categories',
+          details: categoryError.message
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+    
+    if (!categories || categories.length === 0) {
+      console.error("No categories found in database");
+      return new Response(
+        JSON.stringify({ 
+          error: 'No categories available',
+          details: 'Cannot create agent without a valid category'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+    
+    const categoryId = categories[0].id;
+    console.log(`Using category_id: ${categoryId}`);
+    
     // If agentId is provided, update existing agent
     // Otherwise, create a new agent
     let agent;
@@ -149,7 +187,8 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('agents')
         .update({ 
-          status: 'live',
+          // FIX: Changed status value to match the allowed values in the DB constraint
+          status: 'active',
           deployment_status: 'active',
           api_endpoint: validatedEndpoint,
           api_key: apiKey
@@ -175,50 +214,14 @@ serve(async (req) => {
     } else {
       console.log('Creating new external agent');
       
-      // First, get a valid category ID from the database
-      const { data: categories, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .limit(1);
-      
-      if (categoryError) {
-        console.error("Error getting category:", categoryError);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Error retrieving categories',
-            details: categoryError.message
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-            status: 500 
-          }
-        );
-      }
-      
-      if (!categories || categories.length === 0) {
-        console.error("No categories found in database");
-        return new Response(
-          JSON.stringify({ 
-            error: 'No categories available',
-            details: 'Cannot create agent without a valid category'
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-            status: 500 
-          }
-        );
-      }
-      
-      const categoryId = categories[0].id;
-      console.log(`Using category_id: ${categoryId}`);
-      
       // Create new agent
       const { data, error } = await supabase
         .from('agents')
         .insert({
           title: title,
           description: description || `External AI agent: ${title}`,
-          status: 'live',
+          // FIX: Changed status value to match the allowed values in the DB constraint
+          status: 'active',
           deployment_status: 'active',
           price: 0,
           developer_id: DEMO_USER_ID,

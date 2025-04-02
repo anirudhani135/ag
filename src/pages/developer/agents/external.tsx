@@ -37,10 +37,8 @@ const ExternalSourceDeploymentPage = () => {
     }
   });
 
-  // Function to validate URL format
   const isValidUrl = (url: string) => {
     try {
-      // Add https:// if not present
       const urlToTest = url.startsWith('http') ? url : `https://${url}`;
       new URL(urlToTest);
       return true;
@@ -66,7 +64,6 @@ const ExternalSourceDeploymentPage = () => {
     toast.info("Testing connection to API endpoint...");
     
     try {
-      // Ensure URL format is correct
       let validatedEndpoint = endpoint;
       if (!validatedEndpoint.startsWith('http')) {
         validatedEndpoint = `https://${validatedEndpoint}`;
@@ -92,7 +89,6 @@ const ExternalSourceDeploymentPage = () => {
     setErrorDetails(null);
     
     try {
-      // Validate the API endpoint format
       if (!isValidUrl(data.api_endpoint)) {
         toast.error("Invalid API endpoint URL format");
         setErrorDetails({
@@ -103,7 +99,6 @@ const ExternalSourceDeploymentPage = () => {
         return;
       }
       
-      // Ensure URL format is correct
       let endpoint = data.api_endpoint.trim();
       if (!endpoint.startsWith('http')) {
         endpoint = `https://${endpoint}`;
@@ -111,10 +106,9 @@ const ExternalSourceDeploymentPage = () => {
       
       console.log("Deploying external agent:", { title: data.title, endpoint });
       
-      // Call the deploy-external-agent edge function
       const { data: result, error } = await supabase.functions.invoke('deploy-external-agent', {
         body: { 
-          agentId: null, // Will be created in the function
+          agentId: null,
           apiEndpoint: endpoint,
           apiKey: data.api_key.trim(),
           title: data.title.trim(),
@@ -139,7 +133,6 @@ const ExternalSourceDeploymentPage = () => {
         description: "Your agent is now available in the marketplace."
       });
       
-      // Redirect after successful deployment with a short delay
       setTimeout(() => {
         navigate(`/developer/agents`);
       }, 2000);
@@ -151,7 +144,6 @@ const ExternalSourceDeploymentPage = () => {
       let errorMessage = "There was an error deploying your agent";
       let category = ErrorCategory.ServerError;
       
-      // Try to extract more specific error details
       if (error.message) {
         if (error.message.includes("Edge Function returned a non-2xx status code")) {
           errorMessage = "The deployment service returned an error. This might be due to invalid input or a service issue.";
