@@ -77,6 +77,9 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   // Get category name from either format
   const categoryName = agent.categories?.name || agent.category || "General";
 
+  // Convert price to credits - simple conversion for mock data
+  const priceInCredits = Math.max(Math.round(agent.price / 10), 1);
+
   return (
     <>
       <Card className="overflow-hidden flex flex-col h-full transition-all duration-200 hover:shadow-md border-2 border-border">
@@ -110,7 +113,7 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
 
           <div className="mt-auto">
             <div className={`text-lg font-bold mb-3 ${agent.price === 0 ? "text-emerald-600" : "text-blue-600"}`}>
-              {agent.price === 0 ? "Free" : `$${agent.price.toFixed(2)}`}
+              {agent.price === 0 ? "Free" : `${priceInCredits} credits`}
             </div>
 
             <div className="flex gap-2">

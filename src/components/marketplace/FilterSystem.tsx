@@ -40,10 +40,14 @@ export function FilterSystem({
     setLocalPriceRange(range);
   };
 
+  // Convert dollar values to credits for display
+  const minCredits = Math.max(Math.round(localPriceRange[0] / 10), 0);
+  const maxCredits = Math.max(Math.round(localPriceRange[1] / 10), 1);
+
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-medium text-base mb-3">Price Range</h3>
+        <h3 className="font-medium text-base mb-3">Credit Range</h3>
         <div className="space-y-4">
           <Slider
             defaultValue={selectedPriceRange}
@@ -54,8 +58,8 @@ export function FilterSystem({
             className="mb-6"
           />
           <div className="flex items-center justify-between">
-            <span className="text-sm">${localPriceRange[0]}</span>
-            <span className="text-sm">${localPriceRange[1]}</span>
+            <span className="text-sm">{minCredits} credits</span>
+            <span className="text-sm">{maxCredits} credits</span>
           </div>
           {/* Apply button removed as filters now apply automatically */}
         </div>

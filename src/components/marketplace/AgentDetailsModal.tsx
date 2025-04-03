@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,19 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showRelevanceAi, setShowRelevanceAi] = useState(false);
+  
+  // Convert price to credits - simple conversion for mock data
+  const priceInCredits = Math.max(Math.round(agent.price / 10), 1);
+  
+  useEffect(() => {
+    // Check if this is the Content Creator agent
+    if (isOpen && agent.title === "Content Creator" && agent.id === "agent-3") {
+      setShowRelevanceAi(true);
+    } else {
+      setShowRelevanceAi(false);
+    }
+  }, [isOpen, agent]);
   
   const handleHire = async () => {
     try {
@@ -141,55 +154,68 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
               </span>
               <span className="text-muted-foreground px-2">|</span>
               <span className="text-green-600 font-medium">
-                {agent.price === 0 ? "Free" : `$${agent.price}`}
+                {agent.price === 0 ? "Free" : `${priceInCredits} credits`}
               </span>
             </div>
             
             <Button onClick={handleHire}>Hire Agent</Button>
           </div>
           
-          {/* Try agent */}
-          <Card className="p-4 border border-gray-200">
-            <h3 className="text-lg font-medium mb-4">Try Agent</h3>
-            <Textarea 
-              placeholder="Enter a prompt to test this agent..."
-              className="min-h-24 mb-4"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleTryAgent} 
-                disabled={isLoading}
-                className="flex items-center"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Submit"
-                )}
-              </Button>
+          {/* Show Relevance AI iframe for Content Creator */}
+          {showRelevanceAi ? (
+            <div className="h-[500px] w-full border border-gray-200 rounded-md">
+              <iframe 
+                src="https://app.relevanceai.com/agents/f1db6c/eab09b449107-4982-81be-c44dc78eef1d/b990b2d6-843f-47b7-9395-bf22967974ff/share?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false" 
+                width="100%" 
+                height="100%" 
+                frameBorder="0"
+                title="Content Creator AI Agent"
+              />
             </div>
-            
-            {error && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            {response && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-md border">
-                <h4 className="text-sm font-medium mb-2">Response:</h4>
-                <div className="whitespace-pre-wrap text-sm">{response}</div>
+          ) : (
+            /* Try agent for non-Content Creator agents */
+            <Card className="p-4 border border-gray-200">
+              <h3 className="text-lg font-medium mb-4">Try Agent</h3>
+              <Textarea 
+                placeholder="Enter a prompt to test this agent..."
+                className="min-h-24 mb-4"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+              
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handleTryAgent} 
+                  disabled={isLoading}
+                  className="flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Submit"
+                  )}
+                </Button>
               </div>
-            )}
-          </Card>
+              
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              {response && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-md border">
+                  <h4 className="text-sm font-medium mb-2">Response:</h4>
+                  <div className="whitespace-pre-wrap text-sm">{response}</div>
+                </div>
+              )}
+            </Card>
+          )}
         </div>
         
         <DialogFooter>
