@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Rocket, Zap, Users, CheckCircle } from "lucide-react";
+import { Rocket, Zap, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const CTASection = () => {
@@ -22,7 +22,7 @@ export const CTASection = () => {
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-blue-400/20 rounded-full blur-3xl" />
       
       <div className="max-w-7xl mx-auto px-6 relative">
-        <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-4xl mx-auto overflow-hidden relative">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-12 max-w-4xl mx-auto overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -translate-y-1/2 translate-x-1/2" />
           
           <motion.div
@@ -39,7 +39,7 @@ export const CTASection = () => {
               Join thousands of businesses already using our AI agents to automate and scale their operations.
             </p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-3 gap-x-4 mb-10 max-w-3xl mx-auto">
               {benefits.map((benefit, index) => (
                 <motion.div 
                   key={index}

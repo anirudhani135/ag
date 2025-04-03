@@ -1,10 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 interface FilterSystemProps {
   minPrice?: number;
@@ -25,19 +24,26 @@ export function FilterSystem({
 }: FilterSystemProps) {
   const [localPriceRange, setLocalPriceRange] = useState<[number, number]>(selectedPriceRange);
 
+  // Apply price change after 500ms of slider stop moving
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localPriceRange[0] !== selectedPriceRange[0] || localPriceRange[1] !== selectedPriceRange[1]) {
+        onPriceChange(localPriceRange);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [localPriceRange, onPriceChange, selectedPriceRange]);
+
   const handlePriceChange = (value: number[]) => {
     const range: [number, number] = [value[0], value[1]];
     setLocalPriceRange(range);
   };
 
-  const handleApplyPrice = () => {
-    onPriceChange(localPriceRange);
-  };
-
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-medium text-sm mb-3">Price Range</h3>
+        <h3 className="font-medium text-base mb-3">Price Range</h3>
         <div className="space-y-4">
           <Slider
             defaultValue={selectedPriceRange}
@@ -51,21 +57,14 @@ export function FilterSystem({
             <span className="text-sm">${localPriceRange[0]}</span>
             <span className="text-sm">${localPriceRange[1]}</span>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full"
-            onClick={handleApplyPrice}
-          >
-            Apply
-          </Button>
+          {/* Apply button removed as filters now apply automatically */}
         </div>
       </div>
 
       <div>
-        <h3 className="font-medium text-sm mb-3">Rating</h3>
+        <h3 className="font-medium text-base mb-3">Rating</h3>
         <RadioGroup 
-          defaultValue={selectedRating?.toString() || ""}
+          value={selectedRating?.toString() || ""}
           onValueChange={(value) => onRatingChange(value ? parseInt(value) : null)}
         >
           <div className="flex items-center space-x-2">

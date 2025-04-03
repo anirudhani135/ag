@@ -14,7 +14,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main>
+      <main className="overflow-hidden">
         <HeroSection />
         <FeaturesGrid />
         <Suspense fallback={<div className="h-96 flex items-center justify-center"><Skeleton className="h-80 w-full max-w-4xl mx-auto" /></div>}>

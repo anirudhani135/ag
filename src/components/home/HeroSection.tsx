@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
-    <section className="relative pt-40 pb-32 overflow-hidden">
+    <section className="relative pt-24 md:pt-32 pb-20 md:pb-28 overflow-hidden">
       {/* Enhanced gradient background with more contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-blue-50/30 opacity-90" />
       
@@ -20,13 +20,16 @@ export const HeroSection = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col justify-center"
         >
-          <span className="text-blue-600 font-semibold mb-3 inline-flex items-center">
-            <Bot className="mr-2 h-5 w-5" /> AI Agent Platform
-          </span>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-primary">
+          <div className="flex items-center mb-3">
+            <Bot className="mr-2 h-5 w-5 text-blue-600" />
+            <span className="text-blue-600 font-semibold">AI Agent Platform</span>
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-primary">
             Transform Your <span className="text-blue-600">Business</span> with AI Agents
           </h1>
-          <p className="text-xl text-primary/80 mb-12 max-w-xl">
+          
+          <p className="text-lg md:text-xl text-primary/80 mb-10 max-w-xl">
             Deploy powerful AI solutions in minutes. Access a marketplace of pre-trained agents ready to revolutionize your workflow.
           </p>
           
@@ -39,6 +42,7 @@ export const HeroSection = () => {
               Get Started 
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
+            
             <Button 
               size="lg" 
               variant="outline" 
@@ -46,11 +50,12 @@ export const HeroSection = () => {
             >
               Watch Demo <Play className="w-4 h-4" />
             </Button>
+            
             <Button
               size="lg"
               variant="ghost"
               asChild
-              className="text-base text-primary/80 hover:text-primary hover:bg-gray-100 transition-all duration-300"
+              className="text-base text-primary/80 hover:text-primary hover:bg-gray-100 transition-all duration-300 mt-2 sm:mt-0"
             >
               <Link to="/marketplace">
                 Browse Marketplace <ChevronRight className="ml-1 w-4 h-4" />
@@ -58,7 +63,7 @@ export const HeroSection = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
             {[
               { label: "Active Users", value: "10K+", description: "Globally" },
               { label: "AI Agents", value: "500+", description: "Ready to deploy" },
@@ -72,10 +77,10 @@ export const HeroSection = () => {
                 whileHover={{ y: -5 }}
                 className="transition-all duration-300"
               >
-                <Card className="p-6 border-border hover:border-blue-200 hover:shadow-lg transition-all duration-300 bg-white">
+                <Card className="p-6 border-border hover:border-blue-200 hover:shadow-lg transition-all duration-300 bg-white flex flex-col items-center sm:items-start">
                   <h3 className="text-4xl font-bold text-blue-600 mb-2">{stat.value}</h3>
                   <p className="text-primary font-medium mb-1">{stat.label}</p>
-                  <p className="text-sm text-primary/60">{stat.description}</p>
+                  <p className="text-sm text-primary/70">{stat.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -86,9 +91,9 @@ export const HeroSection = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="relative"
+          className="relative flex items-center justify-center"
         >
-          <Card className="w-full h-[600px] bg-gradient-to-br from-blue-50 to-blue-100/50 relative overflow-hidden border border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-xl" 
+          <Card className="w-full h-[500px] md:h-[600px] bg-gradient-to-br from-blue-50 to-blue-100/50 relative overflow-hidden border border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-xl" 
                 aria-label="Interactive 3D visualization of AI agents working together">
             <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" />
             <div className="relative w-full h-full">

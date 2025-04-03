@@ -1,12 +1,11 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { AgentCard } from '@/components/marketplace/AgentCard';
 import { AgentDetailsModal } from '@/components/marketplace/AgentDetailsModal';
-import { SearchBar } from '@/components/marketplace/SearchBar';
 import { CategoryNav } from '@/components/marketplace/CategoryNav';
 import { FilterSystem } from '@/components/marketplace/FilterSystem';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { CATEGORIES_MOCK, AGENTS_MOCK } from '@/utils/dataInit';
 import { useNavigate } from 'react-router-dom';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface Category {
   id: string;
@@ -71,48 +72,6 @@ const MarketplacePage = () => {
     gcTime: 1000 * 60 * 10, // 10 minutes cache
     staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
-
-  const buildAgentQuery = () => {
-    let query = supabase
-      .from('agents')
-      .select(`
-        id,
-        title,
-        description,
-        price,
-        rating,
-        status,
-        categories:category_id (name)
-      `)
-      .eq('status', 'active');
-    
-    if (selectedCategory) {
-      query = query.eq('category_id', selectedCategory);
-    }
-    
-    if (selectedPriceRange) {
-      query = query
-        .gte('price', selectedPriceRange[0])
-        .lte('price', selectedPriceRange[1]);
-    }
-    
-    if (selectedRating) {
-      query = query.gte('rating', selectedRating);
-    }
-    
-    // Add sorting
-    if (sortOrder === 'latest') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sortOrder === 'price-low') {
-      query = query.order('price', { ascending: true });
-    } else if (sortOrder === 'price-high') {
-      query = query.order('price', { ascending: false });
-    } else if (sortOrder === 'rating') {
-      query = query.order('rating', { ascending: false });
-    }
-    
-    return query;
-  };
 
   const { data: agents = [], isLoading: isLoadingAgents } = useQuery({
     queryKey: ['marketplace-agents', selectedCategory, selectedPriceRange, selectedRating, sortOrder],
@@ -228,10 +187,21 @@ const MarketplacePage = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-        {/* Sidebar/Filters (mobile collapsible, desktop fixed) */}
+        {/* Sidebar/Filters */}
         <div className="w-full md:w-64 flex-shrink-0 space-y-6">
+          {/* Search Bar - Moved above categories, unified with the main search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search agent name or keyword..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
           <div className="space-y-4">
-            <h3 className="font-medium text-sm">Categories</h3>
+            <h3 className="font-medium text-base">Categories</h3>
             {isLoadingCategories ? (
               <div className="space-y-2">
                 <Skeleton className="h-8 w-full" />
@@ -258,7 +228,7 @@ const MarketplacePage = () => {
         {/* Main content */}
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <SearchBar onSearch={handleSearch} />
+            {/* Removed redundant SearchBar component */}
             
             <div className="w-full sm:w-auto flex-shrink-0">
               <Select value={sortOrder} onValueChange={handleSortChange}>
