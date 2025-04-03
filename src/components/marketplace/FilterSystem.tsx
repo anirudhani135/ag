@@ -68,11 +68,11 @@ export function FilterSystem({
       <div>
         <h3 className="font-medium text-base mb-3">Rating</h3>
         <RadioGroup 
-          value={selectedRating?.toString() || ""}
-          onValueChange={(value) => onRatingChange(value ? parseInt(value) : null)}
+          value={selectedRating?.toString() || "any"}
+          onValueChange={(value) => onRatingChange(value === "any" ? null : parseInt(value))}
         >
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="" id="rating-any" />
+            <RadioGroupItem value="any" id="rating-any" />
             <Label htmlFor="rating-any">Any rating</Label>
           </div>
           <div className="flex items-center space-x-2">
