@@ -42,11 +42,18 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const navigate = useNavigate();
 
   const handleHire = () => {
-    toast({
-      title: "Agent hired",
-      description: `${agent.title} has been added to your agents.`,
-      variant: "default",
-    });
+    // Check if this is the Content Creator agent
+    if (agent.title === "Content Creator" && agent.id === "agent-3") {
+      // For Content Creator, open the details modal with Relevance AI iframe
+      setShowDetails(true);
+    } else {
+      // For all other agents, show the toast and hire normally
+      toast({
+        title: "Agent hired",
+        description: `${agent.title} has been added to your agents.`,
+        variant: "default",
+      });
+    }
   };
 
   const handleTryDemo = () => {
