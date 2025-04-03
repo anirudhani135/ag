@@ -2,6 +2,21 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
+// Define the NetworkInformation interface that's missing from standard TypeScript types
+interface NetworkInformation {
+  saveData?: boolean;
+  effectiveType?: string;
+  addEventListener?: (type: string, listener: EventListener) => void;
+  removeEventListener?: (type: string, listener: EventListener) => void;
+}
+
+// Extend Navigator interface to include connection property
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+}
+
 /**
  * Prefetch pages that are likely to be visited next for instant navigation
  * Enhanced with connection and CPU awareness
@@ -13,11 +28,12 @@ export const usePrefetchPages = (routes: string[]) => {
   useEffect(() => {
     // Check for supported browser features
     const supportsRequestIdleCallback = 'requestIdleCallback' in window;
+    const nav = navigator as NavigatorWithConnection;
     const supportsConnectionInfo = 'connection' in navigator && 
-      (navigator as any).connection?.saveData !== undefined;
+      nav.connection?.saveData !== undefined;
     
     // Don't prefetch if user has save-data mode enabled
-    if (supportsConnectionInfo && (navigator as any).connection?.saveData) {
+    if (supportsConnectionInfo && nav.connection?.saveData) {
       return;
     }
     
@@ -63,18 +79,20 @@ export const usePrefetchPages = (routes: string[]) => {
  * Enhanced with priority loading and connection awareness
  */
 export const precacheImages = (imageUrls: string[], priority: 'high' | 'low' = 'low') => {
+  const nav = navigator as NavigatorWithConnection;
+  
   // Don't precache on slow connections or if save-data is enabled
   if (
-    ('connection' in navigator && 
-     (navigator as any).connection?.saveData) ||
-    ('connection' in navigator && 
-     ['slow-2g', '2g'].includes((navigator as any).connection?.effectiveType))
+    (nav.connection?.saveData) ||
+    (nav.connection?.effectiveType && 
+     ['slow-2g', '2g'].includes(nav.connection.effectiveType))
   ) {
     return;
   }
 
   const loadImage = (url: string) => {
     const img = new Image();
+    // @ts-ignore - fetchPriority is not yet in all TypeScript definitions
     img.fetchPriority = priority;
     img.src = url;
   };
@@ -100,6 +118,7 @@ export const optimizeTransitions = () => {
   document.documentElement.classList.add('instant-transition');
   
   // Optimize paint performance during transitions
+  // @ts-ignore - contentVisibility is not in all TypeScript definitions
   document.documentElement.style.contentVisibility = 'auto';
   
   // Use native lazy loading for images below the fold
@@ -117,6 +136,7 @@ export const optimizeTransitions = () => {
   
   return () => {
     document.documentElement.classList.remove('instant-transition');
+    // @ts-ignore - contentVisibility is not in all TypeScript definitions
     document.documentElement.style.contentVisibility = '';
   };
 };

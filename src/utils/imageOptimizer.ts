@@ -3,13 +3,31 @@
  * Utility functions for optimizing images on the client side
  */
 
+// Define the NetworkInformation interface that's missing from standard TypeScript types
+interface NetworkInformation {
+  saveData?: boolean;
+  effectiveType?: string;
+  addEventListener?: (type: string, listener: EventListener) => void;
+  removeEventListener?: (type: string, listener: EventListener) => void;
+}
+
+// Extend Navigator interface to include connection property
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+}
+
 /**
  * Preloads images for faster perceived loading times
  * @param urls Array of image URLs to preload
  */
 export const preloadImages = (urls: string[]) => {
+  // Get navigator with the extended interface
+  const nav = navigator as NavigatorWithConnection;
+  
   // Skip preloading if Save Data is enabled
-  if (navigator.connection && (navigator as any).connection.saveData) {
+  if (nav.connection && nav.connection.saveData) {
     return;
   }
   
