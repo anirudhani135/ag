@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, memo, Suspense } from "react";
+import { useState, useEffect, useCallback, memo, Suspense, lazy } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
@@ -9,6 +9,9 @@ import { usePrefetchPages, optimizeTransitions } from "@/lib/instant-navigation"
 import { OptimizedSuspense } from "@/components/utils/OptimizedSuspense";
 import { useTransitionAnimation } from "@/lib/useTransitionAnimation";
 import { useLocation } from "react-router-dom";
+
+// Lazy load components that might not be needed immediately
+const PreloadLinks = lazy(() => import('@/components/utils/PreloadLinks'));
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -69,39 +72,44 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
   useEffect(() => {
     handleResize();
     
-    // Throttle resize events for better performance
-    let resizeTimer: number;
-    const throttledResize = () => {
-      if (!resizeTimer) {
-        resizeTimer = window.setTimeout(() => {
-          resizeTimer = 0;
+    // Use requestAnimationFrame for smoother resize handling
+    let frameId: number;
+    let lastWidth = window.innerWidth;
+    
+    const onResize = () => {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        // Only handle resize if width actually changed (ignore height changes)
+        if (window.innerWidth !== lastWidth) {
+          lastWidth = window.innerWidth;
           handleResize();
-        }, 100);
-      }
+        }
+      });
     };
     
-    window.addEventListener('resize', throttledResize);
+    window.addEventListener('resize', onResize);
     return () => {
-      window.removeEventListener('resize', throttledResize);
-      if (resizeTimer) window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(frameId);
     };
   }, [handleResize]);
 
+  // Loading skeleton with improved visual appeal
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="h-16 border-b">
-          <Skeleton className="h-full" />
+        <div className="h-16 border-b bg-gradient-to-r from-background to-blue-50/30 animate-pulse">
+          <Skeleton className="h-full opacity-30" />
         </div>
         <div className="flex h-[calc(100vh-4rem)]">
-          <Skeleton className="w-60 hidden md:block" />
+          <Skeleton className="w-60 hidden md:block opacity-30" />
           <main className="flex-1 p-4 md:p-6 pt-20 md:pt-24">
             <div className="space-y-4 max-w-7xl mx-auto">
-              <Skeleton className="h-8 w-[200px]" />
-              <Skeleton className="h-4 w-[300px]" />
+              <Skeleton className="h-8 w-[200px] opacity-40" />
+              <Skeleton className="h-4 w-[300px] opacity-30" />
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-28" />
+                  <Skeleton key={i} className="h-28 opacity-20 hover:opacity-30 transition-opacity" />
                 ))}
               </div>
             </div>
@@ -130,7 +138,7 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
             sidebarOpen && !isMobile ? "md:ml-[240px]" : "ml-0",
             "p-4 md:p-6",
             "pt-20 md:pt-24", // Increased padding to prevent navbar overlap
-            "dashboard-content"
+            "dashboard-content will-change-auto"
           )}
           role="main"
           aria-label={`${type === "developer" ? "Developer" : "User"} Dashboard Main Content`}
@@ -147,8 +155,15 @@ export const DashboardLayout = memo(({ children, type = "user" }: DashboardLayou
           </div>
         </main>
       </div>
+      
+      {/* Preload critical resources */}
+      <Suspense fallback={null}>
+        <PreloadLinks />
+      </Suspense>
     </div>
   );
 });
 
 DashboardLayout.displayName = 'DashboardLayout';
+
+export default DashboardLayout;

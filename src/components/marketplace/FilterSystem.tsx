@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface FilterSystemProps {
   minPrice?: number;
@@ -45,65 +46,67 @@ export function FilterSystem({
   const maxCredits = Math.max(Math.round(localPriceRange[1] / 10), 1);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-medium text-base mb-3">Credit Range</h3>
-        <div className="space-y-4">
-          <Slider
-            defaultValue={selectedPriceRange}
-            min={minPrice}
-            max={maxPrice}
-            step={10}
-            onValueChange={handlePriceChange}
-            className="mb-6"
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-sm">{minCredits} credits</span>
-            <span className="text-sm">{maxCredits} credits</span>
+    <Card className="p-6 border border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white">
+      <div className="space-y-6">
+        <div>
+          <h3 className="font-medium text-base mb-3 text-blue-800">Credit Range</h3>
+          <div className="space-y-4">
+            <Slider
+              defaultValue={selectedPriceRange}
+              min={minPrice}
+              max={maxPrice}
+              step={10}
+              onValueChange={handlePriceChange}
+              className="mb-6"
+            />
+            <div className="flex items-center justify-between bg-blue-50 p-2 rounded-md">
+              <span className="text-sm font-medium">{minCredits} credits</span>
+              <span className="text-sm font-medium">{maxCredits} credits</span>
+            </div>
           </div>
-          {/* Apply button removed as filters now apply automatically */}
+        </div>
+
+        <div className="pt-4 border-t border-blue-100">
+          <h3 className="font-medium text-base mb-3 text-blue-800">Rating</h3>
+          <RadioGroup 
+            value={selectedRating?.toString() || "any"}
+            onValueChange={(value) => onRatingChange(value === "any" ? null : parseInt(value))}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+              <RadioGroupItem value="any" id="rating-any" />
+              <Label htmlFor="rating-any" className="cursor-pointer">Any rating</Label>
+            </div>
+            <div className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+              <RadioGroupItem value="4" id="rating-4" />
+              <Label htmlFor="rating-4" className="cursor-pointer">4+ stars</Label>
+            </div>
+            <div className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+              <RadioGroupItem value="3" id="rating-3" />
+              <Label htmlFor="rating-3" className="cursor-pointer">3+ stars</Label>
+            </div>
+            <div className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+              <RadioGroupItem value="2" id="rating-2" />
+              <Label htmlFor="rating-2" className="cursor-pointer">2+ stars</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="pt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full border-blue-200 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200"
+            onClick={() => {
+              setLocalPriceRange([minPrice, maxPrice]);
+              onPriceChange([minPrice, maxPrice]);
+              onRatingChange(null);
+            }}
+          >
+            Reset Filters
+          </Button>
         </div>
       </div>
-
-      <div>
-        <h3 className="font-medium text-base mb-3">Rating</h3>
-        <RadioGroup 
-          value={selectedRating?.toString() || "any"}
-          onValueChange={(value) => onRatingChange(value === "any" ? null : parseInt(value))}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="any" id="rating-any" />
-            <Label htmlFor="rating-any">Any rating</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="4" id="rating-4" />
-            <Label htmlFor="rating-4">4+ stars</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="3" id="rating-3" />
-            <Label htmlFor="rating-3">3+ stars</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="2" id="rating-2" />
-            <Label htmlFor="rating-2">2+ stars</Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      <div className="pt-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full"
-          onClick={() => {
-            setLocalPriceRange([minPrice, maxPrice]);
-            onPriceChange([minPrice, maxPrice]);
-            onRatingChange(null);
-          }}
-        >
-          Reset Filters
-        </Button>
-      </div>
-    </div>
+    </Card>
   );
 }

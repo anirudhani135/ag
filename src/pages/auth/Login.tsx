@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthForm from "@/components/auth/AuthForm";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const { toast } = useToast();
@@ -38,40 +40,60 @@ const Login = () => {
 
   return (
     <AuthLayout>
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col space-y-2 text-center"
+      >
+        <h1 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
           Welcome back
         </h1>
         <p className="text-sm text-muted-foreground">
           Enter your credentials below to access your account
         </p>
-      </div>
+      </motion.div>
 
       {formError && (
-        <div className="p-3 my-2 text-sm border rounded-md bg-destructive/10 border-destructive/20 text-destructive">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-3 my-2 text-sm border rounded-md bg-destructive/10 border-destructive/20 text-destructive"
+        >
           {formError}
-        </div>
+        </motion.div>
       )}
 
-      <AuthForm
-        type="signin"
-        onSubmit={handleLogin}
-        disabled={isLoading}
-      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <AuthForm
+          type="signin"
+          onSubmit={handleLogin}
+          disabled={isLoading}
+        />
+      </motion.div>
 
-      <div className="mt-4 text-center">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="mt-4 text-center"
+      >
         <p className="text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link to="/auth/register" className="text-primary hover:underline">
+          <Link to="/auth/register" className="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
             Register
           </Link>
         </p>
         <p className="text-sm text-muted-foreground mt-2">
-          <Link to="/auth/reset-password" className="text-primary hover:underline">
+          <Link to="/auth/reset-password" className="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
             Forgot your password?
           </Link>
         </p>
-      </div>
+      </motion.div>
     </AuthLayout>
   );
 };
