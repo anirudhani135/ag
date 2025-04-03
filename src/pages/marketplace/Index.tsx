@@ -14,6 +14,7 @@ import { CATEGORIES_MOCK, AGENTS_MOCK } from '@/utils/dataInit';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+
 interface Category {
   id: string;
   name: string;
@@ -21,6 +22,7 @@ interface Category {
   created_at?: string;
   description?: string;
 }
+
 interface Agent {
   id: string;
   title: string;
@@ -32,6 +34,7 @@ interface Agent {
   rating: number;
   status: string;
 }
+
 const MarketplacePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -43,6 +46,7 @@ const MarketplacePage = () => {
     toast
   } = useToast();
   const navigate = useNavigate();
+
   const {
     data: categories = [],
     isLoading: isLoadingCategories
@@ -56,7 +60,6 @@ const MarketplacePage = () => {
         } = await supabase.from('categories').select('*').order('name');
         if (error) throw error;
 
-        // If no categories in the database, return mock data
         if (!data?.length) {
           console.log('No categories found, using mock data');
           return CATEGORIES_MOCK;
@@ -68,9 +71,9 @@ const MarketplacePage = () => {
       }
     },
     gcTime: 1000 * 60 * 10,
-    // 10 minutes cache
-    staleTime: 1000 * 60 * 5 // 5 minutes before refetch
+    staleTime: 1000 * 60 * 5
   });
+
   const {
     data: agents = [],
     isLoading: isLoadingAgents
@@ -78,7 +81,6 @@ const MarketplacePage = () => {
     queryKey: ['marketplace-agents', selectedCategory, selectedPriceRange, selectedRating, sortOrder],
     queryFn: async () => {
       try {
-        // Simplified query to get all live agents
         const {
           data,
           error
@@ -93,7 +95,6 @@ const MarketplacePage = () => {
           `).eq('status', 'live');
         if (error) throw error;
 
-        // If no agents in the database, return mock data
         if (!data?.length) {
           console.log('No agents found, using mock data');
           return AGENTS_MOCK;
@@ -104,43 +105,48 @@ const MarketplacePage = () => {
         return AGENTS_MOCK;
       }
     },
-    staleTime: 1000 * 60 * 5 // 5 minutes before refetch
+    staleTime: 1000 * 60 * 5
   });
 
-  // Filter agents based on search query
   const filteredAgents = useMemo(() => {
     if (!searchQuery.trim()) return agents;
     const normalizedQuery = searchQuery.toLowerCase().trim();
     return agents.filter(agent => agent.title.toLowerCase().includes(normalizedQuery) || agent.description.toLowerCase().includes(normalizedQuery));
   }, [agents, searchQuery]);
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
+
   const handleCategoryChange = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
   };
+
   const handlePriceChange = (range: [number, number]) => {
     setSelectedPriceRange(range);
   };
+
   const handleRatingChange = (rating: number | null) => {
     setSelectedRating(rating);
   };
+
   const handleSortChange = (value: string) => {
     setSortOrder(value);
   };
+
   const handleAgentClick = (agentId: string) => {
     setSelectedAgentId(agentId);
   };
+
   const handleCloseModal = () => {
     setSelectedAgentId(null);
   };
+
   const handleHire = async (agentId: string) => {
-    // Record the purchase
     try {
       await supabase.from('purchases').insert({
         agent_id: agentId,
         buyer_id: 'demo-user',
-        // Using a demo user ID for simplicity
         amount: 0,
         status: 'completed'
       });
@@ -158,7 +164,9 @@ const MarketplacePage = () => {
       });
     }
   };
+
   const selectedAgent = selectedAgentId ? agents.find(agent => agent.id === selectedAgentId) || null : null;
+
   return <DashboardLayout>
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">AI Agent Marketplace</h1>
@@ -168,15 +176,13 @@ const MarketplacePage = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-        {/* Sidebar/Filters */}
         <div className="w-full md:w-64 flex-shrink-0 space-y-6">
-          {/* Search Bar - Moved above categories, unified with the main search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input placeholder="Search agent name or keyword..." value={searchQuery} onChange={e => handleSearch(e.target.value)} className="pl-10" />
           </div>
           
-          <div className="space-y-4 my-[7px] px-[14px] py-[22px] mx-[51px]">
+          <div className="space-y-4 border rounded-lg p-5 bg-card">
             <h3 className="font-medium text-base">Categories</h3>
             {isLoadingCategories ? <div className="space-y-2">
                 <Skeleton className="h-8 w-full" />
@@ -188,21 +194,18 @@ const MarketplacePage = () => {
           <FilterSystem selectedPriceRange={selectedPriceRange} onPriceChange={handlePriceChange} selectedRating={selectedRating} onRatingChange={handleRatingChange} />
         </div>
         
-        {/* Main content */}
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            {/* Removed redundant SearchBar component */}
-            
             <div className="w-full sm:w-auto flex-shrink-0">
               <Select value={sortOrder} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] bg-background">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="latest">Latest</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectContent className="bg-background">
+                  <SelectItem value="latest" className="bg-background">Latest</SelectItem>
+                  <SelectItem value="price-low" className="bg-background">Credits: Low to High</SelectItem>
+                  <SelectItem value="price-high" className="bg-background">Credits: High to Low</SelectItem>
+                  <SelectItem value="rating" className="bg-background">Highest Rated</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -241,4 +244,5 @@ const MarketplacePage = () => {
       {selectedAgent && <AgentDetailsModal agent={selectedAgent} isOpen={!!selectedAgentId} onClose={handleCloseModal} onPurchase={() => handleHire(selectedAgent.id)} />}
     </DashboardLayout>;
 };
+
 export default MarketplacePage;

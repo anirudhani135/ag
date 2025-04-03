@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,24 +27,8 @@ export const useAuthOperations = () => {
         description: "You have successfully signed in.",
       });
       
-      // Fetch user role to determine redirect destination
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .single();
-      
-      if (roleError) {
-        console.error("Error fetching user role:", roleError);
-        navigate("/user/dashboard"); // Default redirect
-        return;
-      }
-      
-      if (roleData?.role === 'developer') {
-        navigate("/developer/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      }
+      // Redirect to developer dashboard instead of user dashboard
+      navigate("/developer/dashboard");
     } catch (error: any) {
       console.error("Sign-in error:", error);
       toast({

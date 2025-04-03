@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthForm from "@/components/auth/AuthForm";
@@ -14,8 +13,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Get the return path from location state or default to dashboard
-  const from = location.state?.from || "/user/dashboard";
+  // Get the return path from location state or default to developer dashboard
+  const from = location.state?.from || "/developer/dashboard";
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -23,7 +22,7 @@ const Login = () => {
     
     try {
       await signIn(email, password);
-      navigate("/user/dashboard");
+      navigate("/developer/dashboard"); // Redirect to developer dashboard
     } catch (error: any) {
       console.error("Login error:", error);
       setFormError(error.message);
