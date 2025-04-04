@@ -9,6 +9,7 @@ import { Loader2, Star, AlertCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { logActivity } from "@/utils/activityLogger";
 
 interface AgentDetailsModalProps {
   agent: any;
@@ -38,6 +39,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
   
   const handleHire = async () => {
     if (agent.title === "Content Creator" && agent.id === "agent-3") {
+      // Log the activity
+      await logActivity('agent_view', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        action: 'launch',
+        status: 'success'
+      });
+      
       // For Content Creator, open in a new tab
       window.open("https://app.relevanceai.com/agents/f1db6c/eab09b449107-4982-81be-c44dc78eef1d/b990b2d6-843f-47b7-9395-bf22967974ff/share?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false", "_blank");
       toast.success("Launching Content Creator", {
@@ -46,6 +55,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       onClose();
     } else {
       try {
+        // Log the activity
+        await logActivity('agent_purchase', {
+          agent_id: agent.id,
+          agent_name: agent.title,
+          price: agent.price,
+          status: 'completed'
+        });
+        
         onPurchase();
         toast.success("Agent hired successfully!", {
           description: "You can now use this agent"
@@ -69,6 +86,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
     
     try {
       console.log("Contacting external agent:", agent.id);
+      
+      // Log the testing activity
+      await logActivity('testing', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        prompt: prompt.trim(),
+        status: 'processing'
+      });
       
       // Call the contact-external-agent edge function
       const { data, error } = await supabase.functions.invoke('contact-external-agent', {
@@ -114,6 +139,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       
       setResponse(formattedResponse);
       
+      // Log successful testing activity
+      await logActivity('testing', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        status: 'completed',
+        success: true
+      });
+      
     } catch (error: any) {
       console.error("Error testing agent:", error);
       
@@ -135,6 +168,15 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
       toast.error("Failed to get response", {
         description: errorMessage
       });
+      
+      // Log failed testing activity
+      await logActivity('testing', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        status: 'failed',
+        error: errorMessage
+      });
+      
     } finally {
       setIsLoading(false);
     }

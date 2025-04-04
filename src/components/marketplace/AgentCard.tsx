@@ -7,6 +7,7 @@ import { Star, Info, ShoppingCart, ExternalLink } from "lucide-react";
 import { AgentDetailsModal } from "./AgentDetailsModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { logActivity } from "@/utils/activityLogger";
 
 interface Agent {
   id: string;
@@ -41,9 +42,17 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleHire = () => {
+  const handleHire = async () => {
     // Check if this is the Content Creator agent
     if (agent.title === "Content Creator" && agent.id === "agent-3") {
+      // Log the activity for Content Creator launch
+      await logActivity('agent_view', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        action: 'launch',
+        status: 'success'
+      });
+      
       // Redirect to the Relevance AI URL
       window.open("https://app.relevanceai.com/agents/f1db6c/eab09b449107-4982-81be-c44dc78eef1d/b990b2d6-843f-47b7-9395-bf22967974ff/share?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false", "_blank");
       
@@ -54,6 +63,14 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
         variant: "default",
       });
     } else {
+      // Log the activity for regular agent hire
+      await logActivity('agent_purchase', {
+        agent_id: agent.id,
+        agent_name: agent.title,
+        price: agent.price,
+        status: 'completed'
+      });
+      
       // For all other agents, show the toast and hire normally
       toast({
         title: "Agent hired",
@@ -65,6 +82,15 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
 
   const handleTryDemo = () => {
     navigate(`/agent/${agent.id}/chat`);
+    
+    // Log the demo activity
+    logActivity('agent_view', {
+      agent_id: agent.id,
+      agent_name: agent.title,
+      action: 'demo',
+      status: 'started'
+    });
+    
     toast({
       title: "Demo started",
       description: "You can now try this agent's functionality.",
