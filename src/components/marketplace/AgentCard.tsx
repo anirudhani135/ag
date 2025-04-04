@@ -131,15 +131,27 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
             </div>
 
             <div className="flex gap-2">
-              <Button
-                variant={agent.price === 0 ? "success" : "primary"}
-                size="sm"
-                className={`flex-1 text-white font-medium ${agent.price === 0 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"}`}
-                onClick={handleHire}
-              >
-                <ShoppingCart className="h-4 w-4 mr-1" />
-                {agent.price === 0 ? "Hire Agent" : "Hire"}
-              </Button>
+              {agent.title === "Content Creator" && agent.id === "agent-3" ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex-1 text-white font-medium bg-purple-600 hover:bg-purple-700"
+                  onClick={handleHire}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Launch
+                </Button>
+              ) : (
+                <Button
+                  variant={agent.price === 0 ? "success" : "primary"}
+                  size="sm"
+                  className={`flex-1 text-white font-medium ${agent.price === 0 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                  onClick={handleHire}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  {agent.price === 0 ? "Hire Agent" : "Hire"}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
