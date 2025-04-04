@@ -44,8 +44,15 @@ export const AgentCard = ({ agent, onClick }: AgentCardProps) => {
   const handleHire = () => {
     // Check if this is the Content Creator agent
     if (agent.title === "Content Creator" && agent.id === "agent-3") {
-      // For Content Creator, open the details modal with Relevance AI iframe
-      setShowDetails(true);
+      // Redirect to the Relevance AI URL
+      window.open("https://app.relevanceai.com/agents/f1db6c/eab09b449107-4982-81be-c44dc78eef1d/b990b2d6-843f-47b7-9395-bf22967974ff/share?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false", "_blank");
+      
+      // Also show a toast notification
+      toast({
+        title: "Launching Content Creator",
+        description: "Opening the Content Creator agent in a new tab.",
+        variant: "default",
+      });
     } else {
       // For all other agents, show the toast and hire normally
       toast({

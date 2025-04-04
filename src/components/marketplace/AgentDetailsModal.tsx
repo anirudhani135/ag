@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -37,14 +36,23 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
   }, [isOpen, agent]);
   
   const handleHire = async () => {
-    try {
-      onPurchase();
-      toast.success("Agent hired successfully!", {
-        description: "You can now use this agent"
+    if (agent.title === "Content Creator" && agent.id === "agent-3") {
+      // For Content Creator, open in a new tab
+      window.open("https://app.relevanceai.com/agents/f1db6c/eab09b449107-4982-81be-c44dc78eef1d/b990b2d6-843f-47b7-9395-bf22967974ff/share?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false", "_blank");
+      toast.success("Launching Content Creator", {
+        description: "Opening the Content Creator agent in a new tab."
       });
-    } catch (error) {
-      console.error("Error hiring agent:", error);
-      toast.error("Failed to hire agent");
+      onClose();
+    } else {
+      try {
+        onPurchase();
+        toast.success("Agent hired successfully!", {
+          description: "You can now use this agent"
+        });
+      } catch (error) {
+        console.error("Error hiring agent:", error);
+        toast.error("Failed to hire agent");
+      }
     }
   };
   
@@ -158,7 +166,14 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose, onPurchase }: AgentD
               </span>
             </div>
             
-            <Button onClick={handleHire}>Hire Agent</Button>
+            {agent.title === "Content Creator" && agent.id === "agent-3" ? (
+              <Button onClick={handleHire} className="bg-purple-600 hover:bg-purple-700">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Launch Content Creator
+              </Button>
+            ) : (
+              <Button onClick={handleHire}>Hire Agent</Button>
+            )}
           </div>
           
           {/* Show Relevance AI iframe for Content Creator */}
