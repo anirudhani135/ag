@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,19 +49,22 @@ const SavedAgents = () => {
       const activityByAgent = {};
       data.forEach(activity => {
         const metadata = activity.metadata || {};
-        const agentId = metadata.agent_id;
-        
-        if (agentId && !activityByAgent[agentId]) {
-          activityByAgent[agentId] = {
-            lastUsed: activity.created_at,
-            usageCount: 1,
-            lastAction: activity.activity_type
-          };
-        } else if (agentId) {
-          activityByAgent[agentId].usageCount++;
-          if (new Date(activity.created_at) > new Date(activityByAgent[agentId].lastUsed)) {
-            activityByAgent[agentId].lastUsed = activity.created_at;
-            activityByAgent[agentId].lastAction = activity.activity_type;
+        // Check if metadata is an object and has agent_id property
+        if (metadata && typeof metadata === 'object' && 'agent_id' in metadata) {
+          const agentId = metadata.agent_id;
+          
+          if (agentId && !activityByAgent[agentId]) {
+            activityByAgent[agentId] = {
+              lastUsed: activity.created_at,
+              usageCount: 1,
+              lastAction: activity.activity_type
+            };
+          } else if (agentId) {
+            activityByAgent[agentId].usageCount++;
+            if (new Date(activity.created_at) > new Date(activityByAgent[agentId].lastUsed)) {
+              activityByAgent[agentId].lastUsed = activity.created_at;
+              activityByAgent[agentId].lastAction = activity.activity_type;
+            }
           }
         }
       });

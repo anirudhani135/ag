@@ -14,6 +14,7 @@ type ActivityType =
   | 'user_login'
   | 'user_logout'
   | 'user_register'
+  | 'testing'
   | 'system_error';
 
 interface ActivityDetails {
