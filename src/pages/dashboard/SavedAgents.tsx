@@ -8,6 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { logActivity } from "@/utils/activityLogger";
 
+// Define interface for activity tracking
+interface AgentActivity {
+  lastUsed: string;
+  usageCount: number;
+  lastAction: string;
+}
+
+interface ActivityByAgentMap {
+  [agentId: string]: AgentActivity;
+}
+
 const SavedAgents = () => {
   const { data: savedAgents, isLoading } = useQuery({
     queryKey: ['saved-agents-full'],
@@ -46,24 +57,29 @@ const SavedAgents = () => {
         
       if (error) throw error;
       
-      const activityByAgent = {};
+      const activityByAgent: ActivityByAgentMap = {};
+      
       data.forEach(activity => {
         const metadata = activity.metadata || {};
+        
         // Check if metadata is an object and has agent_id property
         if (metadata && typeof metadata === 'object' && 'agent_id' in metadata) {
-          const agentId = metadata.agent_id;
+          // Ensure agent_id is a string before using as an index
+          const agentId = String(metadata.agent_id);
           
-          if (agentId && !activityByAgent[agentId]) {
-            activityByAgent[agentId] = {
-              lastUsed: activity.created_at,
-              usageCount: 1,
-              lastAction: activity.activity_type
-            };
-          } else if (agentId) {
-            activityByAgent[agentId].usageCount++;
-            if (new Date(activity.created_at) > new Date(activityByAgent[agentId].lastUsed)) {
-              activityByAgent[agentId].lastUsed = activity.created_at;
-              activityByAgent[agentId].lastAction = activity.activity_type;
+          if (agentId) {
+            if (!activityByAgent[agentId]) {
+              activityByAgent[agentId] = {
+                lastUsed: activity.created_at,
+                usageCount: 1,
+                lastAction: activity.activity_type
+              };
+            } else {
+              activityByAgent[agentId].usageCount++;
+              if (new Date(activity.created_at) > new Date(activityByAgent[agentId].lastUsed)) {
+                activityByAgent[agentId].lastUsed = activity.created_at;
+                activityByAgent[agentId].lastAction = activity.activity_type;
+              }
             }
           }
         }
